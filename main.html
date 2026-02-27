@@ -247,34 +247,40 @@
     const LOCAL_CONTROL_I18N = {
       zh: {
         title: '本地 WiFi 控制提示',
-        description: '当前页面通过 HTTPS 打开，浏览器可能会拦截对设备的 ws:// 连接（例如 {ip}:81）。建议下载并使用本地版进行 WiFi 控制。',
-        alreadyDownloaded: '已检测到你之前下载过本地版，可直接打开本地版。',
+        description: '当前页面通过 HTTPS 打开，浏览器可能会拦截对设备的 ws:// 连接（例如 {ip}:81）。',
+        localOptions: '可选本地方式：\n1) 文件版：下载并解压后双击 main.html（地址栏显示 file:///）\n2) 助手版：启动本地助手后访问 {runtime}',
+        alreadyDownloaded: '已检测到你之前下载过本地版。',
         download: '下载本地版',
-        openLocal: '打开本地版',
-        alreadyInstalled: '我已安装，打开本地版',
-        downloadAgain: '重新下载',
+        openRuntime: '打开本地助手 (127.0.0.1)',
+        alreadyInstalled: '我已安装本地助手',
+        fileMode: '我使用 file:// 文件版',
+        fileModeGuide: '请在本地解压目录中双击 main.html 打开（地址栏应为 file:///）。\n若使用本地助手版，请访问：{runtime}',
         useUsb: '改用 USB 控制',
         cancel: '取消'
       },
       en: {
         title: 'Local WiFi Control Required',
-        description: 'This page is opened via HTTPS. Browsers may block ws:// device connections (for example {ip}:81). Please use the local version for WiFi control.',
-        alreadyDownloaded: 'A previous local download was detected. You can open the local version directly.',
+        description: 'This page is opened via HTTPS. Browsers may block ws:// device connections (for example {ip}:81).',
+        localOptions: 'Local options:\n1) File mode: unzip and open main.html directly (address bar shows file:///)\n2) Runtime mode: start local helper and open {runtime}',
+        alreadyDownloaded: 'A previous local download was detected.',
         download: 'Download Local Version',
-        openLocal: 'Open Local Version',
-        alreadyInstalled: 'I already installed it',
-        downloadAgain: 'Download Again',
+        openRuntime: 'Open Local Runtime (127.0.0.1)',
+        alreadyInstalled: 'I already installed the runtime',
+        fileMode: 'I use file:// mode',
+        fileModeGuide: 'Please open main.html from your local extracted folder (address bar should be file:///).\nIf you use runtime mode, open: {runtime}',
         useUsb: 'Use USB Instead',
         cancel: 'Cancel'
       },
       ja: {
         title: 'ローカル WiFi 制御が必要です',
-        description: 'このページは HTTPS で開かれています。ブラウザは ws:// デバイス接続（例: {ip}:81）をブロックする場合があります。WiFi 制御にはローカル版をご利用ください。',
-        alreadyDownloaded: '以前にローカル版をダウンロードした記録があります。ローカル版を直接開けます。',
+        description: 'このページは HTTPS で開かれています。ブラウザは ws:// デバイス接続（例: {ip}:81）をブロックする場合があります。',
+        localOptions: 'ローカル利用の方法：\n1) ファイル版：解凍後に main.html を直接開く（アドレスは file:///）\n2) ヘルパー版：ローカルヘルパー起動後に {runtime} を開く',
+        alreadyDownloaded: '以前にローカル版をダウンロードした記録があります。',
         download: 'ローカル版をダウンロード',
-        openLocal: 'ローカル版を開く',
-        alreadyInstalled: 'インストール済みとして開く',
-        downloadAgain: '再ダウンロード',
+        openRuntime: 'ローカルヘルパーを開く (127.0.0.1)',
+        alreadyInstalled: 'ローカルヘルパーはインストール済み',
+        fileMode: 'file:// ファイル版を使う',
+        fileModeGuide: 'ローカルで解凍したフォルダの main.html を開いてください（アドレスは file:/// になります）。\nヘルパー版を使う場合は {runtime} を開いてください。',
         useUsb: 'USB を使用する',
         cancel: 'キャンセル'
       }
@@ -355,6 +361,12 @@
       window.open(LOCAL_CONTROL_DOWNLOAD_URL, '_blank', 'noopener,noreferrer');
     }
 
+    function showLocalFileModeGuide()
+    {
+      const message = getLocalControlText('fileModeGuide').replace('{runtime}', LOCAL_CONTROL_RUNTIME_URL);
+      alert(message);
+    }
+
     async function showLocalControlDialog(ip)
     {
       return new Promise((resolve) =>
@@ -387,9 +399,16 @@
 
         const description = document.createElement('p');
         description.style.color = '#666';
-        description.style.marginBottom = '12px';
+        description.style.marginBottom = '8px';
         description.style.fontSize = '14px';
         description.textContent = getLocalControlText('description').replace('{ip}', ip || '192.168.x.x');
+
+        const optionsHint = document.createElement('p');
+        optionsHint.style.color = '#666';
+        optionsHint.style.marginBottom = '12px';
+        optionsHint.style.fontSize = '13px';
+        optionsHint.style.whiteSpace = 'pre-line';
+        optionsHint.textContent = getLocalControlText('localOptions').replace('{runtime}', LOCAL_CONTROL_RUNTIME_URL);
 
         const statusHint = document.createElement('p');
         statusHint.style.color = '#666';
@@ -424,11 +443,11 @@
 
         const primaryButton = document.createElement('button');
         styleDialogButton(primaryButton, true);
-        primaryButton.textContent = hasDownloaded ? getLocalControlText('openLocal') : getLocalControlText('download');
+        primaryButton.textContent = hasDownloaded ? getLocalControlText('openRuntime') : getLocalControlText('download');
 
         const secondaryButton = document.createElement('button');
         styleDialogButton(secondaryButton, false);
-        secondaryButton.textContent = hasDownloaded ? getLocalControlText('downloadAgain') : getLocalControlText('alreadyInstalled');
+        secondaryButton.textContent = hasDownloaded ? getLocalControlText('fileMode') : getLocalControlText('alreadyInstalled');
 
         const usbButton = document.createElement('button');
         styleDialogButton(usbButton, false);
@@ -459,9 +478,9 @@
         {
           if (hasDownloaded)
           {
-            openLocalControlDownload();
             closeLocalControlDialog();
-            resolve('download_again');
+            showLocalFileModeGuide();
+            resolve('use_file');
             return;
           }
 
@@ -496,6 +515,7 @@
 
         dialog.appendChild(title);
         dialog.appendChild(description);
+        dialog.appendChild(optionsHint);
         if (hasDownloaded)
         {
           dialog.appendChild(statusHint);
