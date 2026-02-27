@@ -32,7 +32,7 @@
       <div class="version-date" id="versionDate"></div>
       <div class="language-switch">
         <button id="zhBtn" class="lang-btn" onclick="setLanguage('zh')">中文</button>
-        <button id="enBtn" class="lang-btn active" onclick="setLanguage('en')">English</button>
+        <button id="enBtn" class="lang-btn" onclick="setLanguage('en')">English</button>
         <button id="jaBtn" class="lang-btn" onclick="setLanguage('ja')">日本語</button>
       </div>
     </div>
@@ -662,6 +662,9 @@
       cleanupResidualDialogs();
 
       const initialLang = getInitialLanguage();
+
+      // 先同步设置语言按钮，避免语言文件异步加载期间出现错误高亮
+      updateLanguageButtons(initialLang);
 
       // 先动态加载语言文件，再进行其他初始化
       loadLanguageFile(initialLang, function ()
