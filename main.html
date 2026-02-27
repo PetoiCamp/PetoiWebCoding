@@ -239,6 +239,316 @@
       }
     }
 
+    const LOCAL_CONTROL_STATUS_KEY = 'petoiLocalControlStatus';
+    const LOCAL_CONTROL_DOWNLOAD_URL = 'https://github.com/PetoiCamp/PetoiWebCoding/releases/latest';
+    const LOCAL_CONTROL_RUNTIME_URL = 'http://127.0.0.1:8866/';
+    const LOCAL_CONTROL_STATUS_DOWNLOADED = 'downloaded';
+    const LOCAL_CONTROL_STATUS_INSTALLED = 'installed';
+    const LOCAL_CONTROL_I18N = {
+      zh: {
+        title: '本地 WiFi 控制提示',
+        description: '当前页面通过 HTTPS 打开，浏览器可能会拦截对设备的 ws:// 连接（例如 {ip}:81）。',
+        localOptions: '可选本地方式：\n1) 文件版：下载并解压后双击 main.html（地址栏显示 file:///）\n2) 助手版：启动本地助手后访问 {runtime}',
+        alreadyDownloaded: '已检测到你之前下载过本地版。',
+        download: '下载本地版',
+        openRuntime: '打开本地助手 (127.0.0.1)',
+        alreadyInstalled: '我已安装本地助手',
+        fileMode: '我使用 file:// 文件版',
+        fileModeGuide: '请在本地解压目录中双击 main.html 打开（地址栏应为 file:///）。\n若使用本地助手版，请访问：{runtime}',
+        useUsb: '改用 USB 控制',
+        cancel: '取消'
+      },
+      en: {
+        title: 'Local WiFi Control Required',
+        description: 'This page is opened via HTTPS. Browsers may block ws:// device connections (for example {ip}:81).',
+        localOptions: 'Local options:\n1) File mode: unzip and open main.html directly (address bar shows file:///)\n2) Runtime mode: start local helper and open {runtime}',
+        alreadyDownloaded: 'A previous local download was detected.',
+        download: 'Download Local Version',
+        openRuntime: 'Open Local Runtime (127.0.0.1)',
+        alreadyInstalled: 'I already installed the runtime',
+        fileMode: 'I use file:// mode',
+        fileModeGuide: 'Please open main.html from your local extracted folder (address bar should be file:///).\nIf you use runtime mode, open: {runtime}',
+        useUsb: 'Use USB Instead',
+        cancel: 'Cancel'
+      },
+      ja: {
+        title: 'ローカル WiFi 制御が必要です',
+        description: 'このページは HTTPS で開かれています。ブラウザは ws:// デバイス接続（例: {ip}:81）をブロックする場合があります。',
+        localOptions: 'ローカル利用の方法：\n1) ファイル版：解凍後に main.html を直接開く（アドレスは file:///）\n2) ヘルパー版：ローカルヘルパー起動後に {runtime} を開く',
+        alreadyDownloaded: '以前にローカル版をダウンロードした記録があります。',
+        download: 'ローカル版をダウンロード',
+        openRuntime: 'ローカルヘルパーを開く (127.0.0.1)',
+        alreadyInstalled: 'ローカルヘルパーはインストール済み',
+        fileMode: 'file:// ファイル版を使う',
+        fileModeGuide: 'ローカルで解凍したフォルダの main.html を開いてください（アドレスは file:/// になります）。\nヘルパー版を使う場合は {runtime} を開いてください。',
+        useUsb: 'USB を使用する',
+        cancel: 'キャンセル'
+      }
+    };
+
+    function getLocalControlText(key)
+    {
+      const lang = (typeof currentLang === 'string' && LOCAL_CONTROL_I18N[currentLang]) ? currentLang : 'en';
+      return (LOCAL_CONTROL_I18N[lang] && LOCAL_CONTROL_I18N[lang][key]) || (LOCAL_CONTROL_I18N.en && LOCAL_CONTROL_I18N.en[key]) || key;
+    }
+
+    function getLocalControlStatus()
+    {
+      try
+      {
+        const value = localStorage.getItem(LOCAL_CONTROL_STATUS_KEY);
+        if (value === LOCAL_CONTROL_STATUS_DOWNLOADED || value === LOCAL_CONTROL_STATUS_INSTALLED)
+        {
+          return value;
+        }
+      } catch (error)
+      {
+        if (typeof showDebug !== 'undefined' && showDebug)
+        {
+          console.warn('Failed to read local control status:', error);
+        }
+      }
+      return '';
+    }
+
+    function setLocalControlStatus(status)
+    {
+      if (status !== LOCAL_CONTROL_STATUS_DOWNLOADED && status !== LOCAL_CONTROL_STATUS_INSTALLED)
+      {
+        return;
+      }
+      try
+      {
+        localStorage.setItem(LOCAL_CONTROL_STATUS_KEY, status);
+      } catch (error)
+      {
+        if (typeof showDebug !== 'undefined' && showDebug)
+        {
+          console.warn('Failed to persist local control status:', error);
+        }
+      }
+    }
+
+    function isLikelyIPv4Address(ip)
+    {
+      if (!ip || typeof ip !== 'string')
+      {
+        return false;
+      }
+      return /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip);
+    }
+
+    function shouldSuggestLocalControlForWifi(ip)
+    {
+      return window.location.protocol === 'https:' && isLikelyIPv4Address(ip);
+    }
+
+    function closeLocalControlDialog()
+    {
+      const dialog = document.querySelector('.local-control-dialog');
+      const overlay = document.querySelector('.local-control-overlay');
+      if (dialog) dialog.remove();
+      if (overlay) overlay.remove();
+    }
+
+    function openLocalControlRuntime()
+    {
+      window.open(LOCAL_CONTROL_RUNTIME_URL, '_blank', 'noopener,noreferrer');
+    }
+
+    function openLocalControlDownload()
+    {
+      window.open(LOCAL_CONTROL_DOWNLOAD_URL, '_blank', 'noopener,noreferrer');
+    }
+
+    function showLocalFileModeGuide()
+    {
+      const message = getLocalControlText('fileModeGuide').replace('{runtime}', LOCAL_CONTROL_RUNTIME_URL);
+      alert(message);
+    }
+
+    async function showLocalControlDialog(ip)
+    {
+      return new Promise((resolve) =>
+      {
+        closeLocalControlDialog();
+        const status = getLocalControlStatus();
+        const hasDownloaded = status === LOCAL_CONTROL_STATUS_DOWNLOADED || status === LOCAL_CONTROL_STATUS_INSTALLED;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'overlay local-control-overlay';
+        document.body.appendChild(overlay);
+
+        const dialog = document.createElement('div');
+        dialog.className = 'local-control-dialog';
+        dialog.style.position = 'fixed';
+        dialog.style.top = '50%';
+        dialog.style.left = '50%';
+        dialog.style.transform = 'translate(-50%, -50%)';
+        dialog.style.backgroundColor = '#fff';
+        dialog.style.padding = '20px';
+        dialog.style.borderRadius = '10px';
+        dialog.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.2)';
+        dialog.style.zIndex = '1001';
+        dialog.style.width = 'min(440px, calc(100vw - 40px))';
+        dialog.style.maxWidth = '440px';
+
+        const title = document.createElement('h3');
+        title.textContent = getLocalControlText('title');
+        title.style.marginTop = '0';
+
+        const description = document.createElement('p');
+        description.style.color = '#666';
+        description.style.marginBottom = '8px';
+        description.style.fontSize = '14px';
+        description.textContent = getLocalControlText('description').replace('{ip}', ip || '192.168.x.x');
+
+        const optionsHint = document.createElement('p');
+        optionsHint.style.color = '#666';
+        optionsHint.style.marginBottom = '12px';
+        optionsHint.style.fontSize = '13px';
+        optionsHint.style.whiteSpace = 'pre-line';
+        optionsHint.textContent = getLocalControlText('localOptions').replace('{runtime}', LOCAL_CONTROL_RUNTIME_URL);
+
+        const statusHint = document.createElement('p');
+        statusHint.style.color = '#666';
+        statusHint.style.marginBottom = '16px';
+        statusHint.style.fontSize = '13px';
+        statusHint.textContent = hasDownloaded ? getLocalControlText('alreadyDownloaded') : '';
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.flexWrap = 'wrap';
+        buttonContainer.style.gap = '8px';
+        buttonContainer.style.justifyContent = 'flex-end';
+
+        function styleDialogButton(button, isPrimary = false)
+        {
+          button.style.border = '0';
+          button.style.padding = '8px 12px';
+          button.style.borderRadius = '6px';
+          button.style.cursor = 'pointer';
+          button.style.fontSize = '13px';
+          button.style.fontWeight = '500';
+          if (isPrimary)
+          {
+            button.style.background = '#2d6cdf';
+            button.style.color = '#fff';
+          } else
+          {
+            button.style.background = '#f0f2f5';
+            button.style.color = '#333';
+          }
+        }
+
+        const primaryButton = document.createElement('button');
+        styleDialogButton(primaryButton, true);
+        primaryButton.textContent = hasDownloaded ? getLocalControlText('openRuntime') : getLocalControlText('download');
+
+        const secondaryButton = document.createElement('button');
+        styleDialogButton(secondaryButton, false);
+        secondaryButton.textContent = hasDownloaded ? getLocalControlText('fileMode') : getLocalControlText('alreadyInstalled');
+
+        const usbButton = document.createElement('button');
+        styleDialogButton(usbButton, false);
+        usbButton.textContent = getLocalControlText('useUsb');
+
+        const closeButton = document.createElement('button');
+        styleDialogButton(closeButton, false);
+        closeButton.textContent = getLocalControlText('cancel');
+
+        primaryButton.addEventListener('click', () =>
+        {
+          if (hasDownloaded)
+          {
+            setLocalControlStatus(LOCAL_CONTROL_STATUS_INSTALLED);
+            openLocalControlRuntime();
+            closeLocalControlDialog();
+            resolve('open_local');
+            return;
+          }
+
+          setLocalControlStatus(LOCAL_CONTROL_STATUS_DOWNLOADED);
+          openLocalControlDownload();
+          closeLocalControlDialog();
+          resolve('download');
+        });
+
+        secondaryButton.addEventListener('click', () =>
+        {
+          if (hasDownloaded)
+          {
+            closeLocalControlDialog();
+            showLocalFileModeGuide();
+            resolve('use_file');
+            return;
+          }
+
+          setLocalControlStatus(LOCAL_CONTROL_STATUS_INSTALLED);
+          openLocalControlRuntime();
+          closeLocalControlDialog();
+          resolve('open_local');
+        });
+
+        usbButton.addEventListener('click', () =>
+        {
+          closeLocalControlDialog();
+          resolve('use_usb');
+        });
+
+        closeButton.addEventListener('click', () =>
+        {
+          closeLocalControlDialog();
+          resolve('cancel');
+        });
+
+        overlay.addEventListener('click', () =>
+        {
+          closeLocalControlDialog();
+          resolve('cancel');
+        });
+
+        buttonContainer.appendChild(closeButton);
+        buttonContainer.appendChild(usbButton);
+        buttonContainer.appendChild(secondaryButton);
+        buttonContainer.appendChild(primaryButton);
+
+        dialog.appendChild(title);
+        dialog.appendChild(description);
+        dialog.appendChild(optionsHint);
+        if (hasDownloaded)
+        {
+          dialog.appendChild(statusHint);
+        }
+        dialog.appendChild(buttonContainer);
+        document.body.appendChild(dialog);
+      });
+    }
+
+    async function ensureWifiAccessAllowed(ip)
+    {
+      if (!shouldSuggestLocalControlForWifi(ip))
+      {
+        return true;
+      }
+
+      const action = await showLocalControlDialog(ip);
+      if (action === 'use_usb')
+      {
+        try
+        {
+          await openSerialPort();
+        } catch (error)
+        {
+          if (typeof showDebug !== 'undefined' && showDebug)
+          {
+            console.warn('USB fallback failed while handling local control dialog:', error);
+          }
+        }
+      }
+      return false;
+    }
+
     // 尝试使用配置的IP地址连接
     async function tryConnectWithConfigIP()
     {
@@ -279,6 +589,12 @@
 
       try
       {
+        const allowWifi = await ensureWifiAccessAllowed(config.lastKnownIP);
+        if (!allowWifi)
+        {
+          return 'blocked';
+        }
+
         // 尝试使用配置的IP地址创建WebSocket连接
         const testClient = new PetoiAsyncClient(`ws://${config.lastKnownIP}:81`);
         await testClient.connect();
@@ -1244,21 +1560,40 @@
         handleWifiConnection(false).then(() =>
         {
           // quick connect完成后，延迟1秒再执行runCode
-          setTimeout(() =>
+          setTimeout(async () =>
           {
+            const allowWifi = await ensureWifiAccessAllowed(currentDeviceIP || blockIP);
+            if (!allowWifi)
+            {
+              return;
+            }
             executeRunCode();
           }, 1000);
         }).catch((error) =>
         {
           console.error(getText("quickConnectFailed") + ":", error);
           // 即使quick connect失败，也尝试执行runCode
-          executeRunCode();
+          ensureWifiAccessAllowed(currentDeviceIP || blockIP).then((allowWifi) =>
+          {
+            if (!allowWifi)
+            {
+              return;
+            }
+            executeRunCode();
+          });
         });
         return;
       }
 
       // 直接执行runCode
-      executeRunCode();
+      ensureWifiAccessAllowed(blockIP).then((allowWifi) =>
+      {
+        if (!allowWifi)
+        {
+          return;
+        }
+        executeRunCode();
+      });
     }
 
     function stopCode()
@@ -1384,6 +1719,12 @@ async function serialRequest(command, timeout = 5000, isRest = false, expectedRe
         if (showDebug) console.log(getText("tryingWiFiConnection") + ": " + currentDeviceIP);
         
         // 创建WebSocket连接
+        if (typeof ensureWifiAccessAllowed === 'function') {
+          const allowWifi = await ensureWifiAccessAllowed(currentDeviceIP);
+          if (!allowWifi) {
+            throw new Error(getText("webSocketConnectionUnavailable"));
+          }
+        }
         if (window.petoiClient) {
           await window.petoiClient.disconnect();
         }
@@ -1518,6 +1859,12 @@ async function serialRequest(command, timeout = 5000, isRest = false, expectedRe
       try {
         if (showDebug) console.log(getText("serialSendFailedTryWiFi") + ": " + currentDeviceIP);
         
+        if (typeof ensureWifiAccessAllowed === 'function') {
+          const allowWifi = await ensureWifiAccessAllowed(currentDeviceIP);
+          if (!allowWifi) {
+            throw new Error(getText("webSocketConnectionUnavailable"));
+          }
+        }
         if (window.petoiClient) {
           await window.petoiClient.disconnect();
         }
@@ -1945,6 +2292,12 @@ async function webRequest(command, timeout = 5000, isRest = false, expectedRespo
 
 // WebSocket连接函数
 async function makeConnection(ip) {
+  if (typeof ensureWifiAccessAllowed === 'function') {
+    const allowWifi = await ensureWifiAccessAllowed(ip);
+    if (!allowWifi) {
+      throw new Error(getText("webSocketConnectionUnavailable"));
+    }
+  }
   if (window.petoiClient) {
     await window.petoiClient.disconnect();
   }
@@ -4256,6 +4609,11 @@ Generated at: ${now.toISOString()}
 
           // 串口连接失败，尝试使用配置文件中的IP地址
           const connectedWithConfig = await tryConnectWithConfigIP();
+
+          if (connectedWithConfig === 'blocked')
+          {
+            return;
+          }
 
           if (!connectedWithConfig)
           {
