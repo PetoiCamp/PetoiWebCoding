@@ -335,6 +335,11 @@
       return window.location.protocol === 'https:' && isLikelyIPv4Address(ip);
     }
 
+    function hasActiveSerialConnection()
+    {
+      return !!(writer && port && port.readable && port.writable);
+    }
+
     function closeLocalControlDialog()
     {
       const dialog = document.querySelector('.local-control-dialog');
@@ -523,7 +528,10 @@
       {
         try
         {
-          await openSerialPort();
+          if (!hasActiveSerialConnection())
+          {
+            await openSerialPort();
+          }
         } catch (error)
         {
           if (typeof showDebug !== 'undefined' && showDebug)
@@ -1498,7 +1506,7 @@
       }
 
       // 检查是否有有效的串口连接
-      const hasValidSerial = writer && port && port.readable && port.writable;
+      const hasValidSerial = hasActiveSerialConnection();
 
       // 检查WebSocket连接状态（通过window.client和currentDeviceIP判断）
       const hasValidWebSocket = (typeof window.client !== 'undefined' && window.client && 
@@ -1548,9 +1556,21 @@
           // quick connect完成后，延迟1秒再执行runCode
           setTimeout(async () =>
           {
+            // 串口已连接时，直接执行（避免进入 HTTPS WiFi 提示循环）
+            if (hasActiveSerialConnection())
+            {
+              executeRunCode();
+              return;
+            }
+
             const allowWifi = await ensureWifiAccessAllowed(currentDeviceIP || blockIP);
             if (!allowWifi)
             {
+              // 用户在提示中改为 USB 后，串口已连接则直接执行
+              if (hasActiveSerialConnection())
+              {
+                executeRunCode();
+              }
               return;
             }
             executeRunCode();
@@ -1563,6 +1583,10 @@
           {
             if (!allowWifi)
             {
+              if (hasActiveSerialConnection())
+              {
+                executeRunCode();
+              }
               return;
             }
             executeRunCode();
@@ -1576,6 +1600,10 @@
       {
         if (!allowWifi)
         {
+          if (hasActiveSerialConnection())
+          {
+            executeRunCode();
+          }
           return;
         }
         executeRunCode();
