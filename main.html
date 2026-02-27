@@ -524,25 +524,115 @@
       workspace.addChangeListener(handleWorkspaceEvent);
     }
 
-    // 切换语言
-    function setLanguage(lang)
-    {
-      if (isChangingLanguage || currentLang === lang) return;
-      isChangingLanguage = true;
+    const LANGUAGE_STORAGE_KEY = 'petoiPreferredLang';
 
-      // 更新按钮样式
+    function normalizeLanguageCode(lang)
+    {
+      if (!lang || typeof lang !== 'string')
+      {
+        return '';
+      }
+
+      const normalized = lang.toLowerCase();
+      if (normalized.startsWith('zh'))
+      {
+        return 'zh';
+      }
+      if (normalized.startsWith('en'))
+      {
+        return 'en';
+      }
+      if (normalized.startsWith('ja'))
+      {
+        return 'ja';
+      }
+      return '';
+    }
+
+    function persistLanguagePreference(lang)
+    {
+      try
+      {
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+      } catch (error)
+      {
+        if (typeof showDebug !== 'undefined' && showDebug)
+        {
+          console.warn('Failed to persist language preference:', error);
+        }
+      }
+    }
+
+    function updateLanguageButtons(lang)
+    {
       document.getElementById('zhBtn').classList.toggle('active', lang === 'zh');
       document.getElementById('enBtn').classList.toggle('active', lang === 'en');
       document.getElementById('jaBtn').classList.toggle('active', lang === 'ja');
+    }
+
+    function getInitialLanguage()
+    {
+      let urlLang = '';
+      try
+      {
+        const params = new URLSearchParams(window.location.search);
+        urlLang = normalizeLanguageCode(params.get('lang'));
+      } catch (error)
+      {
+        if (typeof showDebug !== 'undefined' && showDebug)
+        {
+          console.warn('Failed to parse URL language parameter:', error);
+        }
+      }
+
+      if (urlLang)
+      {
+        persistLanguagePreference(urlLang);
+        return urlLang;
+      }
+
+      try
+      {
+        const storedLang = normalizeLanguageCode(localStorage.getItem(LANGUAGE_STORAGE_KEY));
+        if (storedLang)
+        {
+          return storedLang;
+        }
+      } catch (error)
+      {
+        if (typeof showDebug !== 'undefined' && showDebug)
+        {
+          console.warn('Failed to read language preference:', error);
+        }
+      }
+
+      const browserLang = normalizeLanguageCode(navigator.language || ((navigator.languages && navigator.languages[0]) || ''));
+      return browserLang || 'en';
+    }
+
+    // 切换语言
+    function setLanguage(lang)
+    {
+      const normalizedLang = normalizeLanguageCode(lang);
+      if (!normalizedLang)
+      {
+        return;
+      }
+      if (isChangingLanguage || currentLang === normalizedLang) return;
+      isChangingLanguage = true;
+
+      // 更新按钮样式
+      updateLanguageButtons(normalizedLang);
 
       // 保存当前工作区状态
       const workspaceState = saveCurrentWorkspace();
 
       // 加载相应语言文件
-      loadLanguageFile(lang, function ()
+      loadLanguageFile(normalizedLang, function ()
       {
         // 设置当前语言
-        currentLang = lang;
+        currentLang = normalizedLang;
+        persistLanguagePreference(normalizedLang);
 
         // 重新注入工作区
         workspace.dispose();
@@ -565,17 +655,20 @@
       });
     }
 
-    // 初始化时设置默认语言为英文
+    // 初始化时根据 URL、缓存或浏览器语言设置默认语言
     window.addEventListener('DOMContentLoaded', function ()
     {
       // 清理可能存在的残留对话框
       cleanupResidualDialogs();
 
-      // 确保先动态加载英文语言文件，再进行其他初始化
-      loadLanguageFile('en', function ()
+      const initialLang = getInitialLanguage();
+
+      // 先动态加载语言文件，再进行其他初始化
+      loadLanguageFile(initialLang, function ()
       {
-        // 设置当前语言为英文
-        currentLang = 'en';
+        // 设置当前语言
+        currentLang = initialLang;
+        persistLanguagePreference(initialLang);
 
         initWorkspace();
 
@@ -613,9 +706,7 @@
         resetWorkspace();
 
         // 更新按钮状态
-        document.getElementById('zhBtn').classList.toggle('active', false);
-        document.getElementById('enBtn').classList.toggle('active', true);
-        document.getElementById('jaBtn').classList.toggle('active', false);
+        updateLanguageButtons(initialLang);
 
         // 加载配置文件
         loadConfig();
