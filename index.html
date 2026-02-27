@@ -189,8 +189,7 @@
         console.warn("Failed to read stored language:", error);
       }
 
-      const browserLang = normalizeLanguageCode(navigator.language || ((navigator.languages && navigator.languages[0]) || ""));
-      return browserLang || "en";
+      return "en";
     }
 
     let currentLang = getInitialLanguage();
