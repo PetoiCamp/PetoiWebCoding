@@ -241,46 +241,38 @@
 
     const LOCAL_CONTROL_STATUS_KEY = 'petoiLocalControlStatus';
     const LOCAL_CONTROL_DOWNLOAD_URL = 'https://github.com/PetoiCamp/PetoiWebCoding/releases/latest';
-    const LOCAL_CONTROL_RUNTIME_URL = 'http://127.0.0.1:8866/';
     const LOCAL_CONTROL_STATUS_DOWNLOADED = 'downloaded';
-    const LOCAL_CONTROL_STATUS_INSTALLED = 'installed';
     const LOCAL_CONTROL_I18N = {
       zh: {
         title: '本地 WiFi 控制提示',
         description: '当前页面通过 HTTPS 打开，浏览器可能会拦截对设备的 ws:// 连接（例如 {ip}:81）。',
-        localOptions: '可选本地方式：\n1) 文件版：下载并解压后双击 main.html（地址栏显示 file:///）\n2) 助手版：启动本地助手后访问 {runtime}',
-        alreadyDownloaded: '已检测到你之前下载过本地版。',
+        localOptions: '推荐本地文件版：下载并解压后，双击 main.html 打开（地址栏显示 file:///）。',
+        alreadyDownloaded: '已检测到你之前下载过本地文件版。',
         download: '下载本地版',
-        openRuntime: '打开本地助手 (127.0.0.1)',
-        alreadyInstalled: '我已安装本地助手',
-        fileMode: '我使用 file:// 文件版',
-        fileModeGuide: '请在本地解压目录中双击 main.html 打开（地址栏应为 file:///）。\n若使用本地助手版，请访问：{runtime}',
+        fileMode: '查看 file:// 使用说明',
+        fileModeGuide: '请在本地解压目录中双击 main.html 打开（地址栏应为 file:///）。',
         useUsb: '改用 USB 控制',
         cancel: '取消'
       },
       en: {
         title: 'Local WiFi Control Required',
         description: 'This page is opened via HTTPS. Browsers may block ws:// device connections (for example {ip}:81).',
-        localOptions: 'Local options:\n1) File mode: unzip and open main.html directly (address bar shows file:///)\n2) Runtime mode: start local helper and open {runtime}',
-        alreadyDownloaded: 'A previous local download was detected.',
+        localOptions: 'Recommended local file mode: download and unzip, then open main.html directly (address bar shows file:///).',
+        alreadyDownloaded: 'A previous local file download was detected.',
         download: 'Download Local Version',
-        openRuntime: 'Open Local Runtime (127.0.0.1)',
-        alreadyInstalled: 'I already installed the runtime',
-        fileMode: 'I use file:// mode',
-        fileModeGuide: 'Please open main.html from your local extracted folder (address bar should be file:///).\nIf you use runtime mode, open: {runtime}',
+        fileMode: 'Show file:// usage guide',
+        fileModeGuide: 'Please open main.html from your local extracted folder (address bar should be file:///).',
         useUsb: 'Use USB Instead',
         cancel: 'Cancel'
       },
       ja: {
         title: 'ローカル WiFi 制御が必要です',
         description: 'このページは HTTPS で開かれています。ブラウザは ws:// デバイス接続（例: {ip}:81）をブロックする場合があります。',
-        localOptions: 'ローカル利用の方法：\n1) ファイル版：解凍後に main.html を直接開く（アドレスは file:///）\n2) ヘルパー版：ローカルヘルパー起動後に {runtime} を開く',
-        alreadyDownloaded: '以前にローカル版をダウンロードした記録があります。',
+        localOptions: '推奨ローカルファイル版：ダウンロードして解凍後、main.html を直接開いてください（アドレスは file:///）。',
+        alreadyDownloaded: '以前にローカルファイル版をダウンロードした記録があります。',
         download: 'ローカル版をダウンロード',
-        openRuntime: 'ローカルヘルパーを開く (127.0.0.1)',
-        alreadyInstalled: 'ローカルヘルパーはインストール済み',
-        fileMode: 'file:// ファイル版を使う',
-        fileModeGuide: 'ローカルで解凍したフォルダの main.html を開いてください（アドレスは file:/// になります）。\nヘルパー版を使う場合は {runtime} を開いてください。',
+        fileMode: 'file:// の使い方を見る',
+        fileModeGuide: 'ローカルで解凍したフォルダの main.html を開いてください（アドレスは file:/// になります）。',
         useUsb: 'USB を使用する',
         cancel: 'キャンセル'
       }
@@ -297,7 +289,7 @@
       try
       {
         const value = localStorage.getItem(LOCAL_CONTROL_STATUS_KEY);
-        if (value === LOCAL_CONTROL_STATUS_DOWNLOADED || value === LOCAL_CONTROL_STATUS_INSTALLED)
+        if (value === LOCAL_CONTROL_STATUS_DOWNLOADED)
         {
           return value;
         }
@@ -313,7 +305,7 @@
 
     function setLocalControlStatus(status)
     {
-      if (status !== LOCAL_CONTROL_STATUS_DOWNLOADED && status !== LOCAL_CONTROL_STATUS_INSTALLED)
+      if (status !== LOCAL_CONTROL_STATUS_DOWNLOADED)
       {
         return;
       }
@@ -351,11 +343,6 @@
       if (overlay) overlay.remove();
     }
 
-    function openLocalControlRuntime()
-    {
-      window.open(LOCAL_CONTROL_RUNTIME_URL, '_blank', 'noopener,noreferrer');
-    }
-
     function openLocalControlDownload()
     {
       window.open(LOCAL_CONTROL_DOWNLOAD_URL, '_blank', 'noopener,noreferrer');
@@ -363,7 +350,7 @@
 
     function showLocalFileModeGuide()
     {
-      const message = getLocalControlText('fileModeGuide').replace('{runtime}', LOCAL_CONTROL_RUNTIME_URL);
+      const message = getLocalControlText('fileModeGuide');
       alert(message);
     }
 
@@ -373,7 +360,7 @@
       {
         closeLocalControlDialog();
         const status = getLocalControlStatus();
-        const hasDownloaded = status === LOCAL_CONTROL_STATUS_DOWNLOADED || status === LOCAL_CONTROL_STATUS_INSTALLED;
+        const hasDownloaded = status === LOCAL_CONTROL_STATUS_DOWNLOADED;
 
         const overlay = document.createElement('div');
         overlay.className = 'overlay local-control-overlay';
@@ -409,7 +396,7 @@
         optionsHint.style.marginBottom = '12px';
         optionsHint.style.fontSize = '13px';
         optionsHint.style.whiteSpace = 'pre-line';
-        optionsHint.textContent = getLocalControlText('localOptions').replace('{runtime}', LOCAL_CONTROL_RUNTIME_URL);
+        optionsHint.textContent = getLocalControlText('localOptions');
 
         const statusHint = document.createElement('p');
         statusHint.style.color = '#666';
@@ -444,11 +431,11 @@
 
         const primaryButton = document.createElement('button');
         styleDialogButton(primaryButton, true);
-        primaryButton.textContent = hasDownloaded ? getLocalControlText('openRuntime') : getLocalControlText('download');
+        primaryButton.textContent = getLocalControlText('download');
 
         const secondaryButton = document.createElement('button');
         styleDialogButton(secondaryButton, false);
-        secondaryButton.textContent = hasDownloaded ? getLocalControlText('fileMode') : getLocalControlText('alreadyInstalled');
+        secondaryButton.textContent = getLocalControlText('fileMode');
 
         const usbButton = document.createElement('button');
         styleDialogButton(usbButton, false);
@@ -460,15 +447,6 @@
 
         primaryButton.addEventListener('click', () =>
         {
-          if (hasDownloaded)
-          {
-            setLocalControlStatus(LOCAL_CONTROL_STATUS_INSTALLED);
-            openLocalControlRuntime();
-            closeLocalControlDialog();
-            resolve('open_local');
-            return;
-          }
-
           setLocalControlStatus(LOCAL_CONTROL_STATUS_DOWNLOADED);
           openLocalControlDownload();
           closeLocalControlDialog();
@@ -477,18 +455,9 @@
 
         secondaryButton.addEventListener('click', () =>
         {
-          if (hasDownloaded)
-          {
-            closeLocalControlDialog();
-            showLocalFileModeGuide();
-            resolve('use_file');
-            return;
-          }
-
-          setLocalControlStatus(LOCAL_CONTROL_STATUS_INSTALLED);
-          openLocalControlRuntime();
           closeLocalControlDialog();
-          resolve('open_local');
+          showLocalFileModeGuide();
+          resolve('use_file');
         });
 
         usbButton.addEventListener('click', () =>
