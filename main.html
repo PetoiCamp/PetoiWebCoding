@@ -389,7 +389,8 @@
         dialog.style.padding = '20px';
         dialog.style.borderRadius = '10px';
         dialog.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.2)';
-        dialog.style.zIndex = '1001';
+        // Keep dialog above .overlay (styles.css uses z-index:1200).
+        dialog.style.zIndex = '1201';
         dialog.style.width = 'min(440px, calc(100vw - 40px))';
         dialog.style.maxWidth = '440px';
 
