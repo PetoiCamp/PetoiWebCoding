@@ -245,8 +245,8 @@
     const LOCAL_CONTROL_I18N = {
       zh: {
         title: '本地 WiFi 控制提示',
-        description: '当前页面通过 HTTPS 打开，浏览器可能会拦截对设备的 ws:// 连接（例如 {ip}:81）。',
-        localOptions: '推荐方式：下载并解压后，用 Chrome 打开“main.html”运行本地版。',
+        description: '当前网页无法直接使用 WiFi 控制，请先下载本地版。',
+        helpHint: '不会操作？点右上角 ? 查看详细步骤。',
         alreadyDownloaded: '已检测到你之前下载过本地文件版。',
         download: '下载本地版',
         fileMode: '查看本地版打开步骤',
@@ -256,8 +256,8 @@
       },
       en: {
         title: 'Local WiFi Control Required',
-        description: 'This page is opened via HTTPS. Browsers may block ws:// device connections (for example {ip}:81).',
-        localOptions: 'Recommended: download and unzip, then open "main.html" with Google Chrome.',
+        description: 'This web page cannot control WiFi directly. Please use the local version first.',
+        helpHint: 'Need help? Click ? in the top-right for step-by-step guidance.',
         alreadyDownloaded: 'A previous local file download was detected.',
         download: 'Download Local Version',
         fileMode: 'Show local open steps',
@@ -267,8 +267,8 @@
       },
       ja: {
         title: 'ローカル WiFi 制御が必要です',
-        description: 'このページは HTTPS で開かれています。ブラウザは ws:// デバイス接続（例: {ip}:81）をブロックする場合があります。',
-        localOptions: '推奨方法：ダウンロードして解凍後、「main.html」を Google Chrome で開いてください。',
+        description: 'このページからは WiFi 制御を直接行えません。先にローカル版をご利用ください。',
+        helpHint: '操作が分からない場合は右上の ? を押して手順を確認してください。',
         alreadyDownloaded: '以前にローカルファイル版をダウンロードした記録があります。',
         download: 'ローカル版をダウンロード',
         fileMode: 'ローカル版の開き方を見る',
@@ -381,22 +381,50 @@
         dialog.style.width = 'min(440px, calc(100vw - 40px))';
         dialog.style.maxWidth = '440px';
 
+        const titleBar = document.createElement('div');
+        titleBar.style.display = 'flex';
+        titleBar.style.alignItems = 'center';
+        titleBar.style.justifyContent = 'space-between';
+        titleBar.style.gap = '10px';
+        titleBar.style.marginBottom = '8px';
+
         const title = document.createElement('h3');
         title.textContent = getLocalControlText('title');
-        title.style.marginTop = '0';
+        title.style.margin = '0';
+
+        const helpButton = document.createElement('button');
+        helpButton.textContent = '?';
+        helpButton.title = getLocalControlText('fileMode');
+        helpButton.setAttribute('aria-label', getLocalControlText('fileMode'));
+        helpButton.style.width = '26px';
+        helpButton.style.height = '26px';
+        helpButton.style.borderRadius = '50%';
+        helpButton.style.border = '1px solid #c7d2e4';
+        helpButton.style.background = '#f7f9ff';
+        helpButton.style.color = '#2d6cdf';
+        helpButton.style.fontWeight = '700';
+        helpButton.style.cursor = 'pointer';
+        helpButton.addEventListener('click', () =>
+        {
+          showLocalFileModeGuide();
+        });
+
+        titleBar.appendChild(title);
+        titleBar.appendChild(helpButton);
 
         const description = document.createElement('p');
         description.style.color = '#666';
-        description.style.marginBottom = '8px';
+        description.style.marginTop = '0';
+        description.style.marginBottom = '6px';
         description.style.fontSize = '14px';
-        description.textContent = getLocalControlText('description').replace('{ip}', ip || '192.168.x.x');
+        description.textContent = getLocalControlText('description');
 
-        const optionsHint = document.createElement('p');
-        optionsHint.style.color = '#666';
-        optionsHint.style.marginBottom = '12px';
-        optionsHint.style.fontSize = '13px';
-        optionsHint.style.whiteSpace = 'pre-line';
-        optionsHint.textContent = getLocalControlText('localOptions');
+        const helpHint = document.createElement('p');
+        helpHint.style.color = '#7a8599';
+        helpHint.style.marginTop = '0';
+        helpHint.style.marginBottom = '12px';
+        helpHint.style.fontSize = '12px';
+        helpHint.textContent = getLocalControlText('helpHint');
 
         const statusHint = document.createElement('p');
         statusHint.style.color = '#666';
@@ -433,10 +461,6 @@
         styleDialogButton(primaryButton, true);
         primaryButton.textContent = getLocalControlText('download');
 
-        const secondaryButton = document.createElement('button');
-        styleDialogButton(secondaryButton, false);
-        secondaryButton.textContent = getLocalControlText('fileMode');
-
         const usbButton = document.createElement('button');
         styleDialogButton(usbButton, false);
         usbButton.textContent = getLocalControlText('useUsb');
@@ -451,13 +475,6 @@
           openLocalControlDownload();
           closeLocalControlDialog();
           resolve('download');
-        });
-
-        secondaryButton.addEventListener('click', () =>
-        {
-          closeLocalControlDialog();
-          showLocalFileModeGuide();
-          resolve('use_file');
         });
 
         usbButton.addEventListener('click', () =>
@@ -480,12 +497,11 @@
 
         buttonContainer.appendChild(closeButton);
         buttonContainer.appendChild(usbButton);
-        buttonContainer.appendChild(secondaryButton);
         buttonContainer.appendChild(primaryButton);
 
-        dialog.appendChild(title);
+        dialog.appendChild(titleBar);
         dialog.appendChild(description);
-        dialog.appendChild(optionsHint);
+        dialog.appendChild(helpHint);
         if (hasDownloaded)
         {
           dialog.appendChild(statusHint);
