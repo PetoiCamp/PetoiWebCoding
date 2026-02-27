@@ -1,0 +1,1280 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.version-date {
+    font-size: 14px;
+    color: #666;
+    font-weight: normal;
+}
+
+.language-switch {
+    display: flex;
+    gap: 10px;
+}
+
+.lang-btn {
+    padding: 5px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.lang-btn.active {
+    background-color: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+
+.container {
+    padding: 20px;
+}
+
+.button-group {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.button-group button {
+    padding: 8px 15px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.right-aligned-container {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.button-group button:hover {
+    background-color: #0056b3;
+}
+
+/* Generate Log按钮保持与其他按钮一致的样式 */
+
+/* 连接成功状态下的Quick Connect按钮样式 */
+#quickConnectBtn[data-connected="true"] {
+    background-color: #4CAF50 !important;
+    /* 绿色背景 */
+    color: white;
+    font-weight: bold;
+}
+
+#quickConnectBtn[data-connected="true"]:hover {
+    background-color: #45a049 !important;
+    /* 深绿色 */
+}
+
+.workspace-container {
+    display: flex;
+    gap: 0;
+    /* 移除间隙，由分隔线控制 */
+    height: calc(100vh - 150px);
+    /* 使用视口高度计算容器高度 */
+    width: 100%;
+    position: relative;
+}
+
+#blocklyDiv {
+    flex: 7;
+    /* 默认占据70%空间 */
+    height: 100%;
+    /* 使用100%高度填充父容器 */
+    border: 1px solid #ccc;
+    min-width: 0;
+}
+
+/* 窗口容器整体样式 */
+.windows-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background-color: #f5f5f5;
+    min-width: 0;
+    width: 100%;
+    padding: 10px;
+    flex: 3;
+    /* 保持固定比例 */
+    gap: 8px;
+    /* 减小容器之间的间距 */
+}
+
+/* 控制台区域 */
+#consoleWindow {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    width: 100%;
+    overflow: hidden;
+    flex: 1;
+    background-color: #1e1e1e;
+    padding: 0;
+    font-family: 'Consolas', monospace;
+}
+
+/* 控制台内容项样式 */
+.console-item {
+    padding: 3px 0;
+    margin-bottom: 3px;
+    font-size: 13px;
+    white-space: nowrap;
+    /* 不自动换行 */
+    line-height: 1.3;
+    color: #ffffff;
+}
+
+/* 时间戳容器样式 */
+.console-item .timestamp {
+    color: #888;
+    font-weight: normal;
+}
+
+/* 消息内容容器样式 */
+.console-item .message-content {
+    color: inherit;
+}
+
+/* 串口输出区域 */
+.serial-output {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 10px;
+    overflow-y: auto;
+    overflow-x: auto;
+    /* 启用水平滚动条 */
+    background-color: #1e1e1e;
+    color: #fff;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    white-space: nowrap;
+    /* 不自动换行 */
+    line-height: 1.4;
+    max-width: 100%;
+    user-select: text;
+    /* 允许文本选择 */
+    outline: none;
+    /* 移除默认outline */
+}
+
+.serial-output:focus {
+    outline: 1px solid #007bff;
+    /* 获得焦点时显示蓝色outline */
+}
+
+.serial-output br {
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+}
+
+.serial-input-container {
+    display: flex;
+    gap: 5px;
+    padding: 10px;
+    background-color: #1e1e1e;
+    border-top: 1px solid #333;
+}
+
+.serial-input-container input {
+    flex: 1;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* 串口按钮区域 */
+.serial-buttons {
+    display: flex;
+    gap: 10px;
+    padding: 5px;
+    background-color: #f5f5f5;
+    /* 灰色背景，与页面背景一致 */
+    border: none;
+    margin-bottom: 5px;
+    justify-content: flex-end;
+    /* 使按钮靠右对齐 */
+}
+
+
+
+.wifi-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1201;
+}
+
+.wifi-dialog input {
+    display: block;
+    width: 100%;
+    margin: 10px -10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.wifi-dialog .button-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.wifi-dialog button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.wifi-dialog button.confirm {
+    background-color: #007bff;
+    color: white;
+}
+
+.wifi-dialog button.cancel {
+    background-color: #6c757d;
+    color: white;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1200;
+}
+
+.blocklyZoom>image,
+.blocklyZoom>svg>image {
+    opacity: 0.4;
+}
+
+.blocklyZoom>image:hover,
+.blocklyZoom>svg>image:hover {
+    opacity: 0.6;
+}
+
+.blocklyZoom>image:active,
+.blocklyZoom>svg>image:active {
+    opacity: 0.8;
+}
+
+/* 撤销重做按钮样式 */
+.undoRedoControls {
+    position: fixed;
+    z-index: 1000;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+}
+
+.undoRedoButton {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    width: 31px;
+    height: 31px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.undoRedoButton img,
+.undoRedoButton svg {
+    width: 18px;
+    height: 18px;
+    opacity: 0.4;
+}
+
+.undoRedoButton:hover {
+    background-color: #f1f1f1;
+}
+
+.undoRedoButton:hover img,
+.undoRedoButton:hover svg {
+    opacity: 0.6;
+}
+
+.undoRedoButton:active {
+    background-color: #e0e0e0;
+}
+
+.undoRedoButton:active img,
+.undoRedoButton:active svg {
+    opacity: 0.8;
+}
+
+.undoRedoButton[disabled] {
+    cursor: default;
+    background-color: #f8f8f8;
+}
+
+.undoRedoButton[disabled] img,
+.undoRedoButton[disabled] svg {
+    opacity: 0.2;
+}
+
+/* 可拖动分隔线样式 */
+.resizer {
+    width: 4px;
+    height: 100%;
+    background-color: #f0f0f0;
+    cursor: col-resize;
+    transition: background-color 0.2s;
+    user-select: none;
+    z-index: 10;
+    /* 添加z-index确保分隔线不被覆盖 */
+    position: relative;
+    /* 需要设置position才能使z-index生效 */
+}
+
+.resizer:hover,
+.resizer.active {
+    background-color: #007bff;
+    /* 蓝色 */
+}
+
+/* 拖动时应用的样式 */
+.workspace-container.resizing {
+    cursor: col-resize;
+    user-select: none;
+}
+
+/* 串口容器样式 */
+#serialContainer {
+    background-color: #f5f5f5;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: auto;
+    /* 未连接时高度自适应内容 */
+    max-height: none;
+    /* 移除高度限制 */
+    overflow: hidden;
+}
+
+/* 串口连接后应用此样式 */
+#serialContainer.connected {
+    flex: 4;
+    /* 连接后占据适当比例 */
+    min-height: 180px;
+    /* 连接后确保有足够高度 */
+}
+
+/* 串口输出容器 */
+#serialInterface {
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    max-width: 100%;
+    background-color: #1e1e1e;
+    /* 黑色背景 */
+}
+
+/* 修复积木块文字偏移问题 */
+.blocklyText {
+    fill: #fff;
+    font-family: sans-serif;
+    font-size: 11pt;
+    font-weight: normal;
+}
+
+.blocklyNonEditableText>text,
+.blocklyEditableText>text {
+    fill: #000;
+}
+
+.blocklyDropdownText {
+    fill: #000 !important;
+}
+
+#loadInput {
+    display: none;
+}
+
+/* 控制台区域 */
+#consoleLog {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+    /* 启用水平滚动条 */
+    padding: 10px;
+    background-color: #1e1e1e;
+    color: #fff;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    max-height: 100%;
+    white-space: nowrap;
+    /* 不自动换行 */
+    user-select: text;
+    /* 允许文本选择 */
+    outline: none;
+    /* 移除默认outline */
+}
+
+#consoleLog:focus {
+    outline: 1px solid #007bff;
+    /* 获得焦点时显示蓝色outline */
+}
+
+/* 区域标题栏样式 */
+.area-header {
+    margin: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* 改为center对齐确保垂直居中 */
+    background-color: #2d2d2d;
+    padding: 8px 10px;
+    border-radius: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    min-height: 36px;
+    /* 确保高度一致 */
+}
+
+.area-title {
+    font-weight: 600;
+    color: #fff;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    line-height: 1.5;
+    /* 保持与按钮文字一致的行高 */
+    margin: 0;
+    padding: 4px 0;
+    /* 添加垂直内边距，使高度与按钮一致 */
+    white-space: nowrap;
+    /* 防止文字换行 */
+    font-family: Arial, sans-serif;
+    /* 确保字体一致 */
+}
+
+/* 控制台按钮组 */
+.area-header .button-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    /* 改为居中对齐 */
+    margin-left: auto;
+    /* 添加margin-left:auto使按钮组靠右对齐 */
+}
+
+/* 清除按钮和切换按钮的通用样式 */
+.clear-button,
+.toggle-button {
+    padding: 4px 8px;
+    cursor: pointer;
+    background-color: #fff;
+    border: none;
+    border-radius: 3px;
+    transition: all 0.2s;
+    font-size: 14px;
+    line-height: 1.5;
+    display: inline-flex;
+    /* 改为inline-flex统一显示 */
+    align-items: center;
+    /* 垂直居中 */
+    justify-content: center;
+    /* 水平居中 */
+    text-align: center;
+    min-height: 28px;
+    /* 设置最小高度确保一致性 */
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+    /* 确保padding不影响整体尺寸 */
+    white-space: normal;
+    /* 允许文本自然换行 */
+    max-width: none;
+    /* 移除最大宽度限制 */
+    width: auto;
+    /* 宽度自适应内容 */
+}
+
+.clear-button:hover,
+.toggle-button:hover {
+    background-color: #e9e9e9;
+}
+
+.clear-button:active,
+.toggle-button:active {
+    background-color: #d9d9d9;
+    transform: translateY(1px);
+}
+
+/* 切换按钮激活状态 */
+.toggle-button.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.toggle-button.active:hover {
+    background-color: #45a049;
+}
+
+/* 串口通信相关样式 */
+#serialContainer {
+    background-color: #f5f5f5;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: auto;
+    /* 未连接时高度自适应内容 */
+    max-height: none;
+    /* 移除高度限制 */
+    overflow: hidden;
+}
+
+/* 串口连接后应用此样式 */
+#serialContainer.connected {
+    flex: 4;
+    /* 连接后占据适当比例 */
+    min-height: 180px;
+    /* 连接后确保有足够高度 */
+}
+
+/* 串口按钮样式 */
+.serial-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    margin: 2px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-family: Arial, sans-serif;
+    white-space: normal;
+    /* 允许文本自然换行 */
+    max-width: none;
+    /* 移除最大宽度限制 */
+    width: auto;
+    /* 宽度自适应内容 */
+}
+
+/* 水平分隔线样式 */
+.horizontal-resizer {
+    width: 100%;
+    height: 4px;
+    background-color: #f0f0f0;
+    cursor: row-resize;
+    transition: background-color 0.2s;
+    user-select: none;
+    margin: 0;
+    display: none;
+    /* 初始隐藏 */
+}
+
+.horizontal-resizer:hover,
+.horizontal-resizer.active {
+    background-color: #007bff;
+    /* 蓝色 */
+}
+
+/* 强制按钮右对齐 */
+#consoleWindow .area-header .button-group,
+#serialContainer .area-header .button-group {
+    display: flex;
+    justify-content: flex-end;
+    margin-left: auto;
+    align-items: center;
+    /* 确保按钮在同一行中垂直对齐 */
+    flex-wrap: nowrap;
+    /* 防止按钮换行，保持并排 */
+    max-width: 70%;
+    /* 适当增加宽度，容纳多个按钮 */
+}
+
+/* 按钮标题栏通用设置 */
+.area-header .button-group button {
+    margin: 2px;
+    /* 统一间距 */
+    max-width: none;
+    /* 不限制最大宽度 */
+    white-space: normal;
+    /* 允许文本换行 */
+    word-wrap: break-word;
+    /* 允许长单词换行 */
+    line-height: 1.2;
+    /* 紧凑的行高 */
+    font-size: 13px;
+    /* 稍微小一点的字体 */
+    padding: 4px 6px;
+    /* 紧凑的内边距 */
+    text-align: center;
+    /* 文本居中 */
+    height: auto;
+    /* 自适应高度 */
+    min-height: 40px;
+    /* 确保足够高度容纳两行文字 */
+    width: auto;
+    /* 宽度自适应内容 */
+}
+
+/* 超小屏幕时进一步调整 */
+@media screen and (max-width: 576px) {
+
+    .clear-button,
+    .toggle-button {
+        padding: 2px 5px;
+        font-size: 12px;
+        max-width: none;
+        /* 移除最大宽度限制 */
+    }
+}
+
+/* 复选框容器样式 */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: #fff;
+    margin-right: 10px;
+    user-select: none;
+    background-color: #007bff;
+    padding: 8px 15px;
+    border-radius: 4px;
+    border: 1px solid #0056b3;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+.checkbox-container input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 14px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    margin-right: 5px;
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.checkbox-container input[type="checkbox"]:checked+.checkmark:after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid #007bff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-container:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+.checkbox-container:hover .checkmark {
+    border-color: #007bff;
+}
+
+.checkbox-container input[type="checkbox"]:checked+.checkmark {
+    background-color: #fff;
+    border-color: #007bff;
+}
+
+.checkbox-container input[type="checkbox"]:checked+.checkmark:after {
+    border-color: #007bff;
+}
+
+/* 复选框选中状态样式，类似toggle-button */
+.checkbox-container input[type="checkbox"]:checked~span[data-i18n] {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.checkbox-container input[type="checkbox"]:checked {
+    background-color: #4CAF50;
+    border-color: #45a049;
+}
+
+.checkbox-container input[type="checkbox"]:checked:hover {
+    background-color: #45a049;
+    border-color: #3d8b40;
+}
+
+/* 控制台内容项样式 */
+
+/* 串口通信相关样式 */
+#serialContainer {
+    background-color: #f5f5f5;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: auto;
+    /* 未连接时高度自适应内容 */
+    max-height: none;
+    /* 移除高度限制 */
+    overflow: hidden;
+}
+
+/* 串口连接后应用此样式 */
+#serialContainer.connected {
+    flex: 4;
+    /* 连接后占据适当比例 */
+    min-height: 180px;
+    /* 连接后确保有足够高度 */
+}
+
+
+
+.serial-button:hover {
+    background-color: #0056b3;
+}
+
+.serial-button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* ESP32串口选择对话框样式 */
+.esp32-port-selector {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    z-index: 1000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    /* 确保没有其他样式影响 */
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.esp32-port-dialog {
+    background: white !important;
+    padding: 20px !important;
+    border-radius: 8px !important;
+    min-width: 300px !important;
+    max-width: 500px !important;
+    max-height: 80vh !important;
+    overflow-y: auto !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    animation: dialogFadeIn 0.3s ease-out !important;
+    margin: 20px !important;
+    /* 确保没有其他样式影响 */
+    position: relative !important;
+    box-sizing: border-box !important;
+}
+
+@keyframes dialogFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.esp32-port-option {
+    padding: 12px;
+    border: 1px solid #ddd;
+    margin: 8px 0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fafafa;
+}
+
+.esp32-port-option:hover {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+.esp32-port-option strong {
+    color: #1976d2;
+    font-size: 14px;
+}
+
+.esp32-port-buttons {
+    text-align: right;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.esp32-port-buttons button {
+    padding: 8px 16px;
+    margin-left: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.esp32-port-buttons button.cancel {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.esp32-port-buttons button.cancel:hover {
+    background: #e0e0e0;
+}
+
+.esp32-port-buttons button.confirm {
+    background: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+.esp32-port-buttons button.confirm:hover {
+    background: #45a049;
+}
+
+/* 响应式设计 - 移动设备优化 */
+@media screen and (max-width: 768px) {
+    .esp32-port-dialog {
+        min-width: 280px;
+        max-width: 90vw;
+        margin: 10px;
+        padding: 15px;
+    }
+
+    .esp32-port-option {
+        padding: 10px;
+        margin: 6px 0;
+    }
+
+    .esp32-port-option strong {
+        font-size: 13px;
+    }
+
+    .esp32-port-buttons button {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .esp32-port-dialog {
+        min-width: 250px;
+        max-width: 95vw;
+        margin: 5px;
+        padding: 12px;
+    }
+
+    .esp32-port-dialog h3 {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+
+    .esp32-port-option {
+        padding: 8px;
+        margin: 4px 0;
+    }
+
+    .esp32-port-option strong {
+        font-size: 12px;
+    }
+}
+
+/* 警告窗口样式 */
+.alert-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    z-index: 2000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.alert-dialog {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    min-width: 300px;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: dialogFadeIn 0.15s ease-out;
+    margin: 20px;
+    text-align: center;
+}
+
+.alert-dialog h3 {
+    margin: 0 0 15px 0;
+    color: #d32f2f;
+    font-size: 18px;
+}
+
+.alert-dialog p {
+    margin: 0 0 20px 0;
+    color: #333;
+    line-height: 1.5;
+}
+
+.alert-dialog button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    background: #2196f3;
+    color: white;
+    transition: background 0.2s ease;
+}
+
+.alert-dialog button:hover {
+    background: #1976d2;
+}
+
+/* 响应式设计 - 移动设备优化 */
+@media screen and (max-width: 768px) {
+    .alert-dialog {
+        min-width: 280px;
+        max-width: 90vw;
+        margin: 10px;
+        padding: 20px;
+    }
+
+    .alert-dialog h3 {
+        font-size: 16px;
+    }
+
+    .alert-dialog p {
+        font-size: 14px;
+    }
+
+    .alert-dialog button {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .alert-dialog {
+        min-width: 250px;
+        max-width: 95vw;
+        margin: 5px;
+        padding: 15px;
+    }
+
+    .alert-dialog h3 {
+        font-size: 15px;
+        margin-bottom: 12px;
+    }
+
+    .alert-dialog p {
+        font-size: 13px;
+        margin-bottom: 15px;
+    }
+
+    .alert-dialog button {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+
+/* ESP32端口选择对话框样式 */
+.esp32-port-system-option {
+    border: 2px dashed #007bff !important;
+    background-color: #f8f9ff !important;
+    margin-top: 10px !important;
+    transition: all 0.3s ease !important;
+}
+
+.esp32-port-system-option:hover {
+    background-color: #e6f2ff !important;
+    border-color: #0056b3 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+}
+
+/* 控制台输入相关样式 */
+.console-input-container {
+    display: flex !important;
+    align-items: center !important;
+    margin: 10px 0 !important;
+    padding: 10px !important;
+    background-color: #2d3748 !important;
+    border-radius: 4px !important;
+    border: 1px solid #4a5568 !important;
+    animation: fadeIn 0.3s ease-in-out !important;
+    min-width: 420px !important;
+    /* 设置合理的最小宽度：提示文本(约120px) + 输入框(200px) + 按钮(80px) + 间距和padding */
+    max-width: 100% !important;
+    /* 允许容器适应父容器宽度 */
+    flex-shrink: 0 !important;
+    /* 防止容器被压缩 */
+    box-sizing: border-box !important;
+    /* 确保padding和border包含在宽度内 */
+    overflow: visible !important;
+    /* 确保内容不被裁剪 */
+    position: relative !important;
+    /* 确保定位正确 */
+    z-index: 5 !important;
+    /* 确保容器在适当的层级 */
+}
+
+.console-input-field {
+    flex: 1 !important;
+    /* 使用!important确保优先级 */
+    background-color: #1a202c !important;
+    border: 1px solid #4a5568 !important;
+    color: #e2e8f0 !important;
+    padding: 8px 12px !important;
+    border-radius: 4px !important;
+    font-family: 'Consolas', monospace !important;
+    font-size: 14px !important;
+    outline: none !important;
+    transition: border-color 0.2s ease !important;
+    min-width: 200px !important;
+    /* 恢复输入框合理的最小宽度 */
+    max-width: none !important;
+    /* 允许输入框根据需要扩展 */
+    flex-shrink: 0 !important;
+    /* 防止输入框被过度压缩 */
+    box-sizing: border-box !important;
+    /* 确保padding和border包含在宽度内 */
+    width: 100% !important;
+    /* 确保输入框能够填充可用空间 */
+    position: relative !important;
+    /* 确保定位正确 */
+    z-index: 10 !important;
+    /* 提高z-index，确保输入框在最上层 */
+    cursor: text !important;
+    /* 确保鼠标指针正确 */
+    user-select: text !important;
+    /* 允许文本选择 */
+    -webkit-user-select: text !important;
+    /* Safari兼容性 */
+    -moz-user-select: text !important;
+    /* Firefox兼容性 */
+    -ms-user-select: text !important;
+    /* IE兼容性 */
+    display: block !important;
+    /* 确保显示为块级元素 */
+    opacity: 1 !important;
+    /* 确保不透明 */
+    pointer-events: auto !important;
+    /* 确保可以接收鼠标事件 */
+
+    /* 确保输入框可用性 */
+    -webkit-appearance: none !important;
+    /* 移除WebKit默认样式 */
+    -moz-appearance: none !important;
+    /* 移除Firefox默认样式 */
+    appearance: none !important;
+    /* 移除默认样式 */
+
+    /* 确保输入框可编辑 */
+    -webkit-text-fill-color: #e2e8f0 !important;
+    /* WebKit文本颜色 */
+    -webkit-box-shadow: none !important;
+    /* 移除WebKit阴影 */
+    box-shadow: none !important;
+    /* 移除阴影 */
+
+    /* 防止输入框被意外隐藏 */
+    visibility: visible !important;
+    clip: auto !important;
+    overflow: visible !important;
+
+    /* 确保输入框响应性 */
+    touch-action: manipulation !important;
+    /* 优化触摸操作 */
+    -webkit-touch-callout: none !important;
+    /* 禁用触摸长按菜单 */
+}
+
+.console-input-field:focus {
+    border-color: #3182ce;
+    box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.2);
+    background-color: #2a3441;
+    /* 稍微亮一点的背景色 */
+    z-index: 15;
+    /* 确保focus状态下在最上层 */
+}
+
+/* 确保输入框在hover状态下也有正确的样式 */
+.console-input-field:hover {
+    border-color: #4a5568;
+    background-color: #2a3441;
+}
+
+.console-input-container button {
+    margin-left: 10px;
+    padding: 8px 16px;
+    background-color: #3182ce;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+    min-width: 60px;
+    /* 设置按钮最小宽度 */
+    white-space: nowrap;
+    /* 防止按钮文字换行 */
+    flex-shrink: 0;
+    /* 防止按钮被压缩 */
+}
+
+/* 提示文本样式 */
+.console-input-container span {
+    margin-right: 10px;
+    color: #FFA500;
+    /* 橙色 */
+    font-family: 'Consolas', monospace;
+    /* 与console log一致的字体 */
+    white-space: nowrap;
+    /* 防止提示文本换行 */
+    flex-shrink: 0;
+    /* 防止提示文本被压缩 */
+}
+
+/* 响应式处理 - 当容器宽度不足时 */
+@media (max-width: 500px) {
+    .console-input-container {
+        min-width: 350px;
+        /* 在窄屏幕上设置合理的最小宽度 */
+        flex-direction: column;
+        /* 改为垂直布局 */
+        align-items: stretch;
+        padding: 15px;
+        /* 增加padding，提供更好的触摸体验 */
+    }
+
+    .console-input-container span {
+        margin-right: 0;
+        margin-bottom: 10px;
+        text-align: center;
+        font-size: 16px;
+        /* 增加字体大小 */
+        font-family: 'Consolas', monospace;
+        /* 确保移动端也使用一致字体 */
+        color: #FFA500;
+        /* 确保移动端也显示橙色 */
+    }
+
+    .console-input-field {
+        margin-bottom: 10px;
+        min-width: 250px;
+        /* 确保输入框有足够的宽度 */
+        font-size: 16px;
+        /* 增加字体大小 */
+        padding: 10px 15px;
+        /* 增加padding */
+    }
+
+    .console-input-container button {
+        margin-left: 0;
+        align-self: center;
+        padding: 10px 20px;
+        /* 增加按钮padding */
+        font-size: 16px;
+        /* 增加字体大小 */
+    }
+}
+
+/* 调试样式 - 帮助排查布局问题 */
+/* 暂时注释掉，避免样式冲突 */
+/*
+.console-input-container {
+    border: 2px solid red;
+}
+
+.console-input-field {
+    border: 1px solid blue;
+}
+*/
+
+.console-input-container button:hover {
+    background-color: #2c5aa0;
+}
+
+.console-input-container button:active {
+    background-color: #1e3a8a;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
