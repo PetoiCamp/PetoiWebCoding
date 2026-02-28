@@ -1604,6 +1604,11 @@
           }, 1000);
         }).catch((error) =>
         {
+          if (error && error.code === 'BLUETOOTH_SERIAL_CONNECT_FIRST')
+          {
+            alert(getText("bluetoothSerialConnectFirst"));
+            return;
+          }
           console.error(getText("quickConnectFailed") + ":", error);
           // 即使quick connect失败，也尝试执行runCode
           ensureWifiAccessAllowed(currentDeviceIP || blockIP).then((allowWifi) =>
@@ -3767,6 +3772,31 @@ Generated at: ${now.toISOString()}
       throw lastError || new Error('Failed to open authorized Bluetooth SPP serial ports');
     }
 
+    async function hasAuthorizedBluetoothSPPPort()
+    {
+      try
+      {
+        if (!navigator.serial || typeof navigator.serial.getPorts !== 'function')
+        {
+          return false;
+        }
+        const ports = await navigator.serial.getPorts();
+        return ports.some(candidate =>
+        {
+          try
+          {
+            return isBluetoothSPPPortInfo(candidate.getInfo());
+          } catch (e)
+          {
+            return false;
+          }
+        });
+      } catch (error)
+      {
+        return false;
+      }
+    }
+
     // 系统检测函数
     function detectOperatingSystem()
     {
@@ -5073,6 +5103,14 @@ Generated at: ${now.toISOString()}
           await openSerialPort();
         } catch (error)
         {
+          // runCode流程下，若已检测到蓝牙SPP端口但串口仍未打开，不应误导到WiFi本地页面提示
+          if (!forceShowDialog && await hasAuthorizedBluetoothSPPPort())
+          {
+            const btError = new Error(getText("bluetoothSerialConnectFirst"));
+            btError.code = 'BLUETOOTH_SERIAL_CONNECT_FIRST';
+            throw btError;
+          }
+
           if (typeof showDebug !== 'undefined' && showDebug)
           {
             console.log('Serial port connection failed, trying configured IP...');
