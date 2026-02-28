@@ -3565,8 +3565,9 @@ Generated at: ${now.toISOString()}
     }
 
     // 使用过滤器优先的串口请求封装；若因过滤器导致"no compatible devices found"，自动回退为无过滤请求
-    async function requestSerialPortWithFallback()
+    async function requestSerialPortWithFallback(options = {})
     {
+      const allowUnfilteredFallback = options.allowUnfilteredFallback !== false;
       const builtFilters = buildWebSerialFilters();
       try
       {
@@ -3594,6 +3595,10 @@ Generated at: ${now.toISOString()}
         // 当过滤器导致设备不匹配时，Chrome 会抛出 NotFoundError，消息通常包含 "compatible devices"
         if (error && error.name === 'NotFoundError' && /compatible devices/i.test(error.message || ''))
         {
+          if (!allowUnfilteredFallback)
+          {
+            throw error;
+          }
           if (typeof showDebug !== 'undefined' && showDebug)
           {
             console.log('Filtered picker returned no compatible devices, falling back to unfiltered picker');
@@ -3602,6 +3607,52 @@ Generated at: ${now.toISOString()}
         }
         throw error;
       }
+    }
+
+    async function openSerialPortWithRetry(targetPort, baudRate)
+    {
+      const isBluetoothLike = (() =>
+      {
+        try
+        {
+          return isLikelyBluetoothSerialPortInfo(targetPort.getInfo());
+        } catch (e)
+        {
+          return false;
+        }
+      })();
+
+      const maxAttempts = isBluetoothLike ? 3 : 1;
+      let lastError = null;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++)
+      {
+        try
+        {
+          await targetPort.open({ baudRate: baudRate });
+          return;
+        } catch (error)
+        {
+          lastError = error;
+          if (attempt < maxAttempts)
+          {
+            if (typeof showDebug !== 'undefined' && showDebug)
+            {
+              console.log(`Serial open attempt ${attempt}/${maxAttempts} failed, retrying...`);
+            }
+            try
+            {
+              await targetPort.close();
+            } catch (closeError)
+            {
+              // ignore close errors during retry
+            }
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+      }
+
+      throw lastError || new Error('Failed to open serial port');
     }
 
     // 系统检测函数
@@ -4439,7 +4490,7 @@ Generated at: ${now.toISOString()}
             console.log(getText("noAuthorizedPorts"));
           }
           // 直接使用 Chrome 原生选择器（带过滤优先，必要时回退为无过滤）
-          const selectPort = await requestSerialPortWithFallback();
+          const selectPort = await requestSerialPortWithFallback({ allowUnfilteredFallback: false });
           port = selectPort;
           try
           {
@@ -4454,7 +4505,7 @@ Generated at: ${now.toISOString()}
           {
             console.log(getText("showingPortsForSelection").replace("{count}", validPorts.length));
           }
-          port = await requestSerialPortWithFallback();
+          port = await requestSerialPortWithFallback({ allowUnfilteredFallback: false });
           try
           {
             const pinfo = port.getInfo();
@@ -4482,7 +4533,7 @@ Generated at: ${now.toISOString()}
           // 统一波特率为 115200（与固件设置一致）
           let defaultBaud = 115200;
 
-          await port.open({ baudRate: defaultBaud });
+          await openSerialPortWithRetry(port, defaultBaud);
           // 部分板卡（如 Arduino/16U2 桥接）需要置位 DTR/RTS 才会输出数据
           try { await port.setSignals({ dataTerminalReady: true, requestToSend: true }); } catch (e) { /* ignore */ }
           // 打开后短暂等待，给自动复位的板卡时间启动固件
