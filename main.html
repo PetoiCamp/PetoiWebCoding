@@ -3687,6 +3687,10 @@ Generated at: ${now.toISOString()}
           } catch (error)
           {
             lastError = error;
+            if (isBluetoothLike)
+            {
+              console.warn(`Bluetooth serial open failed (baudRate=${candidateBaud}, attempt=${attempt}/${maxAttempts}):`, error);
+            }
             const shouldRetry = isBluetoothLike && attempt < maxAttempts && !isSerialPortBusyError(error);
             if (shouldRetry)
             {
@@ -4608,11 +4612,14 @@ Generated at: ${now.toISOString()}
         {
           console.log('Serial opening already in progress, ignoring duplicate request');
         }
-        return;
+        const pendingError = new Error('Serial opening in progress');
+        pendingError.code = 'SERIAL_OPENING_IN_PROGRESS';
+        throw pendingError;
       }
       isOpeningSerialPort = true;
       try
       {
+        let selectedPort = null;
 
         // 检测操作系统
         const os = OPERATING_SYSTEM;
@@ -4680,12 +4687,12 @@ Generated at: ${now.toISOString()}
           }
           // 直接使用 Chrome 原生选择器（带过滤优先，必要时回退为无过滤）
           const selectPort = await requestSerialPortWithFallback({ allowUnfilteredFallback: false });
-          port = selectPort;
+          selectedPort = selectPort;
           try
           {
-            const pinfo = port.getInfo();
-            console.log(getText("portInfo").replace("{index}", 1).replace("{name}", getSerialPortDisplayName(port)));
-            console.log(getText("hardwareInfo").replace("{vid}", pinfo.usbVendorId?.toString(16)).replace("{pid}", pinfo.usbProductId?.toString(16)).replace("{isESP32}", isESP32SerialPort(port)));
+            const pinfo = selectedPort.getInfo();
+            console.log(getText("portInfo").replace("{index}", 1).replace("{name}", getSerialPortDisplayName(selectedPort)));
+            console.log(getText("hardwareInfo").replace("{vid}", pinfo.usbVendorId?.toString(16)).replace("{pid}", pinfo.usbProductId?.toString(16)).replace("{isESP32}", isESP32SerialPort(selectedPort)));
             if (isLikelyBluetoothSerialPortInfo(pinfo))
             {
               console.log(`- Bluetooth: serviceClassId=${getBluetoothServiceClassIdString(pinfo)}`);
@@ -4698,12 +4705,12 @@ Generated at: ${now.toISOString()}
           {
             console.log(getText("showingPortsForSelection").replace("{count}", validPorts.length));
           }
-          port = await requestSerialPortWithFallback({ allowUnfilteredFallback: false });
+          selectedPort = await requestSerialPortWithFallback({ allowUnfilteredFallback: false });
           try
           {
-            const pinfo = port.getInfo();
-            console.log(getText("portInfo").replace("{index}", 1).replace("{name}", getSerialPortDisplayName(port)));
-            console.log(getText("hardwareInfo").replace("{vid}", pinfo.usbVendorId?.toString(16)).replace("{pid}", pinfo.usbProductId?.toString(16)).replace("{isESP32}", isESP32SerialPort(port)));
+            const pinfo = selectedPort.getInfo();
+            console.log(getText("portInfo").replace("{index}", 1).replace("{name}", getSerialPortDisplayName(selectedPort)));
+            console.log(getText("hardwareInfo").replace("{vid}", pinfo.usbVendorId?.toString(16)).replace("{pid}", pinfo.usbProductId?.toString(16)).replace("{isESP32}", isESP32SerialPort(selectedPort)));
             if (isLikelyBluetoothSerialPortInfo(pinfo))
             {
               console.log(`- Bluetooth: serviceClassId=${getBluetoothServiceClassIdString(pinfo)}`);
@@ -4713,8 +4720,8 @@ Generated at: ${now.toISOString()}
 
         try
         {
-          const selectedInfo = port.getInfo();
-          if (isLikelyBluetoothSerialPortInfo(selectedInfo) && !isAllowedBluetoothPortByName(port, selectedInfo))
+          const selectedInfo = selectedPort.getInfo();
+          if (isLikelyBluetoothSerialPortInfo(selectedInfo) && !isAllowedBluetoothPortByName(selectedPort, selectedInfo))
           {
             alert(getText("bluetoothPortNotAllowed"));
             throw new Error('Bluetooth serial device is not in allowed keyword list');
@@ -4730,14 +4737,14 @@ Generated at: ${now.toISOString()}
         let serialOpenError = null;
         try
         {
-          await openSerialPortWithRetry(port, defaultBaud);
+          await openSerialPortWithRetry(selectedPort, defaultBaud);
         } catch (primaryOpenError)
         {
           serialOpenError = primaryOpenError;
           let selectedInfo = null;
           try
           {
-            selectedInfo = port ? port.getInfo() : null;
+            selectedInfo = selectedPort ? selectedPort.getInfo() : null;
           } catch (e)
           {
             selectedInfo = null;
@@ -4747,10 +4754,10 @@ Generated at: ${now.toISOString()}
           {
             try
             {
-              const recoveredPort = await tryOpenAuthorizedBluetoothPorts(port, defaultBaud);
+              const recoveredPort = await tryOpenAuthorizedBluetoothPorts(selectedPort, defaultBaud);
               if (recoveredPort)
               {
-                port = recoveredPort;
+                selectedPort = recoveredPort;
                 serialOpenError = null;
               }
             } catch (fallbackOpenError)
@@ -4773,6 +4780,9 @@ Generated at: ${now.toISOString()}
           alert(getText("serialPortOpenFailed").replace("{error}", errorMessage));
           throw serialOpenError;
         }
+
+        // 只有真正打开成功后才写入全局port，避免半连接状态误导后续流程
+        port = selectedPort;
 
         // 部分板卡（如 Arduino/16U2 桥接）需要置位 DTR/RTS 才会输出数据
         try { await port.setSignals({ dataTerminalReady: true, requestToSend: true }); } catch (e) { /* ignore */ }
@@ -5094,13 +5104,17 @@ Generated at: ${now.toISOString()}
     // WiFi连接处理函数（内部使用）
     async function handleWifiConnection(forceShowDialog = false)
     {
-      // 检查串口是否已连接
-      if (!port)
+      // 检查串口是否已连接（不要仅依据port对象，必须是可读写的活动连接）
+      if (!hasActiveSerialConnection())
       {
         try
         {
           // 如果串口未连接，先尝试连接串口
           await openSerialPort();
+          if (!hasActiveSerialConnection())
+          {
+            throw new Error('Serial port object exists but active connection not established');
+          }
         } catch (error)
         {
           // runCode流程下，若已检测到蓝牙SPP端口但串口仍未打开，不应误导到WiFi本地页面提示
