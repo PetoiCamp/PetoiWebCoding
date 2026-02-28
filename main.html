@@ -3623,36 +3623,84 @@ Generated at: ${now.toISOString()}
         }
       })();
 
+      const baudCandidates = isBluetoothLike
+        ? Array.from(new Set([baudRate, 9600, 57600, 38400]))
+        : [baudRate];
       const maxAttempts = isBluetoothLike ? 2 : 1;
       let lastError = null;
 
-      for (let attempt = 1; attempt <= maxAttempts; attempt++)
+      if (isBluetoothLike)
       {
         try
         {
-          await targetPort.open({ baudRate: baudRate });
-          return;
-        } catch (error)
-        {
-          lastError = error;
-          const shouldRetry = isBluetoothLike && attempt < maxAttempts && !isSerialPortBusyError(error);
-          if (shouldRetry)
+          if (typeof targetPort.connected === 'boolean')
           {
             if (typeof showDebug !== 'undefined' && showDebug)
             {
-              console.log(`Serial open attempt ${attempt}/${maxAttempts} failed, retrying...`);
+              console.log(`Bluetooth serial connected state before open: ${targetPort.connected}`);
             }
-            try
+            if (!targetPort.connected)
             {
-              await targetPort.close();
-            } catch (closeError)
-            {
-              // ignore close errors during retry
+              const waitStart = Date.now();
+              const waitTimeoutMs = 5000;
+              while ((Date.now() - waitStart) < waitTimeoutMs)
+              {
+                await new Promise(resolve => setTimeout(resolve, 250));
+                if (targetPort.connected)
+                {
+                  break;
+                }
+              }
+              if (typeof showDebug !== 'undefined' && showDebug)
+              {
+                console.log(`Bluetooth serial connected state after wait: ${targetPort.connected}`);
+              }
             }
-            await new Promise(resolve => setTimeout(resolve, 500));
-          } else
+          }
+        } catch (e)
+        {
+          // ignore connected state read errors
+        }
+      }
+
+      for (const candidateBaud of baudCandidates)
+      {
+        for (let attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+          try
           {
-            throw error;
+            if (isBluetoothLike)
+            {
+              await new Promise(resolve => setTimeout(resolve, 200));
+            }
+            await targetPort.open({ baudRate: candidateBaud });
+            if (isBluetoothLike && typeof showDebug !== 'undefined' && showDebug && candidateBaud !== baudRate)
+            {
+              console.log(`Bluetooth serial opened with fallback baudRate=${candidateBaud}`);
+            }
+            return candidateBaud;
+          } catch (error)
+          {
+            lastError = error;
+            const shouldRetry = isBluetoothLike && attempt < maxAttempts && !isSerialPortBusyError(error);
+            if (shouldRetry)
+            {
+              if (typeof showDebug !== 'undefined' && showDebug)
+              {
+                console.log(`Serial open attempt ${attempt}/${maxAttempts} failed at baudRate=${candidateBaud}, retrying...`);
+              }
+              try
+              {
+                await targetPort.close();
+              } catch (closeError)
+              {
+                // ignore close errors during retry
+              }
+              await new Promise(resolve => setTimeout(resolve, 700));
+            } else
+            {
+              break;
+            }
           }
         }
       }
