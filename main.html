@@ -3679,6 +3679,17 @@ Generated at: ${now.toISOString()}
               await new Promise(resolve => setTimeout(resolve, 200));
             }
             await targetPort.open({ baudRate: candidateBaud });
+            const streamReadyTimeoutMs = isBluetoothLike ? 2500 : 500;
+            const streamReadyStart = Date.now();
+            while ((!targetPort.readable || !targetPort.writable) &&
+              (Date.now() - streamReadyStart < streamReadyTimeoutMs))
+            {
+              await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            if (!targetPort.readable || !targetPort.writable)
+            {
+              throw new Error('Serial streams unavailable after open');
+            }
             if (isBluetoothLike && typeof showDebug !== 'undefined' && showDebug && candidateBaud !== baudRate)
             {
               console.log(`Bluetooth serial opened with fallback baudRate=${candidateBaud}`);
@@ -3689,7 +3700,8 @@ Generated at: ${now.toISOString()}
             lastError = error;
             if (isBluetoothLike)
             {
-              console.warn(`Bluetooth serial open failed (baudRate=${candidateBaud}, attempt=${attempt}/${maxAttempts}):`, error);
+              const message = error && (error.message || error.name) ? (error.message || error.name) : String(error);
+              console.log(`Bluetooth serial open failed (baudRate=${candidateBaud}, attempt=${attempt}/${maxAttempts}): ${message}`);
             }
             const shouldRetry = isBluetoothLike && attempt < maxAttempts && !isSerialPortBusyError(error);
             if (shouldRetry)
@@ -4791,8 +4803,23 @@ Generated at: ${now.toISOString()}
         console.log(getText("esp32PortConnected"));
 
         // 设置读取器和写入器（用于验证）
-        reader = port.readable.getReader();
-        writer = port.writable.getWriter();
+        try
+        {
+          if (!port.readable || !port.writable)
+          {
+            throw new Error('Serial streams unavailable after open');
+          }
+          reader = port.readable.getReader();
+          writer = port.writable.getWriter();
+        } catch (streamError)
+        {
+          const streamErrorMessage = (streamError && (streamError.message || streamError.name))
+            ? (streamError.message || streamError.name)
+            : 'Serial stream initialization failed';
+          console.log(`Serial stream init failed: ${streamErrorMessage}`);
+          alert(getText("serialPortOpenFailed").replace("{error}", streamErrorMessage));
+          throw streamError;
+        }
 
         // 尝试获取设备信息（非强制）：发送'?'查询机型/版本，但不再以此作为打开串口的前置条件
         try
