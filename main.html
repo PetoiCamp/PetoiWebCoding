@@ -3496,33 +3496,11 @@ Generated at: ${now.toISOString()}
     {
       try
       {
-        // 在 Windows 上，很多 USB-UART 桥接芯片的 VID/PID 信息无法通过 Web Serial 匹配到，
-        // 传入 filters 反而会导致原生选择器显示 "no compatible devices found"。
-        // 因此在 Windows 上直接返回空数组，使用不带过滤器的选择器以展示所有可用的 COM 口。
-        const isWindows = (navigator.platform && navigator.platform.includes('Win')) ||
-          (navigator.userAgent && navigator.userAgent.includes('Windows'));
-
-        if (isWindows)
-        {
-          if (typeof showDebug !== 'undefined' && showDebug)
-          {
-            console.log('Windows detected: using unfiltered serial picker');
-          }
-          return [];
-        }
-
-        const filters = [];
-        ESP32_USB_CHIPS.forEach(chip =>
-        {
-          if (chip.productId !== undefined)
-          {
-            filters.push({ usbVendorId: chip.vendorId, usbProductId: chip.productId });
-          } else
-          {
-            filters.push({ usbVendorId: chip.vendorId });
-          }
-        });
-        return filters;
+        // Keep picker unfiltered on all platforms:
+        // - shows Bluetooth serial ports (no USB VID/PID)
+        // - shows unknown USB-UART bridges not in our VID list
+        // - avoids "no compatible devices found" caused by strict filters
+        return [];
       } catch (e)
       {
         return [];
@@ -3583,6 +3561,12 @@ Generated at: ${now.toISOString()}
     // 全局变量存储操作系统类型，页面加载时初始化一次
     const OPERATING_SYSTEM = detectOperatingSystem();
 
+    // 判断端口信息是否来自蓝牙串口（如 SPP/RFCOMM）
+    function isBluetoothSerialPortInfo(portInfo)
+    {
+      return !!(portInfo && typeof portInfo.bluetoothServiceClassId === 'number');
+    }
+
     // 检查串口是否为ESP32开发板使用的芯片
     function isESP32SerialPort(port)
     {
@@ -3619,6 +3603,13 @@ Generated at: ${now.toISOString()}
       {
         const portInfo = port.getInfo();
         const os = OPERATING_SYSTEM;
+        const bluetoothServiceClassId = portInfo.bluetoothServiceClassId;
+
+        if (isBluetoothSerialPortInfo(portInfo))
+        {
+          const classId = bluetoothServiceClassId.toString(16).toUpperCase();
+          return `Bluetooth Serial (0x${classId})`;
+        }
 
         if (os === 'mac')
         {
@@ -3789,6 +3780,12 @@ Generated at: ${now.toISOString()}
       {
         const portInfo = port.getInfo();
         const os = OPERATING_SYSTEM;
+
+        // 蓝牙串口通常不带 USB VID/PID，不应在有效端口中过滤掉
+        if (isBluetoothSerialPortInfo(portInfo))
+        {
+          return true;
+        }
 
         if (os === 'mac')
         {
@@ -4061,8 +4058,8 @@ Generated at: ${now.toISOString()}
         {
           try
           {
-            // 使用与页面自定义过滤一致的规则，直接应用到 Chrome 原生串口选择器
-            const systemPort = await navigator.serial.requestPort({ filters: buildWebSerialFilters() });
+            // 与主连接流程保持一致：使用统一的请求封装（必要时自动回退）
+            const systemPort = await requestSerialPortWithFallback();
             cleanupPortSelector();
             resolve(systemPort);
           } catch (error)
