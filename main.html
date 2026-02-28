@@ -3522,6 +3522,7 @@ Generated at: ${now.toISOString()}
     const BLUETOOTH_SERIAL_SERVICE_CLASS_IDS = [
       0x1101, // Serial Port Profile (SPP)
     ];
+    let isOpeningSerialPort = false;
 
     // 构建供 Chrome 原生串口选择器使用的过滤规则
     function buildWebSerialFilters()
@@ -3622,7 +3623,7 @@ Generated at: ${now.toISOString()}
         }
       })();
 
-      const maxAttempts = isBluetoothLike ? 3 : 1;
+      const maxAttempts = isBluetoothLike ? 2 : 1;
       let lastError = null;
 
       for (let attempt = 1; attempt <= maxAttempts; attempt++)
@@ -3634,7 +3635,8 @@ Generated at: ${now.toISOString()}
         } catch (error)
         {
           lastError = error;
-          if (attempt < maxAttempts)
+          const shouldRetry = isBluetoothLike && attempt < maxAttempts && !isSerialPortBusyError(error);
+          if (shouldRetry)
           {
             if (typeof showDebug !== 'undefined' && showDebug)
             {
@@ -3648,6 +3650,9 @@ Generated at: ${now.toISOString()}
               // ignore close errors during retry
             }
             await new Promise(resolve => setTimeout(resolve, 500));
+          } else
+          {
+            throw error;
           }
         }
       }
@@ -3688,11 +3693,29 @@ Generated at: ${now.toISOString()}
       {
         return false;
       }
-      if (typeof portInfo.bluetoothServiceClassId === 'number')
+      if (typeof portInfo.bluetoothServiceClassId === 'number' || typeof portInfo.bluetoothServiceClassId === 'string')
       {
         return true;
       }
       return portInfo.usbVendorId == null && portInfo.usbProductId == null;
+    }
+
+    function getBluetoothServiceClassIdString(portInfo)
+    {
+      if (!portInfo)
+      {
+        return 'unknown';
+      }
+      const raw = portInfo.bluetoothServiceClassId;
+      if (typeof raw === 'number')
+      {
+        return `0x${raw.toString(16).toUpperCase()}`;
+      }
+      if (typeof raw === 'string' && raw.trim())
+      {
+        return raw.trim();
+      }
+      return 'unknown';
     }
 
     function getBluetoothNameCandidates(port, portInfo)
@@ -3797,17 +3820,12 @@ Generated at: ${now.toISOString()}
         return false;
       }
 
-      const errorName = String(portError.name || '').toLowerCase();
       const errorMessage = String(portError.message || '').toLowerCase();
       if (errorMessage.includes('busy') || errorMessage.includes('in use'))
       {
         return true;
       }
-      if (errorMessage.includes('access denied') || errorMessage.includes('permission denied'))
-      {
-        return true;
-      }
-      if (errorName === 'invalidstateerror' && errorMessage.includes('open'))
+      if (errorMessage.includes('resource busy') || errorMessage.includes('device or resource busy'))
       {
         return true;
       }
@@ -3858,10 +3876,7 @@ Generated at: ${now.toISOString()}
           {
             return btNames[0];
           }
-          const classId = typeof portInfo.bluetoothServiceClassId === 'number'
-            ? portInfo.bluetoothServiceClassId.toString(16).toUpperCase()
-            : 'UNKNOWN';
-          return `Bluetooth Serial (0x${classId})`;
+          return `Bluetooth Serial (${getBluetoothServiceClassIdString(portInfo)})`;
         }
 
         if (os === 'mac')
@@ -4426,6 +4441,15 @@ Generated at: ${now.toISOString()}
 
     async function openSerialPort()
     {
+      if (isOpeningSerialPort)
+      {
+        if (typeof showDebug !== 'undefined' && showDebug)
+        {
+          console.log('Serial opening already in progress, ignoring duplicate request');
+        }
+        return;
+      }
+      isOpeningSerialPort = true;
       try
       {
 
@@ -4466,6 +4490,10 @@ Generated at: ${now.toISOString()}
             const isESP32 = isESP32SerialPort(port);
             console.log(getText("portInfo").replace("{index}", index + 1).replace("{name}", displayName));
             console.log(getText("hardwareInfo").replace("{vid}", portInfo.usbVendorId?.toString(16)).replace("{pid}", portInfo.usbProductId?.toString(16)).replace("{isESP32}", isESP32));
+            if (isLikelyBluetoothSerialPortInfo(portInfo))
+            {
+              console.log(`- Bluetooth: serviceClassId=${getBluetoothServiceClassIdString(portInfo)}`);
+            }
           } catch (error)
           {
             console.log(getText("portInfoError").replace("{index}", index + 1));
@@ -4497,6 +4525,10 @@ Generated at: ${now.toISOString()}
             const pinfo = port.getInfo();
             console.log(getText("portInfo").replace("{index}", 1).replace("{name}", getSerialPortDisplayName(port)));
             console.log(getText("hardwareInfo").replace("{vid}", pinfo.usbVendorId?.toString(16)).replace("{pid}", pinfo.usbProductId?.toString(16)).replace("{isESP32}", isESP32SerialPort(port)));
+            if (isLikelyBluetoothSerialPortInfo(pinfo))
+            {
+              console.log(`- Bluetooth: serviceClassId=${getBluetoothServiceClassIdString(pinfo)}`);
+            }
           } catch (e) { /* ignore */ }
         } else
         {
@@ -4511,6 +4543,10 @@ Generated at: ${now.toISOString()}
             const pinfo = port.getInfo();
             console.log(getText("portInfo").replace("{index}", 1).replace("{name}", getSerialPortDisplayName(port)));
             console.log(getText("hardwareInfo").replace("{vid}", pinfo.usbVendorId?.toString(16)).replace("{pid}", pinfo.usbProductId?.toString(16)).replace("{isESP32}", isESP32SerialPort(port)));
+            if (isLikelyBluetoothSerialPortInfo(pinfo))
+            {
+              console.log(`- Bluetooth: serviceClassId=${getBluetoothServiceClassIdString(pinfo)}`);
+            }
           } catch (e) { /* ignore */ }
         }
 
@@ -4633,6 +4669,7 @@ Generated at: ${now.toISOString()}
 
         // 串口连接成功，IP地址将由makeConnection积木统一处理
         if (showDebug) console.log(getText("serialConnectedWaitingMakeConnection"));
+        isOpeningSerialPort = false;
 
       } catch (error)
       {
@@ -4678,6 +4715,7 @@ Generated at: ${now.toISOString()}
             console.log(`Kept Quick Connect button showing IP: ${currentDeviceIP}`);
           }
         }
+        isOpeningSerialPort = false;
         // 抛出异常，让调用者知道连接失败
         throw error;
       }
