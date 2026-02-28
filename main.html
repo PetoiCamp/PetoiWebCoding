@@ -3491,16 +3491,46 @@ Generated at: ${now.toISOString()}
       { vendorId: 0x303a, productId: 0x0002, name: 'ESP32-S3' }, // ESP32-S3 内置USB
     ];
 
+    const BLUETOOTH_NAME_KEYWORDS = ['petoi', 'bittle', 'nybble', 'mini'];
+    const BLUETOOTH_SERIAL_SERVICE_CLASS_IDS = [
+      0x1101, // Serial Port Profile (SPP)
+    ];
+
     // 构建供 Chrome 原生串口选择器使用的过滤规则
     function buildWebSerialFilters()
     {
       try
       {
-        // Keep picker unfiltered on all platforms:
-        // - shows Bluetooth serial ports (no USB VID/PID)
-        // - shows unknown USB-UART bridges not in our VID list
-        // - avoids "no compatible devices found" caused by strict filters
-        return [];
+        // On Windows, keep unfiltered picker to avoid missing COM ports.
+        const isWindows = (navigator.platform && navigator.platform.includes('Win')) ||
+          (navigator.userAgent && navigator.userAgent.includes('Windows'));
+
+        if (isWindows)
+        {
+          if (typeof showDebug !== 'undefined' && showDebug)
+          {
+            console.log('Windows detected: using unfiltered serial picker');
+          }
+          return [];
+        }
+
+        const filters = [];
+        ESP32_USB_CHIPS.forEach(chip =>
+        {
+          if (chip.productId !== undefined)
+          {
+            filters.push({ usbVendorId: chip.vendorId, usbProductId: chip.productId });
+          } else
+          {
+            filters.push({ usbVendorId: chip.vendorId });
+          }
+        });
+
+        BLUETOOTH_SERIAL_SERVICE_CLASS_IDS.forEach(classId =>
+        {
+          filters.push({ bluetoothServiceClassId: classId });
+        });
+        return filters;
       } catch (e)
       {
         return [];
@@ -3521,6 +3551,19 @@ Generated at: ${now.toISOString()}
         return await navigator.serial.requestPort({ filters: builtFilters });
       } catch (error)
       {
+        if (error && error.name === 'TypeError' && /bluetoothServiceClassId/i.test(error.message || ''))
+        {
+          const usbOnlyFilters = (builtFilters || []).filter(filter => filter.usbVendorId !== undefined);
+          if (usbOnlyFilters.length > 0)
+          {
+            if (typeof showDebug !== 'undefined' && showDebug)
+            {
+              console.log('Bluetooth serial filters unsupported, retrying with USB-only filters');
+            }
+            return await navigator.serial.requestPort({ filters: usbOnlyFilters });
+          }
+        }
+
         // 当过滤器导致设备不匹配时，Chrome 会抛出 NotFoundError，消息通常包含 "compatible devices"
         if (error && error.name === 'NotFoundError' && /compatible devices/i.test(error.message || ''))
         {
@@ -3561,10 +3604,105 @@ Generated at: ${now.toISOString()}
     // 全局变量存储操作系统类型，页面加载时初始化一次
     const OPERATING_SYSTEM = detectOperatingSystem();
 
-    // 判断端口信息是否来自蓝牙串口（如 SPP/RFCOMM）
-    function isBluetoothSerialPortInfo(portInfo)
+    function isLikelyBluetoothSerialPortInfo(portInfo)
     {
-      return !!(portInfo && typeof portInfo.bluetoothServiceClassId === 'number');
+      if (!portInfo || typeof portInfo !== 'object')
+      {
+        return false;
+      }
+      if (typeof portInfo.bluetoothServiceClassId === 'number')
+      {
+        return true;
+      }
+      return portInfo.usbVendorId == null && portInfo.usbProductId == null;
+    }
+
+    function getBluetoothNameCandidates(port, portInfo)
+    {
+      const names = [];
+      const addName = (value) =>
+      {
+        if (typeof value === 'string')
+        {
+          const trimmed = value.trim();
+          if (trimmed) names.push(trimmed);
+        }
+      };
+
+      if (portInfo)
+      {
+        addName(portInfo.bluetoothDeviceName);
+        addName(portInfo.bluetoothName);
+        addName(portInfo.deviceName);
+        addName(portInfo.name);
+        addName(portInfo.displayName);
+        addName(portInfo.productName);
+        addName(portInfo.friendlyName);
+      }
+
+      if (port)
+      {
+        addName(port.name);
+        addName(port.displayName);
+        addName(port.productName);
+        addName(port.label);
+        addName(port.deviceName);
+        addName(port.friendlyName);
+      }
+
+      const uniqueNames = [];
+      names.forEach(name =>
+      {
+        if (!uniqueNames.includes(name))
+        {
+          uniqueNames.push(name);
+        }
+      });
+      return uniqueNames;
+    }
+
+    function isAllowedBluetoothPortByName(port, portInfo)
+    {
+      if (!isLikelyBluetoothSerialPortInfo(portInfo))
+      {
+        return false;
+      }
+
+      const names = getBluetoothNameCandidates(port, portInfo);
+      if (names.length === 0)
+      {
+        return false;
+      }
+
+      const lowercaseNames = names.map(name => name.toLowerCase());
+      return BLUETOOTH_NAME_KEYWORDS.some(keyword =>
+      {
+        return lowercaseNames.some(name => name.includes(keyword));
+      });
+    }
+
+    function isSerialPortBusyError(portError)
+    {
+      if (!portError)
+      {
+        return false;
+      }
+
+      const errorName = String(portError.name || '').toLowerCase();
+      const errorMessage = String(portError.message || '').toLowerCase();
+      if (errorMessage.includes('busy') || errorMessage.includes('in use'))
+      {
+        return true;
+      }
+      if (errorMessage.includes('access denied') || errorMessage.includes('permission denied'))
+      {
+        return true;
+      }
+      if (errorName === 'invalidstateerror' && errorMessage.includes('open'))
+      {
+        return true;
+      }
+      return false;
     }
 
     // 检查串口是否为ESP32开发板使用的芯片
@@ -3603,11 +3741,17 @@ Generated at: ${now.toISOString()}
       {
         const portInfo = port.getInfo();
         const os = OPERATING_SYSTEM;
-        const bluetoothServiceClassId = portInfo.bluetoothServiceClassId;
 
-        if (isBluetoothSerialPortInfo(portInfo))
+        if (isLikelyBluetoothSerialPortInfo(portInfo))
         {
-          const classId = bluetoothServiceClassId.toString(16).toUpperCase();
+          const btNames = getBluetoothNameCandidates(port, portInfo);
+          if (btNames.length > 0)
+          {
+            return btNames[0];
+          }
+          const classId = typeof portInfo.bluetoothServiceClassId === 'number'
+            ? portInfo.bluetoothServiceClassId.toString(16).toUpperCase()
+            : 'UNKNOWN';
           return `Bluetooth Serial (0x${classId})`;
         }
 
@@ -3781,10 +3925,9 @@ Generated at: ${now.toISOString()}
         const portInfo = port.getInfo();
         const os = OPERATING_SYSTEM;
 
-        // 蓝牙串口通常不带 USB VID/PID，不应在有效端口中过滤掉
-        if (isBluetoothSerialPortInfo(portInfo))
+        if (isLikelyBluetoothSerialPortInfo(portInfo))
         {
-          return true;
+          return isAllowedBluetoothPortByName(port, portInfo);
         }
 
         if (os === 'mac')
@@ -4262,6 +4405,19 @@ Generated at: ${now.toISOString()}
           } catch (e) { /* ignore */ }
         }
 
+        try
+        {
+          const selectedInfo = port.getInfo();
+          if (isLikelyBluetoothSerialPortInfo(selectedInfo) && !isAllowedBluetoothPortByName(port, selectedInfo))
+          {
+            alert(getText("bluetoothPortNotAllowed"));
+            throw new Error('Bluetooth serial device is not in allowed keyword list');
+          }
+        } catch (selectionError)
+        {
+          throw selectionError;
+        }
+
         // 连接串口
         try
         {
@@ -4276,18 +4432,16 @@ Generated at: ${now.toISOString()}
           console.log(getText("esp32PortConnected"));
         } catch (portError)
         {
-          // 检查是否是因为串口被占用
-          if (portError.name === 'NetworkError' ||
-            portError.message.includes('failed to open') ||
-            portError.message.includes('busy') ||
-            portError.message.includes('in use'))
+          if (isSerialPortBusyError(portError))
           {
-            // 显示提示窗口
             alert(getText("serialPortBusy"));
             throw new Error('Serial port busy');
           } else
           {
-            // 其他错误，继续抛出
+            const errorMessage = (portError && (portError.message || portError.name))
+              ? (portError.message || portError.name)
+              : 'Unknown error';
+            alert(getText("serialPortOpenFailed").replace("{error}", errorMessage));
             throw portError;
           }
         }
