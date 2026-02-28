@@ -20,7 +20,7 @@
   <script src="./blocks/communication.js"></script>
   <script src="./blocks/generators.js"></script>
   <!-- 6. 加载 WebSocket 客户端 -->
-  <script src="./js/petoi_async_client.js"></script>
+  <script src="./js/petoi_async_client.js?v=20260227-1"></script>
   <script src="./js/toolbox.js"></script>
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -375,7 +375,9 @@
         errorMessage.includes('mixed content') ||
         errorMessage.includes('insecure') ||
         errorMessage.includes('blocked') ||
-        errorMessage.includes('https'))
+        errorMessage.includes('https') ||
+        errorMessage.includes('not connected to server') ||
+        errorMessage.includes('reconnect failed'))
       {
         return true;
       }

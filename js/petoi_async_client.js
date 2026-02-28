@@ -235,6 +235,15 @@ class PetoiAsyncClient
 
                 this.ws.onerror = (error) => {
                     clearTimeout(connectionTimeout);
+                    const mixedContentLikely =
+                        (typeof window !== 'undefined' &&
+                         window.location &&
+                         window.location.protocol === 'https:' &&
+                         /^ws:\/\//i.test(this.baseUrl || ''));
+                    if (mixedContentLikely) {
+                        reject(new Error('Mixed content blocked for ws:// over https'));
+                        return;
+                    }
                     console.error(getText('websocketError'), error);
                     reject(error);
                 };
