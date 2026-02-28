@@ -20,7 +20,7 @@
   <script src="./blocks/communication.js"></script>
   <script src="./blocks/generators.js"></script>
   <!-- 6. 加载 WebSocket 客户端 -->
-  <script src="./js/petoi_async_client.js?v=20260227-1"></script>
+  <script src="./js/petoi_async_client.js?v=20260227-2"></script>
   <script src="./js/toolbox.js"></script>
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -678,7 +678,7 @@
         return true;
       } catch (error)
       {
-        if (isLikelyWifiAccessBlockedError(error, config.lastKnownIP))
+        if (shouldSuggestLocalControlForWifi(config.lastKnownIP))
         {
           const allowWifi = await ensureWifiAccessAllowed(config.lastKnownIP);
           if (!allowWifi)
@@ -2365,10 +2365,12 @@ async function makeConnection(ip) {
   try {
     await window.petoiClient.connect();
   } catch (connectError) {
-    const blockedBySecurity = (typeof isLikelyWifiAccessBlockedError === 'function')
-      ? isLikelyWifiAccessBlockedError(connectError, ip)
+    let promptedLocalFallback = false;
+    const shouldOfferLocalFallback = (typeof shouldSuggestLocalControlForWifi === 'function')
+      ? shouldSuggestLocalControlForWifi(ip)
       : false;
-    if (blockedBySecurity && typeof ensureWifiAccessAllowed === 'function') {
+    if (shouldOfferLocalFallback && typeof ensureWifiAccessAllowed === 'function') {
+      promptedLocalFallback = true;
       const allowWifi = await ensureWifiAccessAllowed(ip);
       if (!allowWifi) {
         throw new Error(getText("webSocketConnectionUnavailable"));
@@ -2380,7 +2382,7 @@ async function makeConnection(ip) {
     const detailMessage = (typeof getText === 'function' && getText("connectionErrorDetails"))
       ? getText("connectionErrorDetails").replace("{error}", connectMessage)
       : ("Connection error: " + connectMessage);
-    if (!blockedBySecurity) {
+    if (!promptedLocalFallback) {
       if (typeof showCustomAlert === 'function') {
         await showCustomAlert(detailMessage, getText("connectionFailed"));
       } else {
