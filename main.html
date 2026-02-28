@@ -3708,6 +3708,65 @@ Generated at: ${now.toISOString()}
       throw lastError || new Error('Failed to open serial port');
     }
 
+    async function tryOpenAuthorizedBluetoothPorts(preferredPort, baudRate)
+    {
+      const allAuthorizedPorts = await navigator.serial.getPorts();
+      const sppCandidates = allAuthorizedPorts.filter(candidate =>
+      {
+        try
+        {
+          return isBluetoothSPPPortInfo(candidate.getInfo());
+        } catch (e)
+        {
+          return false;
+        }
+      });
+
+      if (sppCandidates.length === 0)
+      {
+        throw new Error('No authorized Bluetooth SPP serial ports found');
+      }
+
+      const prioritized = [];
+      if (preferredPort)
+      {
+        prioritized.push(preferredPort);
+      }
+      sppCandidates.forEach(candidate =>
+      {
+        if (!prioritized.includes(candidate))
+        {
+          prioritized.push(candidate);
+        }
+      });
+
+      let lastError = null;
+      for (const candidate of prioritized)
+      {
+        try
+        {
+          await openSerialPortWithRetry(candidate, baudRate);
+          if (typeof showDebug !== 'undefined' && showDebug)
+          {
+            try
+            {
+              const info = candidate.getInfo();
+              console.log(`Recovered by opening authorized Bluetooth SPP port: ${getBluetoothServiceClassIdString(info)}`);
+            } catch (e)
+            {
+              console.log('Recovered by opening an authorized Bluetooth SPP port');
+            }
+          }
+          return candidate;
+        } catch (error)
+        {
+          lastError = error;
+        }
+      }
+
+      throw lastError || new Error('Failed to open authorized Bluetooth SPP serial ports');
+    }
+
     // 系统检测函数
     function detectOperatingSystem()
     {
@@ -3764,6 +3823,30 @@ Generated at: ${now.toISOString()}
         return raw.trim();
       }
       return 'unknown';
+    }
+
+    function normalizeBluetoothServiceClassId(rawServiceClassId)
+    {
+      const raw = String(rawServiceClassId || '').trim().toLowerCase();
+      if (!raw)
+      {
+        return '';
+      }
+      return raw.replace(/[^0-9a-f]/g, '');
+    }
+
+    function isBluetoothSPPPortInfo(portInfo)
+    {
+      if (!isLikelyBluetoothSerialPortInfo(portInfo))
+      {
+        return false;
+      }
+      const normalized = normalizeBluetoothServiceClassId(portInfo.bluetoothServiceClassId);
+      if (!normalized)
+      {
+        return false;
+      }
+      return normalized === '1101' || normalized === '0000110100001000800000805f9b34fb';
     }
 
     function getBluetoothNameCandidates(port, portInfo)
@@ -4612,32 +4695,60 @@ Generated at: ${now.toISOString()}
         }
 
         // 连接串口
+        // 对蓝牙 SPP 端口增加授权列表回退打开，避免 chooser 返回对象偶发不可打开
+        const defaultBaud = 115200;
+        let serialOpenError = null;
         try
         {
-          // 统一波特率为 115200（与固件设置一致）
-          let defaultBaud = 115200;
-
           await openSerialPortWithRetry(port, defaultBaud);
-          // 部分板卡（如 Arduino/16U2 桥接）需要置位 DTR/RTS 才会输出数据
-          try { await port.setSignals({ dataTerminalReady: true, requestToSend: true }); } catch (e) { /* ignore */ }
-          // 打开后短暂等待，给自动复位的板卡时间启动固件
-          await new Promise(resolve => setTimeout(resolve, 300));
-          console.log(getText("esp32PortConnected"));
-        } catch (portError)
+        } catch (primaryOpenError)
         {
-          if (isSerialPortBusyError(portError))
+          serialOpenError = primaryOpenError;
+          let selectedInfo = null;
+          try
+          {
+            selectedInfo = port ? port.getInfo() : null;
+          } catch (e)
+          {
+            selectedInfo = null;
+          }
+          const shouldTryBluetoothFallback = !!(selectedInfo && isBluetoothSPPPortInfo(selectedInfo) && !isSerialPortBusyError(primaryOpenError));
+          if (shouldTryBluetoothFallback)
+          {
+            try
+            {
+              const recoveredPort = await tryOpenAuthorizedBluetoothPorts(port, defaultBaud);
+              if (recoveredPort)
+              {
+                port = recoveredPort;
+                serialOpenError = null;
+              }
+            } catch (fallbackOpenError)
+            {
+              serialOpenError = fallbackOpenError;
+            }
+          }
+        }
+
+        if (serialOpenError)
+        {
+          if (isSerialPortBusyError(serialOpenError))
           {
             alert(getText("serialPortBusy"));
             throw new Error('Serial port busy');
-          } else
-          {
-            const errorMessage = (portError && (portError.message || portError.name))
-              ? (portError.message || portError.name)
-              : 'Unknown error';
-            alert(getText("serialPortOpenFailed").replace("{error}", errorMessage));
-            throw portError;
           }
+          const errorMessage = (serialOpenError && (serialOpenError.message || serialOpenError.name))
+            ? (serialOpenError.message || serialOpenError.name)
+            : 'Unknown error';
+          alert(getText("serialPortOpenFailed").replace("{error}", errorMessage));
+          throw serialOpenError;
         }
+
+        // 部分板卡（如 Arduino/16U2 桥接）需要置位 DTR/RTS 才会输出数据
+        try { await port.setSignals({ dataTerminalReady: true, requestToSend: true }); } catch (e) { /* ignore */ }
+        // 打开后短暂等待，给自动复位的板卡时间启动固件
+        await new Promise(resolve => setTimeout(resolve, 300));
+        console.log(getText("esp32PortConnected"));
 
         // 设置读取器和写入器（用于验证）
         reader = port.readable.getReader();
