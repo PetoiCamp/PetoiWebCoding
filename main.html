@@ -128,10 +128,37 @@
     // save entry block ids
     let startBlockIds = [];
 
+    const DEFAULT_TEXT_FALLBACKS = {
+      bluetoothPortNotAllowed: 'Only Bluetooth serial devices with names containing petoi, bittle, nybble, or mini are allowed.',
+      serialPortOpenFailed: 'Failed to open serial port: {error}',
+    };
+
     // 新增翻译助手函数
     function getText(key)
     {
-      return TRANSLATIONS[currentLang][key] || key;
+      const table = (TRANSLATIONS && TRANSLATIONS[currentLang]) ? TRANSLATIONS[currentLang] : null;
+      if (table && table[key] !== undefined)
+      {
+        return table[key];
+      }
+
+      const englishTable = (TRANSLATIONS && TRANSLATIONS.en) ? TRANSLATIONS.en : null;
+      if (englishTable && englishTable[key] !== undefined)
+      {
+        return englishTable[key];
+      }
+
+      const chineseTable = (TRANSLATIONS && TRANSLATIONS.zh) ? TRANSLATIONS.zh : null;
+      if (chineseTable && chineseTable[key] !== undefined)
+      {
+        return chineseTable[key];
+      }
+
+      if (DEFAULT_TEXT_FALLBACKS[key] !== undefined)
+      {
+        return DEFAULT_TEXT_FALLBACKS[key];
+      }
+      return key;
     }
 
     // 获取格式化的时间戳 [HH:MM:SS.mmm]
@@ -3671,7 +3698,13 @@ Generated at: ${now.toISOString()}
       const names = getBluetoothNameCandidates(port, portInfo);
       if (names.length === 0)
       {
-        return false;
+        // Some browsers/platforms do not expose Bluetooth device name to Web Serial.
+        // Avoid false negative blocking when name metadata is unavailable.
+        if (typeof showDebug !== 'undefined' && showDebug)
+        {
+          console.log('Bluetooth name unavailable from Web Serial metadata; skipping keyword restriction');
+        }
+        return true;
       }
 
       const lowercaseNames = names.map(name => name.toLowerCase());
