@@ -3688,6 +3688,31 @@ Generated at: ${now.toISOString()}
       return uniqueNames;
     }
 
+    function isGenericBluetoothName(name)
+    {
+      const normalized = String(name || '').trim().toLowerCase();
+      if (!normalized)
+      {
+        return true;
+      }
+
+      const genericPatterns = [
+        /^bluetooth$/,
+        /^bluetooth serial(?: port)?(?:\s*\(.*\))?$/,
+        /^serial$/,
+        /^unknown$/,
+        /^rfcomm$/,
+        /0xunknown/,
+      ];
+      return genericPatterns.some(pattern => pattern.test(normalized));
+    }
+
+    function getMeaningfulBluetoothNames(port, portInfo)
+    {
+      const names = getBluetoothNameCandidates(port, portInfo);
+      return names.filter(name => !isGenericBluetoothName(name));
+    }
+
     function isAllowedBluetoothPortByName(port, portInfo)
     {
       if (!isLikelyBluetoothSerialPortInfo(portInfo))
@@ -3695,19 +3720,19 @@ Generated at: ${now.toISOString()}
         return false;
       }
 
-      const names = getBluetoothNameCandidates(port, portInfo);
-      if (names.length === 0)
+      const meaningfulNames = getMeaningfulBluetoothNames(port, portInfo);
+      if (meaningfulNames.length === 0)
       {
-        // Some browsers/platforms do not expose Bluetooth device name to Web Serial.
-        // Avoid false negative blocking when name metadata is unavailable.
+        // Some browsers/platforms only expose generic Bluetooth labels.
+        // Skip keyword restriction if there is no meaningful device name.
         if (typeof showDebug !== 'undefined' && showDebug)
         {
-          console.log('Bluetooth name unavailable from Web Serial metadata; skipping keyword restriction');
+          console.log('Bluetooth name unavailable or generic; skipping keyword restriction');
         }
         return true;
       }
 
-      const lowercaseNames = names.map(name => name.toLowerCase());
+      const lowercaseNames = meaningfulNames.map(name => name.toLowerCase());
       return BLUETOOTH_NAME_KEYWORDS.some(keyword =>
       {
         return lowercaseNames.some(name => name.includes(keyword));
@@ -3777,7 +3802,7 @@ Generated at: ${now.toISOString()}
 
         if (isLikelyBluetoothSerialPortInfo(portInfo))
         {
-          const btNames = getBluetoothNameCandidates(port, portInfo);
+          const btNames = getMeaningfulBluetoothNames(port, portInfo);
           if (btNames.length > 0)
           {
             return btNames[0];
