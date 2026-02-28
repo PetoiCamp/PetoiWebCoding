@@ -362,6 +362,32 @@
       return window.location.protocol === 'https:' && isLikelyIPv4Address(ip);
     }
 
+    function isLikelyWifiAccessBlockedError(error, ip)
+    {
+      if (!shouldSuggestLocalControlForWifi(ip))
+      {
+        return false;
+      }
+
+      const errorName = String(error && error.name ? error.name : '').toLowerCase();
+      const errorMessage = String(error && error.message ? error.message : '').toLowerCase();
+      if (errorName.includes('security') ||
+        errorMessage.includes('mixed content') ||
+        errorMessage.includes('insecure') ||
+        errorMessage.includes('blocked') ||
+        errorMessage.includes('https'))
+      {
+        return true;
+      }
+
+      // WebSocket onerror frequently provides a plain Event without useful message.
+      if (typeof Event !== 'undefined' && error instanceof Event)
+      {
+        return true;
+      }
+      return false;
+    }
+
     function hasActiveSerialConnection()
     {
       return !!(writer && port && port.readable && port.writable);
@@ -610,12 +636,6 @@
 
       try
       {
-        const allowWifi = await ensureWifiAccessAllowed(config.lastKnownIP);
-        if (!allowWifi)
-        {
-          return 'blocked';
-        }
-
         // 尝试使用配置的IP地址创建WebSocket连接
         const testClient = new PetoiAsyncClient(`ws://${config.lastKnownIP}:81`);
         await testClient.connect();
@@ -656,6 +676,14 @@
         return true;
       } catch (error)
       {
+        if (isLikelyWifiAccessBlockedError(error, config.lastKnownIP))
+        {
+          const allowWifi = await ensureWifiAccessAllowed(config.lastKnownIP);
+          if (!allowWifi)
+          {
+            return 'blocked';
+          }
+        }
         if (typeof showDebug !== 'undefined' && showDebug)
         {
           console.log(`Failed to connect with configured IP ${config.lastKnownIP}:`, error);
@@ -1627,19 +1655,8 @@
         return;
       }
 
-      // 直接执行runCode
-      ensureWifiAccessAllowed(blockIP).then((allowWifi) =>
-      {
-        if (!allowWifi)
-        {
-          if (hasActiveSerialConnection())
-          {
-            executeRunCode();
-          }
-          return;
-        }
-        executeRunCode();
-      });
+      // IP合法且非默认值时，先直接尝试连接；若被浏览器阻断，再在连接流程中提示切换串口
+      executeRunCode();
     }
 
     function stopCode()
@@ -2338,18 +2355,25 @@ async function webRequest(command, timeout = 5000, isRest = false, expectedRespo
 
 // WebSocket连接函数
 async function makeConnection(ip) {
-  if (typeof ensureWifiAccessAllowed === 'function') {
-    const allowWifi = await ensureWifiAccessAllowed(ip);
-    if (!allowWifi) {
-      throw new Error(getText("webSocketConnectionUnavailable"));
-    }
-  }
   if (window.petoiClient) {
     await window.petoiClient.disconnect();
   }
   
   window.petoiClient = new PetoiAsyncClient("ws://" + ip + ":81");
-  await window.petoiClient.connect();
+  try {
+    await window.petoiClient.connect();
+  } catch (connectError) {
+    const blockedBySecurity = (typeof isLikelyWifiAccessBlockedError === 'function')
+      ? isLikelyWifiAccessBlockedError(connectError, ip)
+      : false;
+    if (blockedBySecurity && typeof ensureWifiAccessAllowed === 'function') {
+      const allowWifi = await ensureWifiAccessAllowed(ip);
+      if (!allowWifi) {
+        throw new Error(getText("webSocketConnectionUnavailable"));
+      }
+    }
+    throw connectError;
+  }
   if (showDebug) console.log(getText("webSocketConnected") + ": " + ip);
   return true;
 }
