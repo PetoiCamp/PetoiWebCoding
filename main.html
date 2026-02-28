@@ -4109,6 +4109,52 @@ Generated at: ${now.toISOString()}
       }
     }
 
+    function truncatePortLabel(label, maxLength = 28)
+    {
+      const text = String(label || '').trim();
+      if (text.length <= maxLength)
+      {
+        return text;
+      }
+      return `${text.slice(0, maxLength - 3)}...`;
+    }
+
+    function getSerialMonitorPortLabel(port)
+    {
+      try
+      {
+        const portInfo = port.getInfo();
+        const normalizedServiceClassId = normalizeBluetoothServiceClassId(portInfo.bluetoothServiceClassId);
+        if (isLikelyBluetoothSerialPortInfo(portInfo))
+        {
+          if (normalizedServiceClassId === '1101' || normalizedServiceClassId === '0000110100001000800000805f9b34fb')
+          {
+            return 'Bluetooth SPP (1101)';
+          }
+
+          const preferredName = getSerialPortDisplayName(port);
+          if (preferredName && !/^Bluetooth Serial/i.test(preferredName))
+          {
+            return truncatePortLabel(preferredName, 24);
+          }
+
+          const rawServiceClassId = getBluetoothServiceClassIdString(portInfo);
+          if (rawServiceClassId && rawServiceClassId !== 'unknown')
+          {
+            return truncatePortLabel(`Bluetooth (${rawServiceClassId})`, 28);
+          }
+          return 'Bluetooth Serial';
+        }
+
+        const displayName = getSerialPortDisplayName(port);
+        const tailName = displayName.split(/[.\\/]/).pop() || displayName;
+        return truncatePortLabel(tailName, 28);
+      } catch (error)
+      {
+        return 'Serial Port';
+      }
+    }
+
     // 生成简短的4位伪序列号（基于端口在列表中的位置）
     function generatePortPseudoSerial(port, allPorts, sameTypePorts)
     {
@@ -4855,12 +4901,10 @@ Generated at: ${now.toISOString()}
         const serialPortInfo = document.getElementById('serialPortInfo');
         if (serialTitle && serialPortInfo)
         {
-          const displayName = getSerialPortDisplayName(port);
+          const serialLabel = getSerialMonitorPortLabel(port);
           // 保持标题为"Serial Monitor"
           serialTitle.textContent = getText("serialOutput");
-          // 在下一行显示端口名称，截断路径字符
-          const truncatedName = displayName.split(/[.\\/]/).pop();
-          serialPortInfo.textContent = truncatedName;
+          serialPortInfo.textContent = serialLabel;
           serialPortInfo.style.display = 'block';
         }
 
