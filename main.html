@@ -4129,7 +4129,7 @@ Generated at: ${now.toISOString()}
         {
           if (normalizedServiceClassId === '1101' || normalizedServiceClassId === '0000110100001000800000805f9b34fb')
           {
-            return 'Bluetooth SPP (1101)';
+            return 'Bluetooth SPP';
           }
 
           const preferredName = getSerialPortDisplayName(port);
@@ -4138,11 +4138,6 @@ Generated at: ${now.toISOString()}
             return truncatePortLabel(preferredName, 24);
           }
 
-          const rawServiceClassId = getBluetoothServiceClassIdString(portInfo);
-          if (rawServiceClassId && rawServiceClassId !== 'unknown')
-          {
-            return truncatePortLabel(`Bluetooth (${rawServiceClassId})`, 28);
-          }
           return 'Bluetooth Serial';
         }
 
