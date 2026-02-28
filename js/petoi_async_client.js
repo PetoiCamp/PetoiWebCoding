@@ -178,12 +178,13 @@ class PetoiAsyncClient
             }
 
             this.connectionStartTime = Date.now();
+            let connectionTimeout = null;
             
             try {
                 this.ws = new WebSocket(this.baseUrl);
 
                 // 设置连接超时
-                const connectionTimeout = setTimeout(() => {
+                connectionTimeout = setTimeout(() => {
                     if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
                         const host = (this.baseUrl || '').replace(/^wss?:\/\//, '').split(':')[0] || '';
                         const msg = (typeof getText === 'function' && getText('connectionTimeout'))
@@ -244,7 +245,9 @@ class PetoiAsyncClient
                 };
                 
             } catch (error) {
-                clearTimeout(connectionTimeout);
+                if (connectionTimeout) {
+                    clearTimeout(connectionTimeout);
+                }
                 // 只在调试模式下显示WebSocket创建失败错误
                 if (typeof showDebug !== 'undefined' && showDebug) {
                     console.error('Failed to create WebSocket connection:', error);

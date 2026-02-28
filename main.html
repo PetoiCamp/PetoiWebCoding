@@ -2372,6 +2372,19 @@ async function makeConnection(ip) {
         throw new Error(getText("webSocketConnectionUnavailable"));
       }
     }
+    const connectMessage = (connectError && (connectError.message || connectError.name))
+      ? (connectError.message || connectError.name)
+      : String(connectError);
+    const detailMessage = (typeof getText === 'function' && getText("connectionErrorDetails"))
+      ? getText("connectionErrorDetails").replace("{error}", connectMessage)
+      : ("Connection error: " + connectMessage);
+    if (!blockedBySecurity) {
+      if (typeof showCustomAlert === 'function') {
+        await showCustomAlert(detailMessage, getText("connectionFailed"));
+      } else {
+        alert(detailMessage);
+      }
+    }
     throw connectError;
   }
   if (showDebug) console.log(getText("webSocketConnected") + ": " + ip);
