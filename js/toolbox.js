@@ -388,7 +388,7 @@ function blocklyGlobalConfig() {
                 ],
                 nextStatement: null,
                 colour: COMMUNICATION_COLOR, // 通信积木：红色
-                tooltip: "",
+                tooltip: getText("connectDeviceTooltip"),
                 helpUrl: "",
             });
         }

@@ -155,7 +155,8 @@ const TRANSLATIONS = {
     "categoryLists": "列表",
 
     // 积木文本 - 通信
-    "connectWithIP": "连接IP地址 %1",
+    "connectWithIP": "连接设备 %1",
+    "connectDeviceTooltip": "程序的起始积木。IP地址输入框显示当前连接设备的IP（串口连接时自动更新），也可手动输入已知的WiFi设备IP。",
     "getDigitalInput": "获取数字输入 %1",
     "getAnalogInput": "获取模拟输入 %1",
     "getSensorInput": "获取传感器 %1",
@@ -416,7 +417,7 @@ const TRANSLATIONS = {
     "redo": "重做",
 
     // 新增异步相关翻译项
-    "noConnectionBlockError": "错误：请添加一个'连接IP地址'积木块并将代码连接在其下方！",
+    "noConnectionBlockError": "错误：请添加一个'连接设备'积木块并将代码连接在其下方！",
     "taskQueryFailed": "任务状态查询失败",
     "taskTimeout": "任务超时",
     "httpRequestError": "HTTP请求错误",
@@ -710,7 +711,8 @@ const TRANSLATIONS = {
     "categoryLists": "Lists",
 
     // Block text - Communication
-    "connectWithIP": "Connect with IP %1",
+    "connectWithIP": "Connect Device %1",
+    "connectDeviceTooltip": "The starting block of every program. The IP field shows the current device IP (auto-updates when using serial connection), or you can manually enter a known WiFi device IP.",
     "getDigitalInput": "Get Digital Input %1",
     "getAnalogInput": "Get Analog Input %1",
     "getSensorInput": "Get Sensor %1",
@@ -971,7 +973,7 @@ const TRANSLATIONS = {
     "redo": "Redo",
 
     // 新增异步相关翻译项
-    "noConnectionBlockError": "Error: Please add a 'Connect with IP' block and connect the code below it!",
+    "noConnectionBlockError": "Error: Please add a 'Connect Device' block and connect the code below it!",
     "taskQueryFailed": "Task status query failed",
     "taskTimeout": "Task timeout",
     "httpRequestError": "HTTP request error",
@@ -1271,7 +1273,8 @@ const TRANSLATIONS = {
     "categoryLists": "リスト",
 
     // ブロックテキスト - 通信
-    "connectWithIP": "IPアドレスに接続 %1",
+    "connectWithIP": "デバイスに接続 %1",
+    "connectDeviceTooltip": "すべてのプログラムの最初のブロック。IPアドレスフィールドは現在のデバイスIPを表示します（シリアル接続時に自動更新）、または既知のWiFiデバイスIPを手動で入力できます。",
     "getDigitalInput": "デジタル入力を取得 %1",
     "getAnalogInput": "アナログ入力を取得 %1",
     "getSensorInput": "センサーを取得 %1",
@@ -1532,7 +1535,7 @@ const TRANSLATIONS = {
     "generatedJSCode": "生成されたJavaScriptコード",
 
     // 新增异步相关翻译项
-    "noConnectionBlockError": "エラー：「IPアドレスに接続」ブロックを追加し、その下にコードを接続してください！",
+    "noConnectionBlockError": "エラー：「デバイスに接続」ブロックを追加し、その下にコードを接続してください！",
     "taskQueryFailed": "タスク状態クエリ失敗",
     "taskTimeout": "タスクタイムアウト",
     "httpRequestError": "HTTPリクエストエラー",

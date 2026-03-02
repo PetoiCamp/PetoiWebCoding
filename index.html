@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Petoi Web Coding Blocks</title>
+  <title>Petoi Coding Portal</title>
   <style>
     :root {
       color-scheme: light;
@@ -109,7 +109,7 @@
 <body>
   <main class="card">
     <div class="top-row">
-      <h1 class="title" id="portalTitle">Petoi Web Coding Blocks</h1>
+      <h1 class="title" id="portalTitle">Petoi Coding Portal</h1>
       <div class="language-switch" aria-label="Language switcher">
         <button class="lang-btn" id="zhBtn" type="button" onclick="setLanguage('zh')">中文</button>
         <button class="lang-btn" id="enBtn" type="button" onclick="setLanguage('en')">English</button>
@@ -133,17 +133,20 @@
 
     const TEXTS = {
       zh: {
-        appTitle: "Petoi陪拓网页编程积木",
+        appTitle: "Petoi编程门户",
+        enterButton: "Petoi陪拓网页编程积木",
         portalDesc: "打开 Blockly 工作区，在浏览器中直接控制你的 Petoi 机器人。",
         langHint: "当前语言会自动传递给工作区，作为 main 页面默认语言。"
       },
       en: {
-        appTitle: "Petoi Web Coding Blocks",
+        appTitle: "Petoi Coding Portal",
+        enterButton: "Petoi Web Coding Blocks",
         portalDesc: "Open the Blockly workspace and control your Petoi robot directly in your browser.",
         langHint: "The selected language will be used as the default language in the workspace."
       },
       ja: {
-        appTitle: "Petoiウェブコーディングブロック",
+        appTitle: "Petoiコーディングポータル",
+        enterButton: "Petoiウェブコーディングブロック",
         portalDesc: "Blockly ワークスペースを開き、ブラウザから Petoi ロボットを直接操作できます。",
         langHint: "選択した言語は自動的に main ページへ引き継がれ、初期言語として適用されます。"
       }
@@ -211,14 +214,14 @@
       document.getElementById("enBtn").classList.toggle("active", currentLang === "en");
       document.getElementById("jaBtn").classList.toggle("active", currentLang === "ja");
 
-      const appTitle = TEXTS[currentLang].appTitle || "Petoi Web Coding Blocks";
+      const appTitle = TEXTS[currentLang].appTitle || "Petoi Coding Portal";
       document.title = appTitle;
       document.getElementById("portalTitle").textContent = appTitle;
       document.getElementById("portalDesc").textContent = TEXTS[currentLang].portalDesc;
       document.getElementById("langHint").textContent = TEXTS[currentLang].langHint;
 
       const mainLink = document.getElementById("enterMainLink");
-      mainLink.textContent = appTitle;
+      mainLink.textContent = TEXTS[currentLang].enterButton || "Petoi Web Coding Blocks";
       mainLink.href = "./main.html?lang=" + encodeURIComponent(currentLang);
     }
 

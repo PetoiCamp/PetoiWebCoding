@@ -174,7 +174,7 @@
     }
 
     // 全局版本日期变量（格式：v年.月.日）
-    const GLOBAL_VERSION_DATE = "v2026.02.03";
+    const GLOBAL_VERSION_DATE = "v2026.03.02";
 
     // 设置版本日期
     function setVersionDate()
@@ -1295,7 +1295,7 @@
       }
     }
 
-    // 添加默认的connect with IP积木块
+    // 添加默认的连接设备积木块
     function addDefaultConnectionBlock()
     {
       // 只有当工作区不存在startBlockId时才添加默认积木
@@ -1355,14 +1355,14 @@
     {
       Blockly.JavaScript.INFINITE_LOOP_TRAP = null;
 
-      // 修改：查找工作区中的'make_connection'积木块（Connect with IP）
+      // 修改：查找工作区中的'make_connection'积木块（Connect Device）
       const makeConnectionBlocks = workspace.getBlocksByType('make_connection');
 
       // 如果没有找到make_connection积木块，显示错误信息
       if (makeConnectionBlocks.length === 0)
       {
-        console.error(getText("noConnectionBlockError") || "错误：请添加一个'Connect with IP'积木块并将代码连接在其下方！");
-        alert(getText("noConnectionBlockError") || "错误：请添加一个'Connect with IP'积木块并将代码连接在其下方！");
+        console.error(getText("noConnectionBlockError") || "错误：请添加一个'Connect Device'积木块并将代码连接在其下方！");
+        alert(getText("noConnectionBlockError") || "错误：请添加一个'Connect Device'积木块并将代码连接在其下方！");
         return;
       }
 
@@ -1738,13 +1738,13 @@
       Blockly.JavaScript.INFINITE_LOOP_TRAP =
         'if (--window.LoopTrap < 0) throw "无限循环";\n';
 
-      // 查找工作区中的'make_connection'积木块（Connect with IP）
+      // 查找工作区中的'make_connection'积木块（Connect Device）
       const makeConnectionBlocks = workspace.getBlocksByType('make_connection');
 
       if (makeConnectionBlocks.length === 0)
       {
-        console.error(getText("noConnectionBlockError") || "错误：请添加一个'Connect with IP'积木块并将代码连接在其下方！");
-        alert(getText("noConnectionBlockError") || "错误：请添加一个'Connect with IP'积木块并将代码连接在其下方！");
+        console.error(getText("noConnectionBlockError") || "错误：请添加一个'Connect Device'积木块并将代码连接在其下方！");
+        alert(getText("noConnectionBlockError") || "错误：请添加一个'Connect Device'积木块并将代码连接在其下方！");
         isProgramRunning = false;
         return;
       }
