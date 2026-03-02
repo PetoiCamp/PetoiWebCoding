@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Petoi Web Coding Blocks - Help</title>
+  <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: #f8f9fa;
+      border-bottom: 1px solid #e0e0e0;
+      color: #333;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 40px 30px;
+    }
+
+    .section {
+      margin-bottom: 35px;
+    }
+
+    .section:last-child {
+      margin-bottom: 0;
+    }
+
+    .section h2 {
+      color: #333;
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e9ecef;
+    }
+
+    .section h3 {
+      color: #28a745;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 20px 0 10px 0;
+    }
+
+    .intro-box {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #007bff;
+      margin-bottom: 30px;
+    }
+
+    .intro-box p {
+      color: #555;
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .connection-method {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border-left: 3px solid #28a745;
+    }
+
+    .connection-method h4 {
+      color: #28a745;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .connection-method p {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .flow-box {
+      background-color: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 15px 0;
+      font-size: 14px;
+    }
+
+    .flow-box ol {
+      margin-left: 20px;
+      color: #856404;
+      font-size: 14px;
+    }
+
+    .flow-box li {
+      margin-bottom: 10px;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .flow-box strong {
+      color: #d63031;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 13px;
+    }
+
+    table td {
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+    }
+
+    table td:first-child {
+      width: 25%;
+      background-color: #f8f9fa;
+      font-weight: 600;
+      color: #555;
+    }
+
+    table tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    ul li {
+      padding: 12px 0 12px 30px;
+      position: relative;
+      color: #555;
+      font-size: 14px;
+      line-height: 1.6;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    ul li:last-child {
+      border-bottom: none;
+    }
+
+    ul li::before {
+      content: "•";
+      position: absolute;
+      left: 10px;
+      color: #007bff;
+      font-size: 18px;
+    }
+
+    .important-notes li::before {
+      content: "⚠";
+      color: #dc3545;
+      font-size: 14px;
+    }
+
+    .important-notes li {
+      color: #721c24;
+      background-color: #fff3cd;
+      padding: 15px 15px 15px 35px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border-bottom: none;
+    }
+
+    .github-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #0366d6;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      background-color: #f1f8ff;
+      border: 1px solid #c8e1ff;
+      transition: all 0.2s ease;
+    }
+
+    .github-link:hover {
+      background-color: #def;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-top: 1px solid #e9ecef;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px 10px;
+      }
+      
+      .content {
+        padding: 25px 20px;
+      }
+      
+      .header h1 {
+        font-size: 22px;
+      }
+      
+      table td:first-child {
+        width: 30%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 id="manualWelcome">Welcome to Petoi Web Coding Blocks</h1>
+      <p id="manualIntro">Program your robot by dragging and dropping blocks</p>
+    </div>
+
+    <div class="content">
+      <div class="intro-box">
+        <p id="manualIntroDetail">This tool allows you to program Petoi robots (Bittle, Nybble, etc.) by dragging and dropping blocks. Supports multiple connection methods: USB, Bluetooth, and WiFi.</p>
+      </div>
+
+      <div class="section">
+        <h2 id="manualConnectionModes">Connection Methods</h2>
+
+        <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #007bff;">
+          <h3 id="manualPlatformOverview" style="margin-top: 0; color: #333; font-size: 18px;">Platform Support Overview</h3>
+          <table style="margin-top: 10px;">
+            <tr>
+              <td style="width: 20%;"><strong id="manualPlatformTable">Platform</strong></td>
+              <td style="width: 25%;"><strong id="manualUsbSupported">USB</strong></td>
+              <td style="width: 30%;"><strong id="manualBluetoothSupported">Bluetooth</strong></td>
+              <td style="width: 25%;"><strong id="manualWiFiSupported">WiFi</strong></td>
+            </tr>
+            <tr>
+              <td id="manualWindows">Windows</td>
+              <td id="manualWindowsUsb" style="color: #28a745;">✓ Supported</td>
+              <td id="manualWindowsBt" style="color: #28a745;">✓ Supported</td>
+              <td id="manualWindowsWiFi" style="color: #28a745;">✓ Local only</td>
+            </tr>
+            <tr>
+              <td id="manualMacLinux">Mac/Linux</td>
+              <td id="manualMacUsb" style="color: #28a745;">✓ Supported</td>
+              <td id="manualMacBt" style="color: #28a745;">✓ Supported</td>
+              <td id="manualMacWiFi" style="color: #28a745;">✓ Local only</td>
+            </tr>
+            <tr>
+              <td id="manualChromebook">Chromebook</td>
+              <td id="manualChromeUsb" style="color: #28a745;">✓ Supported</td>
+              <td id="manualChromeBt" style="color: #dc3545;">✗ Not supported*</td>
+              <td id="manualChromeWiFi" style="color: #28a745;">✓ Local only</td>
+            </tr>
+            <tr>
+              <td id="manualMobile">Mobile Device</td>
+              <td id="manualMobileUsb" style="color: #dc3545;">✗ Not supported</td>
+              <td id="manualMobileBt" style="color: #dc3545;">✗ Not supported</td>
+              <td id="manualMobileWiFi" style="color: #dc3545;">✗ Not supported</td>
+            </tr>
+          </table>
+          <p style="margin-top: 15px; font-size: 13px; color: #666; line-height: 1.5;">
+            <strong id="manualChromebookNote">*Chromebook Bluetooth Limitation:</strong> <span id="manualChromebookDetail">Chrome OS does not provide virtual serial port support for BLE devices. While you can pair the robot in system settings, the Web Serial API cannot access it. Please use USB connection or download the local website version for full functionality.</span>
+          </p>
+        </div>
+
+        <div class="connection-method">
+          <h4 id="manualUsbTitle">1. USB Cable Connection (Most Stable)</h4>
+          <p id="manualUsbDesc">Connect your robot to the computer using a USB cable. Click the "Connect Serial Port" button and select a port with "wchusbserial" or "usbserial" in its name.</p>
+        </div>
+
+        <div class="connection-method">
+          <h4 id="manualBluetoothTitle">2. Bluetooth Connection</h4>
+          <p id="manualBluetoothDesc">Your computer needs Bluetooth support. Pair the robot in system Bluetooth settings (name usually contains petoi, bittle, nybble, or mini), then click "Connect Serial Port" and select the Bluetooth port.</p>
+          <table>
+            <tr>
+              <td>Windows</td>
+              <td id="manualBluetoothTableWindows">Pair in system settings, then connect via "Connect Serial Port"</td>
+            </tr>
+            <tr>
+              <td>Mac/Linux</td>
+              <td id="manualBluetoothTableMac">Pair in system settings, then connect via "Connect Serial Port"</td>
+            </tr>
+            <tr>
+              <td>Chromebook</td>
+              <td id="manualBluetoothTableChromebook">Bluetooth serial is not supported on Chrome OS. Please use USB connection or download the local website version.</td>
+            </tr>
+          </table>
+          <div style="margin-top: 15px; padding: 15px; background: #e8f4f8; border-radius: 6px; font-size: 13px;">
+            <strong>Connection Priority:</strong> USB → Bluetooth → WiFi. USB is always the most stable option.
+          </div>
+        </div>
+
+        <div class="connection-method">
+          <h4 id="manualWiFiTitle">3. WiFi / Local Website Connection</h4>
+          <div class="flow-box">
+            <p style="margin-bottom: 15px;"><strong id="manualWiFiNote">Important:</strong> <span id="manualWiFiDesc">WiFi connection requires running the website locally due to browser security restrictions.</span></p>
+            <ol>
+              <li id="manualWiFiStep1"><strong>Online mode (code.petoi.com):</strong> WiFi is NOT available. Please use USB or Bluetooth.</li>
+              <li id="manualWiFiStep2"><strong>Download local version:</strong> <a href="https://github.com/PetoiCamp/PetoiWebCoding" target="_blank" class="github-link">GitHub →</a></li>
+              <li id="manualWiFiStep3"><strong>Open index.html</strong> in your browser</li>
+              <li id="manualWiFiStep4">Now WiFi and all connection methods work!</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="connection-method">
+          <h4 id="manualQuickConnect">Quick Connect Button</h4>
+          <p id="manualQuickConnectDesc">Click to automatically attempt WiFi connection. If it fails, you'll be prompted to choose another connection method. When connected, the button displays the current IP address.</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 id="manualInterfaceTitle">Interface Guide</h2>
+        <ul>
+          <li id="manualWorkspace">Block Workspace: Drag blocks from the left panel here to build your program</li>
+          <li id="manualConsole">Console Log: Displays program status and debug information</li>
+          <li id="manualSerial">Serial Monitor: Directly communicate with the robot, send commands or view responses</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h2 id="manualBlocks">Common Blocks</h2>
+        <ul>
+          <li id="manualConnectBlock">Connect Device: The first block of every program. With serial connection, IP auto-updates after WiFi connects; or manually enter the device IP</li>
+          <li id="manualMotionBlocks">Motion Blocks: Control robot walking, turning, and actions (stand, sit, backflip)</li>
+          <li id="manualJointBlocks">Joint Blocks: Precisely control each joint's angle</li>
+          <li id="manualSensorBlocks">Sensor Blocks: Read ultrasonic, touch, and other sensor data</li>
+          <li id="manualMusicBlocks">Music Blocks: Play notes and melodies</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h2 id="manualImportantNotes">Important Notes</h2>
+        <ul class="important-notes">
+          <li id="manualNote1">Every program must start with the "Connect Device" block</li>
+          <li id="manualNote2">Ensure serial port or WiFi is connected before running code</li>
+          <li id="manualNote3">Acrobatic moves (front/back flips) put high stress on robot joints - use with caution</li>
+          <li id="manualNote4">When using USB, if no port is found, try unplugging and reconnecting the cable</li>
+          <li id="manualNote5">Bluetooth connection may require pairing in system settings first</li>
+        </ul>
+      </div>
+
+      <div style="text-align: center; margin-top: 30px;">
+        <button onclick="resetHelpShown()" id="resetTutorial" style="padding: 8px 16px; font-size: 12px; color: #666; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Reset First-Visit Tutorial</button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>© 2025 Petoi | <a href="https://www.petoi.com" target="_blank">www.petoi.com</a></p>
+    </div>
+  </div>
+
+  <script>
+    const TRANSLATIONS = {
+      en: {
+        manualWelcome: "Welcome to Petoi Web Coding Blocks",
+        manualIntro: "Program your robot by dragging and dropping blocks",
+        manualIntroDetail: "This tool allows you to program Petoi robots (Bittle, Nybble, etc.) by dragging and dropping blocks. Supports multiple connection methods: USB, Bluetooth, and WiFi.",
+        manualConnectionModes: "Connection Methods",
+        manualPlatformOverview: "Platform Support Overview",
+        manualPlatformTable: "Platform",
+        manualUsbSupported: "USB",
+        manualBluetoothSupported: "Bluetooth",
+        manualWiFiSupported: "WiFi",
+        manualWindows: "Windows",
+        manualMacLinux: "Mac/Linux",
+        manualChromebook: "Chromebook",
+        manualWindowsUsb: "✓ Supported",
+        manualWindowsBt: "✓ Supported",
+        manualWindowsWiFi: "✓ Local only",
+        manualMacUsb: "✓ Supported",
+        manualMacBt: "✓ Supported",
+        manualMacWiFi: "✓ Local only",
+        manualChromeUsb: "✓ Supported",
+        manualChromeBt: "✗ Not supported*",
+        manualChromeWiFi: "✓ Local only",
+        manualMobile: "Mobile Device",
+        manualMobileUsb: "✗ Not supported",
+        manualMobileBt: "✗ Not supported",
+        manualMobileWiFi: "✗ Not supported",
+        manualChromebookNote: "*Chromebook Bluetooth Limitation:",
+        manualChromebookDetail: "Chrome OS does not provide virtual serial port support for BLE devices. While you can pair the robot in system settings, the Web Serial API cannot access it. Please use USB connection or download the local website version for full functionality.",
+        manualUsbTitle: "1. USB Cable Connection (Most Stable)",
+        manualUsbDesc: "Connect your robot to the computer using a USB cable. Click the \"Connect Serial Port\" button and select a port with \"wchusbserial\" or \"usbserial\" in its name.",
+        manualBluetoothTitle: "2. Bluetooth Connection",
+        manualBluetoothDesc: "Your computer needs Bluetooth support. Pair the robot in system Bluetooth settings (name usually contains petoi, bittle, nybble, or mini), then click \"Connect Serial Port\" and select the Bluetooth port.",
+        manualBluetoothTableWindows: "Pair in system settings, then connect via \"Connect Serial Port\"",
+        manualBluetoothTableMac: "Pair in system settings, then connect via \"Connect Serial Port\"",
+        manualBluetoothTableChromebook: "Bluetooth serial is not supported on Chrome OS. Please use USB connection or download the local website version.",
+        manualWiFiTitle: "3. WiFi / Local Website Connection",
+        manualWiFiNote: "Important:",
+        manualWiFiDesc: "WiFi connection requires running the website locally due to browser security restrictions.",
+        manualWiFiStep1: "Online mode (code.petoi.com): WiFi is NOT available. Please use USB or Bluetooth.",
+        manualWiFiStep2: "Download local version:",
+        manualWiFiStep3: "Open index.html in your browser",
+        manualWiFiStep4: "Now WiFi and all connection methods work!",
+        manualQuickConnect: "Quick Connect Button",
+        manualQuickConnectDesc: "Click to automatically attempt WiFi connection. If it fails, you'll be prompted to choose another connection method. When connected, the button displays the current IP address.",
+        manualInterfaceTitle: "Interface Guide",
+        manualWorkspace: "Block Workspace: Drag blocks from the left panel here to build your program",
+        manualConsole: "Console Log: Displays program status and debug information",
+        manualSerial: "Serial Monitor: Directly communicate with the robot, send commands or view responses",
+        manualBlocks: "Common Blocks",
+        manualConnectBlock: "Connect Device: The first block of every program. With serial connection, IP auto-updates after WiFi connects; or manually enter the device IP",
+        manualMotionBlocks: "Motion Blocks: Control robot walking, turning, and actions (stand, sit, backflip)",
+        manualJointBlocks: "Joint Blocks: Precisely control each joint's angle",
+        manualSensorBlocks: "Sensor Blocks: Read ultrasonic, touch, and other sensor data",
+        manualMusicBlocks: "Music Blocks: Play notes and melodies",
+        manualImportantNotes: "Important Notes",
+        manualNote1: "Every program must start with the \"Connect Device\" block",
+        manualNote2: "Ensure serial port or WiFi is connected before running code",
+        manualNote3: "Acrobatic moves (front/back flips) put high stress on robot joints - use with caution",
+        manualNote4: "When using USB, if no port is found, try unplugging and reconnecting the cable",
+        manualNote5: "Bluetooth connection may require pairing in system settings first",
+        resetTutorial: "Reset First-Visit Tutorial",
+        resetConfirm: "First-visit tutorial reset. It will show again when you return to the main page."
+      },
+      zh: {
+        manualWelcome: "欢迎使用 Petoi 网页编程积木",
+        manualIntro: "拖拽积木即可为机器狗编程",
+        manualIntroDetail: "本工具支持通过拖拽积木的方式为 Petoi 机器狗（Bittle、Nybble 等）编程。支持多种连接方式：USB、蓝牙和 WiFi。",
+        manualConnectionModes: "连接方式",
+        manualPlatformOverview: "平台支持概览",
+        manualPlatformTable: "平台",
+        manualUsbSupported: "USB",
+        manualBluetoothSupported: "蓝牙",
+        manualWiFiSupported: "WiFi",
+        manualWindows: "Windows",
+        manualMacLinux: "Mac/Linux",
+        manualChromebook: "Chromebook",
+        manualWindowsUsb: "✓ 支持",
+        manualWindowsBt: "✓ 支持",
+        manualWindowsWiFi: "✓ 仅本地",
+        manualMacUsb: "✓ 支持",
+        manualMacBt: "✓ 支持",
+        manualMacWiFi: "✓ 仅本地",
+        manualChromeUsb: "✓ 支持",
+        manualChromeBt: "✗ 不支持",
+        manualChromeWiFi: "✓ 仅本地",
+        manualMobile: "移动设备",
+        manualMobileUsb: "✗ 不支持",
+        manualMobileBt: "✗ 不支持",
+        manualMobileWiFi: "✗ 不支持",
+        manualChromebookNote: "*Chromebook 蓝牙限制：",
+        manualChromebookDetail: "Chrome OS 不为 BLE 设备提供虚拟串口支持。虽然可以在系统设置中配对机器狗，但 Web Serial API 无法访问它。请使用 USB 连接或下载本地网站版本以获得完整功能。",
+        manualUsbTitle: "1. USB 数据线连接（最稳定）",
+        manualUsbDesc: "使用 USB 数据线将机器狗连接到电脑。点击\"连接串口\"按钮，选择带有 \"wchusbserial\" 或 \"usbserial\" 字样的端口。",
+        manualBluetoothTitle: "2. 蓝牙连接",
+        manualBluetoothDesc: "电脑需支持蓝牙功能。在系统蓝牙设置中配对机器狗（名称通常包含 petoi、bittle、nybble 或 mini），然后点击\"连接串口\"选择蓝牙端口。",
+        manualBluetoothTableWindows: "在系统设置中配对后，通过\"连接串口\"连接",
+        manualBluetoothTableMac: "在系统设置中配对后，通过\"连接串口\"连接",
+        manualBluetoothTableChromebook: "Chrome OS 不支持蓝牙串口。请使用 USB 连接或下载本地网站版本。",
+        manualWiFiTitle: "3. WiFi / 本地网站连接",
+        manualWiFiNote: "重要提示：",
+        manualWiFiDesc: "由于浏览器安全限制，WiFi 连接需要以本地方式运行网站。",
+        manualWiFiStep1: "在线模式（code.petoi.com）：无法使用 WiFi，请使用 USB 或蓝牙",
+        manualWiFiStep2: "下载本地版本：",
+        manualWiFiStep3: "在浏览器中打开 index.html",
+        manualWiFiStep4: "现在 WiFi 和所有连接方式都可以使用了！",
+        manualQuickConnect: "快速连接按钮",
+        manualQuickConnectDesc: "点击后自动尝试 WiFi 连接。如果失败，会提示您选择其他连接方式。连接成功后按钮会显示当前 IP 地址。",
+        manualInterfaceTitle: "界面说明",
+        manualWorkspace: "积木工作区：拖拽左侧积木到这里组合成程序",
+        manualConsole: "控制台日志：显示程序运行状态和调试信息",
+        manualSerial: "串口监视器：直接与机器狗通信，发送命令或查看返回数据",
+        manualBlocks: "常用积木说明",
+        manualConnectBlock: "连接设备：程序的第一个积木。有串口连接时，WiFi 连接成功后 IP 自动更新；也可以手动输入设备 IP",
+        manualMotionBlocks: "动作积木：控制机器狗行走、转身、做动作（如站立、坐下、后空翻）",
+        manualJointBlocks: "关节积木：精确控制每个关节的角度",
+        manualSensorBlocks: "传感器积木：读取超声波、触摸等传感器数据",
+        manualMusicBlocks: "音乐积木：播放音符和旋律",
+        manualImportantNotes: "重要提示",
+        manualNote1: "每个程序必须以\"连接设备\"积木开头",
+        manualNote2: "运行代码前确保已连接串口或 WiFi",
+        manualNote3: "特技动作（如前/后空翻）对机器狗关节压力较大，请谨慎使用",
+        manualNote4: "使用 USB 时，如果找不到端口，尝试重新插拔数据线",
+        manualNote5: "蓝牙连接可能需要在系统设置中先完成配对",
+        resetTutorial: "重置首次访问教程",
+        resetConfirm: "首次访问教程已重置。下次访问主页面时将再次显示。"
+      },
+      ja: {
+        manualWelcome: "Petoi ウェブコーディングブロックへようこそ",
+        manualIntro: "ブロックをドラッグしてロボットをプログラム",
+        manualIntroDetail: "このツールでは、ブロックをドラッグ＆ドロップして Petoi ロボット（Bittle、Nybble など）をプログラムできます。USB、Bluetooth、WiFi の複数の接続方法に対応しています。",
+        manualConnectionModes: "接続方法",
+        manualPlatformOverview: "プラットフォーム対応概要",
+        manualPlatformTable: "プラットフォーム",
+        manualUsbSupported: "USB",
+        manualBluetoothSupported: "Bluetooth",
+        manualWiFiSupported: "WiFi",
+        manualWindows: "Windows",
+        manualMacLinux: "Mac/Linux",
+        manualChromebook: "Chromebook",
+        manualWindowsUsb: "✓ 対応",
+        manualWindowsBt: "✓ 対応",
+        manualWindowsWiFi: "✓ ローカルのみ",
+        manualMacUsb: "✓ 対応",
+        manualMacBt: "✓ 対応",
+        manualMacWiFi: "✓ ローカルのみ",
+        manualChromeUsb: "✓ 対応",
+        manualChromeBt: "✗ 非対応",
+        manualChromeWiFi: "✓ ローカルのみ",
+        manualMobile: "モバイルデバイス",
+        manualMobileUsb: "✗ 非対応",
+        manualMobileBt: "✗ 非対応",
+        manualMobileWiFi: "✗ 非対応",
+        manualChromebookNote: "*Chromebook Bluetooth 制限：",
+        manualChromebookDetail: "Chrome OS は BLE デバイス用の仮想シリアルポートを提供していません。システム設定でロボットをペアリングできますが、Web Serial API でアクセスできません。完全な機能を使用するには USB 接続またはローカル Web サイトバージョンをダウンロードしてください。",
+        manualUsbTitle: "1. USB ケーブル接続（最も安定）",
+        manualUsbDesc: "USB ケーブルを使用してロボットをコンピュータに接続します。「シリアルポートを接続」ボタンをクリックし、「wchusbserial」または「usbserial」という名前のポートを選択してください。",
+        manualBluetoothTitle: "2. Bluetooth 接続",
+        manualBluetoothDesc: "コンピュータが Bluetooth に対応している必要があります。システムの Bluetooth 設定でロボットをペアリング（名前は通常 petoi、bittle、nybble、mini のいずれかを含む）し、「シリアルポートを接続」をクリックして Bluetooth ポートを選択してください。",
+        manualBluetoothTableWindows: "システム設定でペアリングし、「シリアルポートを接続」経由で接続",
+        manualBluetoothTableMac: "システム設定でペアリングし、「シリアルポートを接続」経由で接続",
+        manualBluetoothTableChromebook: "Chrome OS は Bluetooth シリアルをサポートしていません。USB 接続またはローカル Web サイトバージョンをご利用ください。",
+        manualWiFiTitle: "3. WiFi / ローカル Web サイト接続",
+        manualWiFiNote: "重要：",
+        manualWiFiDesc: "ブラウザのセキュリティ制限により、WiFi 接続には Web サイトをローカルで実行する必要があります。",
+        manualWiFiStep1: "オンラインモード（code.petoi.com）：WiFi は使用できません。USB または Bluetooth を使用してください。",
+        manualWiFiStep2: "ローカルバージョンをダウンロード：",
+        manualWiFiStep3: "ブラウザで index.html を開く",
+        manualWiFiStep4: "これで WiFi とすべての接続方法が使用可能になります！",
+        manualQuickConnect: "クイック接続ボタン",
+        manualQuickConnectDesc: "クリックすると WiFi 接続を自動的に試行します。失敗した場合は、他の接続方法を選択するよう求められます。接続に成功すると、ボタンに現在の IP アドレスが表示されます。",
+        manualInterfaceTitle: "インターフェース説明",
+        manualWorkspace: "ブロックワークスペース：左側のパネルからブロックをドラッグしてここに配置し、プログラムを作成します",
+        manualConsole: "コンソールログ：プログラムのステータスとデバッグ情報を表示します",
+        manualSerial: "シリアルモニター：ロボットと直接通信し、コマンドを送信したり応答を確認したりします",
+        manualBlocks: "よく使うブロック",
+        manualConnectBlock: "デバイスに接続：すべてのプログラムの最初のブロック。シリアル接続時、WiFi接続成功後にIPアドレスが自動更新されます。既知のデバイスIPアドレスを手動で入力することもできます",
+        manualMotionBlocks: "動作ブロック：ロボットの歩行、旋回、アクション（立つ、座る、バックフリップ）を制御します",
+        manualJointBlocks: "関節ブロック：各関節の角度を正確に制御します",
+        manualSensorBlocks: "センサーブロック：超音波、タッチなどのセンサーデータを読み取ります",
+        manualMusicBlocks: "音楽ブロック：音符やメロディを再生します",
+        manualImportantNotes: "重要な注意事項",
+        manualNote1: "すべてのプログラムは「デバイスに接続」ブロックから始める必要があります",
+        manualNote2: "コードを実行する前に、シリアルポートまたは WiFi が接続されていることを確認してください",
+        manualNote3: "アクロバティックな動作（前/後ろフリップ）はロボットの関節に高い負荷をかけます - 注意して使用してください",
+        manualNote4: "USB を使用する場合、ポートが見つからない場合は、ケーブルを抜き差ししてみてください",
+        manualNote5: "Bluetooth 接続には、システム設定で事前にペアリングが必要な場合があります",
+        resetTutorial: "初回チュートリアルをリセット",
+        resetConfirm: "初回チュートリアルをリセットしました。次回メインページにアクセスすると再度表示されます。"
+      }
+    };
+
+    let currentLang = 'en';
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      const trans = TRANSLATIONS[lang];
+      
+      // Update all elements with id attribute
+      document.querySelectorAll('[id]').forEach(element => {
+        const key = element.id;
+        if (trans[key]) {
+          element.textContent = trans[key];
+        }
+      });
+    }
+
+    // Set initial language based on URL parameter, browser or localStorage
+    function getInitialLanguage() {
+      // Check URL parameter first (from parent page)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlLang = urlParams.get('lang');
+      if (urlLang && TRANSLATIONS[urlLang]) {
+        return urlLang;
+      }
+      
+      const savedLang = localStorage.getItem('petoiLanguage');
+      if (savedLang && TRANSLATIONS[savedLang]) {
+        return savedLang;
+      }
+      const browserLang = navigator.language || navigator.userLanguage;
+      if (browserLang.startsWith('zh')) return 'zh';
+      if (browserLang.startsWith('ja')) return 'ja';
+      return 'en';
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      const initialLang = getInitialLanguage();
+      currentLang = initialLang;
+      
+      // Apply translations
+      const trans = TRANSLATIONS[initialLang];
+      document.querySelectorAll('[id]').forEach(element => {
+        const key = element.id;
+        if (trans[key]) {
+          element.textContent = trans[key];
+        }
+      });
+    });
+
+    // Reset the help shown flag so it shows again on next visit
+    function resetHelpShown() {
+      localStorage.removeItem('petoiHelpShown');
+      const trans = TRANSLATIONS[currentLang];
+      alert(trans.resetConfirm || 'First-visit tutorial reset. It will show again when you return to the main page.');
+    }
+  </script>
+</body>
+</html>
