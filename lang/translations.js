@@ -205,6 +205,14 @@ const TRANSLATIONS = {
 
     // 积木文本 - 控制台
     "consoleLogVariable": "在控制台输出变量 %1",
+    "aiCodeGenerateMessage": "AI生成代码: %1",
+    "aiCodeGenerateDefaultText": "描述想让机器人执行的动作...",
+    "aiCodeGenerateTooltip": "使用自然语言描述功能，AI将生成对应的积木代码",
+    "aiCodeGenerateRequest": "🤖 AI代码生成请求: {description}",
+    "aiCodeGeneratedSuccess": "✅ AI代码生成成功，开始执行...",
+    "aiCodeGenerateEmpty": "⚠️ AI返回空代码",
+    "aiCodeGenerateError": "❌ AI代码生成失败: {error}",
+    "aiCodeExecutionError": "❌ 执行生成的代码时出错: {error}",
 
     // 积木文本 - 音乐
     "playNoteMessage": "播放音符 %1 持续 %2 拍",
@@ -761,6 +769,14 @@ const TRANSLATIONS = {
 
     // Block text - Console
     "consoleLogVariable": "Log variable to console %1",
+    "aiCodeGenerateMessage": "AI Generate Code: %1",
+    "aiCodeGenerateDefaultText": "Describe what you want the robot to do...",
+    "aiCodeGenerateTooltip": "Describe functionality in natural language, AI will generate corresponding block code",
+    "aiCodeGenerateRequest": "🤖 AI Code Generation Request: {description}",
+    "aiCodeGeneratedSuccess": "✅ AI code generated successfully, starting execution...",
+    "aiCodeGenerateEmpty": "⚠️ AI returned empty code",
+    "aiCodeGenerateError": "❌ AI code generation failed: {error}",
+    "aiCodeExecutionError": "❌ Error executing generated code: {error}",
 
     // Block text - Music
     "playNoteMessage": "Play note %1 for %2 beat",
@@ -1323,6 +1339,14 @@ const TRANSLATIONS = {
 
     // ブロックテキスト - コンソール
     "consoleLogVariable": "変数をコンソールに出力 %1",
+    "aiCodeGenerateMessage": "AIコード生成: %1",
+    "aiCodeGenerateDefaultText": "ロボットに実行させたい動作を入力してください...",
+    "aiCodeGenerateTooltip": "自然言語で機能を説明すると、AIがブロックコードを生成します",
+    "aiCodeGenerateRequest": "🤖 AIコード生成リクエスト: {description}",
+    "aiCodeGeneratedSuccess": "✅ AIコード生成成功、実行開始...",
+    "aiCodeGenerateEmpty": "⚠️ AIが空のコードを返しました",
+    "aiCodeGenerateError": "❌ AIコード生成失敗: {error}",
+    "aiCodeExecutionError": "❌ 生成されたコードの実行エラー: {error}",
 
     // ブロックテキスト - 音楽
     "playNoteMessage": "音符 %1 を %2 拍子分再生",

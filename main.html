@@ -117,14 +117,14 @@
   </div>
 
   <script>
-    // 自定义主题
-    // 将函数设为全局可用
+    // Custom theme
+    // Make function globally available
     window.PetoiAsyncClient = PetoiAsyncClient;
 
-    // 初始化变量
+    // Initialize variables
     var workspace;
 
-    // 当前语言
+    // Current language
     let isChangingLanguage = false;
     // save entry block ids
     let startBlockIds = [];
@@ -134,7 +134,7 @@
       serialPortOpenFailed: 'Failed to open serial port: {error}',
     };
 
-    // 新增翻译助手函数
+    // New translation helper function
     function getText(key)
     {
       const table = (TRANSLATIONS && TRANSLATIONS[currentLang]) ? TRANSLATIONS[currentLang] : null;
@@ -162,7 +162,7 @@
       return key;
     }
 
-    // 获取格式化的时间戳 [HH:MM:SS.mmm]
+    // Get formatted timestamp [HH:MM:SS.mmm]
     function getFormattedTimestamp()
     {
       const now = new Date();
@@ -173,26 +173,26 @@
       return `[${hours}:${minutes}:${seconds}.${milliseconds}]`;
     }
 
-    // 全局版本日期变量（格式：v年.月.日）
+    // Global version date variable (format: vYear.Month.Day)
     const GLOBAL_VERSION_DATE = "v2026.03.02";
 
-    // 设置版本日期
+    // Set version date
     function setVersionDate()
     {
       const versionElement = document.getElementById('versionDate');
       if (versionElement)
       {
-        // 使用全局版本日期变量
+        // Use global version date variable
         versionElement.textContent = GLOBAL_VERSION_DATE;
       }
     }
 
-    // 加载配置文件
+    // Load configuration file
     async function loadConfig()
     {
       try
       {
-        // 首先尝试从localStorage加载配置
+        // First try to load config from localStorage
         const localStorageConfig = localStorage.getItem('petoiConfig');
         if (localStorageConfig)
         {
@@ -204,15 +204,15 @@
             {
               console.log('Configuration loaded from localStorage:', config);
             }
-            return; // 如果从localStorage成功加载，就不需要从文件加载了
+            return; // If loaded from localStorage, no need to load from file
           } catch (parseError)
           {
             console.warn('Failed to parse localStorage config:', parseError);
-            // 如果解析失败，继续尝试从文件加载
+            // If parsing fails, continue to try loading from file
           }
         }
 
-        // 如果localStorage中没有配置或解析失败，使用默认配置
+        // If no config in localStorage or parsing failed, use default config
         if (typeof showDebug !== 'undefined' && showDebug)
         {
           console.log('No localStorage config found, using default configuration');
@@ -223,18 +223,18 @@
       }
     }
 
-    // 保存配置文件
+    // Save configuration file
     async function saveConfig()
     {
       try
       {
-        // 更新连接历史
+        // Update connection history
         if (currentDeviceIP && currentDeviceIP !== config.lastKnownIP)
         {
           config.lastKnownIP = currentDeviceIP;
           config.lastConnectedTime = new Date().toISOString();
 
-          // 添加到连接历史（最多保存10个）
+          // Add to connection history (save up to 10)
           if (!config.connectionHistory.includes(currentDeviceIP))
           {
             config.connectionHistory.unshift(currentDeviceIP);
@@ -242,7 +242,7 @@
           }
         }
 
-        // 保存到localStorage，这样页面刷新后配置不会丢失
+        // Save to localStorage so config persists after page refresh
         try
         {
           localStorage.setItem('petoiConfig', JSON.stringify(config));
@@ -255,8 +255,8 @@
           console.warn('Failed to save to localStorage:', localStorageError);
         }
 
-        // 注意：由于浏览器安全限制，无法直接写入文件
-        // 这里只是更新内存中的配置，实际保存需要服务器端支持
+        // Note: Due to browser security restrictions, cannot directly write to file
+        // This only updates in-memory config, actual saving requires server-side support
         if (typeof showDebug !== 'undefined' && showDebug)
         {
           console.log('Configuration updated:', config);
@@ -2895,6 +2895,21 @@ async function closeConnection() {
 
     document.addEventListener('keydown', function (event)
     {
+      // 检查是否正在编辑输入框/文本域 - 如果是，让浏览器处理撤销/重做
+      const activeElement = document.activeElement;
+      const isEditingInput = activeElement && (
+        activeElement.tagName === 'INPUT' ||
+        activeElement.tagName === 'TEXTAREA' ||
+        activeElement.contentEditable === 'true' ||
+        activeElement.classList.contains('blocklyHtmlInput') ||  // Blockly输入框
+        (activeElement.parentElement && activeElement.parentElement.classList &&
+         activeElement.parentElement.classList.contains('blocklyWidgetDiv'))  // 在Blockly widget中
+      );
+
+      // 检查Blockly是否处于编辑模式（通过检查widget div是否可见）
+      const widgetDiv = document.querySelector('.blocklyWidgetDiv');
+      const isBlocklyEditing = widgetDiv && widgetDiv.style.display !== 'none';
+
       if ((event.ctrlKey || event.metaKey) && event.key === 's')
       {
         event.preventDefault();
@@ -2905,17 +2920,28 @@ async function closeConnection() {
         event.preventDefault();
         document.getElementById('loadInput').click();
       }
-      // 添加撤销快捷键(Ctrl+Z)
+      // 添加撤销快捷键(Ctrl+Z) - 仅在非输入框编辑状态时阻止默认行为
       if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === 'z')
       {
-        //prevent browser default behavior
+        // 如果正在编辑输入框或Blockly字段，不阻止默认行为，让浏览器原生撤销功能工作
+        if (isEditingInput || isBlocklyEditing) {
+          // 让浏览器处理撤销，不执行preventDefault，直接返回
+          return;
+        }
+        // 非输入框状态：阻止默认行为，由Blockly处理工作区撤销
         event.preventDefault();
       }
-      // 添加重做快捷键(Ctrl+Y 或 Ctrl+Shift+Z)
+      // 添加重做快捷键(Ctrl+Y 或 Ctrl+Shift+Z) - 仅在非输入框编辑状态时处理
       if ((event.ctrlKey || event.metaKey) &&
         ((!event.shiftKey && event.key.toLowerCase() === 'y') ||
           (event.shiftKey && event.key === 'z')))
       {
+        // 如果正在编辑输入框或Blockly字段，不阻止默认行为，让浏览器原生重做功能工作
+        if (isEditingInput || isBlocklyEditing) {
+          // 让浏览器处理重做，不执行preventDefault，直接返回
+          return;
+        }
+        // 非输入框状态：阻止默认行为并执行工作区重做
         event.preventDefault();
         // 使用redoStack_属性检查是否可以重做
         if (workspace.redoStack_ && workspace.redoStack_.length > 0)
@@ -3881,6 +3907,262 @@ Generated at: ${now.toISOString()}
 
     // 全局变量存储操作系统类型，页面加载时初始化一次
     const OPERATING_SYSTEM = detectOperatingSystem();
+
+    // AI代码生成服务配置 - 使用免费的公共AI API
+    const AI_SERVICE_CONFIG = {
+      // 使用 Pollinations.ai 免费API (无需API Key)
+      endpoint: "https://text.pollinations.ai/openai",
+      model: "openai", // 可以是 openai, mistral, llama 等
+      maxTokens: 1500,
+      temperature: 0.7
+    };
+
+    // 加载积木块配置用于AI提示
+    let BLOCKS_CONFIG_FOR_AI = null;
+    async function loadBlocksConfigForAI() {
+      if (BLOCKS_CONFIG_FOR_AI) return BLOCKS_CONFIG_FOR_AI;
+      try {
+        const response = await fetch('./blocks/blocks_config.json');
+        BLOCKS_CONFIG_FOR_AI = await response.json();
+        return BLOCKS_CONFIG_FOR_AI;
+      } catch (error) {
+        console.warn('Failed to load blocks config for AI:', error);
+        return null;
+      }
+    }
+
+    // AI代码生成主函数
+    async function generateAICode(description) {
+      const config = await loadBlocksConfigForAI();
+
+      // 构建提示词
+      let systemPrompt = `You are a code generator for Petoi robot Blockly-based visual programming. Generate JavaScript code that uses the available helper functions.
+
+IMPORTANT RULES:
+1. Only generate JavaScript code - NO explanations, NO markdown code blocks, NO comments unless necessary
+2. Use ONLY the provided helper functions - do not invent new ones
+3. Always use await for async functions
+4. Include checkStopExecution() at appropriate points in loops
+5. All code must be valid JavaScript that can be executed in an async context
+
+AVAILABLE HELPER FUNCTIONS:
+- checkStopExecution(): Call at the start of code and in loops to respect stop signals
+- checkStopExecutionInLoop(): Use inside loops for stop checking with yield
+- webRequest(command, timeout=5000, needResponse=true): Send command to robot via WebSocket/Serial
+- delay(ms): Promise-based delay with stop checking
+- encodeCommand(token, params): Encode command with token and parameters
+- parseSingleResult(rawResult): Parse numeric result from response
+- parseAllJointsResult(rawResult): Parse joint angles array from response
+- console: Standard console object for logging
+
+AVAILABLE COMMANDS (token-based):
+`;
+
+      // 从配置添加命令信息
+      if (config && config.command_reference && config.command_reference.token_commands) {
+        const commands = config.command_reference.token_commands;
+        for (const [token, info] of Object.entries(commands)) {
+          systemPrompt += `- ${token}: ${info.description || ''} | Params: ${info.params || 'none'} | Example: ${info.example || ''}\n`;
+        }
+      }
+
+      systemPrompt += `
+MOTION COMMANDS (lowercase k* or d, NO encodeCommand needed):
+- Gait: kvtF(Step), kwkF(WalkForward), ktrF(TrotForward), kcrF(CrawlForward), kbkF(Back), kmw(Moonwalk)
+- Posture: kup(Stand), ksit(Sit), d(Rest), kpee(Pee), khi(SayHi)
+- Acrobatic: khds(Handstand), kbx(Boxing), kflipD(Backflip), kflipF(Frontflip), kjmp(Jump)
+- Arm: kpickD/F/L/R, kputD/F/L/R, klaunch(Shoot), ktossF/L/R(Throw)
+
+I/O COMMANDS (UPPERCASE, MUST use encodeCommand):
+- Digital input: encodeCommand("Rd", [34]) for "Rd 34"
+- Analog input: encodeCommand("Ra", [34]) for "Ra 34" 
+- Digital output: encodeCommand("Wd", [34, 1]) for "Wd 34 1"
+- Analog output: encodeCommand("Wa", [2, 128]) for "Wa 2 128"
+
+MUSIC COMMANDS - CRITICAL DISTINCTION:
+- SHORT melodies (1-10 notes): lowercase "b" + ASCII string - NO encodeCommand
+  Example: await webRequest("b 14 4 16 4 18 2", 5000, true)
+  LIMITATION: ASCII 'b' format has ~200 byte limit. Each "b 14 4" takes 6+ bytes.
+  
+- LONG melodies (10+ notes, up to 1250 notes): UPPERCASE "B" + BINARY encoding - MUST use encodeCommand
+  Example: const melody = encodeCommand("B", [14, 4, 16, 4, 18, 2, 14, 2]);
+           await webRequest(melody, 30000, true);
+  CAPACITY: NyBoard supports ~250 notes, BiBoard supports ~1250 notes in binary format
+  
+- NOTES use numbers 0-35 (0 or -1 for silence, 14=middle C3, 26=middle C4)
+- DURATIONS: 1=1sec, 2=1/2sec, 4=1/4sec, 8=1/8sec, 16=1/16sec
+- For melodies >30 notes: ALWAYS use UPPERCASE B with encodeCommand, increase timeout to 30-60s
+
+SENSOR/JOINT COMMANDS (lowercase, NO encodeCommand):
+- Query joints: "j" or "j 0" for single joint
+- Gyro enable: encodeCommand("g", ["B"]) - special case, g is lowercase but uses encodeCommand
+- Gyro disable: encodeCommand("g", ["b"])
+
+EXTENSION COMMANDS (UPPERCASE X*, MUST use encodeCommand with ~ terminator):
+- Ultrasonic: encodeCommand("XU", [9, 9]) returns "XU 9 9~" (bytes format internally)
+- Camera activate: encodeCommand("XCr", []) returns "XCr~" 
+- Camera poll: encodeCommand("XCP", []) returns "XCP~"
+- Gesture enable: encodeCommand("XGr", []) returns "XGr~"
+- Gesture poll: encodeCommand("XGp", []) returns "XGp~"
+- Gesture exit: encodeCommand("Xg", []) returns "Xg~"
+
+IMPORTANT ENCODING RULES:
+1. LOWERCASE commands (k*, m, i, j, b for short melodies, d): Send directly as string, NO encodeCommand
+2. UPPERCASE single letter (R, W, g with params B/b): Use encodeCommand(token, params)
+3. UPPERCASE multi-letter (XU, XCr, XCP, XGr, XGp, Xg): Use encodeCommand(token, params), adds ~ automatically
+4. MUSIC FORMAT RULES (CRITICAL):
+   - Short (≤10 notes): await webRequest("b 14 4 16 4...", timeout, true) - ASCII format
+   - Long (>10 notes): const m = encodeCommand("B", [14,4,16,4...]); await webRequest(m, 30000, true) - BINARY format
+   - Note: UPPERCASE B uses binary encoding, supports 250-1250 notes vs 10-20 for lowercase b
+5. When in doubt: Motion/short music use direct strings, I/O/sensors/long music use encodeCommand
+
+CODE PATTERNS:
+// Motion (direct string, lowercase k* or d):
+await webRequest("kwkF", 20000, true);
+if (typeof window !== 'undefined') window.__lastTokenReceivedAt = Date.now();
+
+// With delay after token received:
+const delayMs = 1000;
+await (async () => {
+  const __tokenAt = (typeof window !== 'undefined' && typeof window.__lastTokenReceivedAt === 'number') ? window.__lastTokenReceivedAt : Date.now();
+  const __endAt = __tokenAt + delayMs;
+  const __checkInterval = 100;
+  while (Date.now() < __endAt) {
+    checkStopExecution();
+    const __wait = Math.min(__checkInterval, __endAt - Date.now());
+    if (__wait > 0) await new Promise(r => setTimeout(r, __wait));
+  }
+})();
+
+// Joint control - sequential (lowercase m, uses encodeCommand):
+const command = encodeCommand("m", [0, 30, 1, -20]);
+await webRequest(command, 15000, true);
+
+// Joint control - simultaneous (lowercase i, uses encodeCommand):
+const command = encodeCommand("i", [0, 30, 1, -20]);
+await webRequest(command, 30000, true);
+
+// Read analog input (UPPERCASE Ra, MUST use encodeCommand):
+const cmd = encodeCommand("Ra", [34]);
+const result = await webRequest(cmd, 5000, true);
+const value = parseSingleResult(result);
+console.log("Analog value:", value);
+
+// Read digital input (UPPERCASE Rd, MUST use encodeCommand):
+const cmd = encodeCommand("Rd", [34]);
+const result = await webRequest(cmd, 5000, true);
+const value = parseSingleResult(result);
+console.log("Digital value:", value);
+
+// Write analog output (UPPERCASE Wa, MUST use encodeCommand):
+const cmd = encodeCommand("Wa", [2, 128]);
+await webRequest(cmd, 5000, true);
+
+// Write digital output (UPPERCASE Wd, MUST use encodeCommand):
+const cmd = encodeCommand("Wd", [34, 1]);
+await webRequest(cmd, 5000, true);
+
+// Query all joints (lowercase j, direct string):
+const result = await webRequest("j", 5000, true);
+const angles = parseAllJointsResult(result);
+console.log(angles);
+
+// Play single note (lowercase b, direct string - max ~10 notes):
+await webRequest("b 20 4", 5000, true);  // note 20, duration 4
+
+// Play short melody by concatenating notes (lowercase b, ASCII format):
+// LIMITATION: ASCII format 'b' has ~200 byte limit, suitable for short melodies only
+await webRequest("b 14 4 16 4 18 2", 5000, true);  // 3 notes only
+
+// Play long melody (UPPERCASE B, BINARY format - REQUIRED for 10+ notes):
+// UPPERCASE 'B' uses binary encoding, supports 250+ notes on NyBoard, 1250+ on BiBoard
+// encodeCommand("B", [...]) returns "bytes:[66, tone, duration, ..., 126]"
+const melody = encodeCommand("B", [20, 4, 22, 4, 24, 4, 20, 4, 22, 4, 24, 4, 27, 4, 24, 4, 22, 4, 20, 2]);
+await webRequest(melody, 30000, true);  // Use longer timeout for long melodies (30+ notes)
+
+// Example: 30-note melody for "Twinkle Twinkle Little Star" (MUST use UPPERCASE B)
+const longMelody = encodeCommand("B", [
+  14, 4, 14, 4, 21, 4, 21, 4, 23, 4, 23, 4, 21, 2,  // Line 1
+  19, 4, 19, 4, 18, 4, 18, 4, 16, 4, 16, 4, 14, 2,  // Line 2
+  21, 4, 21, 4, 19, 4, 19, 4, 18, 4, 18, 4, 16, 2   // Line 3 (30+ notes total)
+]);
+await webRequest(longMelody, 60000, true);  // 60s timeout for very long melodies
+
+// Ultrasonic sensor (UPPERCASE XU, uses encodeCommand):
+const cmd = encodeCommand("XU", [9, 9]);
+const result = await webRequest(cmd, 5000, true);
+const distance = parseSingleResult(result);
+
+// Gesture sensor (UPPERCASE XG*, uses encodeCommand):
+await webRequest(encodeCommand("XGr", []), 5000, true);  // Enable
+const result = await webRequest(encodeCommand("XGp", []), 1000, true);  // Poll
+const gesture = parseSingleResult(result);  // 0=Up, 1=Down, 2=Left, 3=Right, -1=None
+await webRequest(encodeCommand("Xg", []), 5000, true);  // Exit
+
+// Gyro control (lowercase g but uses encodeCommand):
+await webRequest(encodeCommand("g", ["B"]), 5000, true);  // Enable
+await webRequest(encodeCommand("g", ["b"]), 5000, true);  // Disable
+
+// Loop with stop checking:
+for (let i = 0; i < 5; i++) {
+  await checkStopExecutionInLoop();
+  await webRequest("kvtF", 20000, true);
+}
+
+Respond with ONLY executable JavaScript code, nothing else.`;
+
+      const userPrompt = `Generate JavaScript code for: "${description}"`;
+
+      try {
+        const response = await fetch(AI_SERVICE_CONFIG.endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: AI_SERVICE_CONFIG.model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            max_tokens: AI_SERVICE_CONFIG.maxTokens,
+            temperature: AI_SERVICE_CONFIG.temperature
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`AI service error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        let generatedCode = '';
+
+        // 处理不同API格式的响应
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+          generatedCode = data.choices[0].message.content;
+        } else if (data.content) {
+          generatedCode = data.content;
+        } else if (typeof data === 'string') {
+          generatedCode = data;
+        }
+
+        // 清理生成的代码
+        generatedCode = generatedCode
+          .replace(/```javascript\s*/gi, '')  // 移除 ```javascript
+          .replace(/```js\s*/gi, '')         // 移除 ```js
+          .replace(/```\s*/g, '')            // 移除 ```
+          .replace(/^\s*javascript\s*/i, '') // 移除开头的 javascript
+          .trim();
+
+        return generatedCode;
+      } catch (error) {
+        console.error('AI code generation failed:', error);
+        throw error;
+      }
+    }
+
+    // 将AI代码生成函数暴露到全局作用域
+    window.generateAICode = generateAICode;
 
     function isLikelyBluetoothSerialPortInfo(portInfo)
     {

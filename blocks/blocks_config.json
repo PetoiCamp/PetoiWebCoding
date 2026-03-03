@@ -1,0 +1,485 @@
+{
+  "version": "1.0",
+  "description": "Petoi Web Coding Blocks Configuration - Summary of all available blocks and their formats",
+  "categories": {
+    "communication": {
+      "name": "Communication",
+      "color": "#e2677c",
+      "description": "Blocks for communication with Petoi robot",
+      "blocks": [
+        {
+          "type": "make_connection",
+          "name": "Connect to Robot",
+          "description": "Establish WebSocket connection to robot at specified IP",
+          "fields": [{"name": "IP_ADDRESS", "type": "field_input", "default": "192.168.4.1"}],
+          "output": null,
+          "previousStatement": true,
+          "nextStatement": true
+        },
+        {
+          "type": "get_digital_input",
+          "name": "Get Digital Input",
+          "description": "Read digital input value from specified pin",
+          "fields": [{"name": "PIN", "type": "field_dropdown", "options": ["34", "35", "36", "39", "38(BackTouch)", "9(Rx2)", "10(Tx2)"]}],
+          "output": "Number",
+          "js_code": "encodeCommand('Rd', [pin]) -> webRequest"
+        },
+        {
+          "type": "get_analog_input",
+          "name": "Get Analog Input",
+          "description": "Read analog input value (0-4095) from specified pin",
+          "fields": [{"name": "PIN", "type": "field_dropdown", "options": ["34", "35", "36", "39", "38(BackTouch)", "9(Rx2)", "10(Tx2)", "37(Battery)"]}],
+          "output": "Number",
+          "js_code": "encodeCommand('Ra', [pin]) -> webRequest"
+        },
+        {
+          "type": "set_digital_output",
+          "name": "Set Digital Output",
+          "description": "Set digital output (HIGH/LOW) on specified pin",
+          "fields": [
+            {"name": "PIN", "type": "field_dropdown", "options": ["38(BackTouch)", "9(Rx2)", "10(Tx2)", "2(Buzzer)", "27(LED)"]},
+            {"name": "STATE", "type": "field_dropdown", "options": ["HIGH(1)", "LOW(0)"]}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "encodeCommand('Wd', [pin, value]) -> webRequest"
+        },
+        {
+          "type": "set_analog_output",
+          "name": "Set Analog Output",
+          "description": "Set analog output value (0-255) on specified pin",
+          "fields": [
+            {"name": "PIN", "type": "field_dropdown", "options": ["38(BackTouch)", "9(Rx2)", "10(Tx2)", "2(Buzzer)", "27(LED)"]},
+            {"name": "VALUE", "type": "input_value", "check": "Number"}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "encodeCommand('Wa', [pin, value]) -> webRequest"
+        },
+        {
+          "type": "get_input",
+          "name": "Get Input (Universal)",
+          "description": "Universal input block supporting digital/analog modes",
+          "fields": [
+            {"name": "TYPE", "type": "field_dropdown", "options": ["digital", "analog"]},
+            {"name": "PIN", "type": "field_number", "min": 0}
+          ],
+          "output": "Number",
+          "js_code": "encodeCommand(type==digital?'Rd':'Ra', [pin]) -> webRequest"
+        },
+        {
+          "type": "set_output",
+          "name": "Set Output (Universal)",
+          "description": "Universal output block supporting digital/analog modes",
+          "fields": [
+            {"name": "TYPE", "type": "field_dropdown", "options": ["digital", "analog"]},
+            {"name": "PIN", "type": "field_number", "min": 0},
+            {"name": "VALUE", "type": "input_value", "check": "Number"}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "encodeCommand(type==digital?'Wd':'Wa', [pin, value]) -> webRequest"
+        },
+        {
+          "type": "getUltrasonicDistance",
+          "name": "Get Ultrasonic Distance",
+          "description": "Measure distance using ultrasonic sensor",
+          "fields": [
+            {"name": "TRPIN", "type": "field_dropdown", "options": ["16(BiBoard V0 Rx2)", "17(BiBoard V0 Tx2)", "9(BiBoard V1 Rx2)", "10(BiBoard V1 Tx2)"]},
+            {"name": "ECPIN", "type": "field_dropdown", "options": ["Same as trigger", "16", "17", "9", "10"]}
+          ],
+          "output": "Number",
+          "js_code": "encodeCommand('XU', [trPin, ecPin]) -> webRequest"
+        },
+        {
+          "type": "getCameraCoordinate",
+          "name": "Get Camera Coordinate",
+          "description": "Get object coordinates from camera [x, y, width, height]",
+          "output": "Array",
+          "js_code": "webRequest('XCr') -> webRequest('XCP') -> waitForNewCameraCoordinates"
+        },
+        {
+          "type": "get_gesture_value",
+          "name": "Get Gesture Value",
+          "description": "Read gesture sensor value (0=Up, 1=Down, 2=Left, 3=Right, -1=None)",
+          "output": "Number",
+          "js_code": "webRequest('XGr~') -> webRequest('XGp~')"
+        },
+        {
+          "type": "exit_gesture_mode",
+          "name": "Exit Gesture Mode",
+          "description": "Exit gesture recognition mode",
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "webRequest('Xg~')"
+        },
+        {
+          "type": "send_custom_command",
+          "name": "Send Custom Command",
+          "description": "Send custom command string to robot",
+          "fields": [
+            {"name": "COMMAND", "type": "input_value", "check": "String"},
+            {"name": "DELAY", "type": "field_number", "default": 1, "min": 0}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "webRequest(command, timeout) -> waitForSerialTokenLine"
+        },
+        {
+          "type": "gyro_control",
+          "name": "Gyro Control",
+          "description": "Enable or disable gyroscope",
+          "fields": [{"name": "STATE", "type": "field_dropdown", "options": ["Enable(1)", "Disable(0)"]}],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "encodeCommand('g', [state==1?'B':'b'])"
+        }
+      ]
+    },
+    "motion": {
+      "name": "Motion",
+      "color": "#546acb",
+      "description": "Blocks for controlling robot movements",
+      "blocks": [
+        {
+          "type": "gait",
+          "name": "Gait",
+          "description": "Execute walking gait movements",
+          "fields": [
+            {"name": "COMMAND", "type": "field_dropdown", "options": ["kvtF(Step)", "kvtL(RotateLeft)", "kvtR(RotateRight)", "kwkF(WalkForward)", "kwkL(WalkLeft)", "kwkR(WalkRight)", "kbkF(Back)", "kbkL(BackLeft)", "kbkR(BackRight)", "ktrF(TrotForward)", "ktrL(TrotLeft)", "ktrR(TrotRight)", "kcrF(CrawlForward)", "kcrL(CrawlLeft)", "kcrR(CrawlRight)", "kgpF(GapForward)", "kgpL(GapLeft)", "kgpR(GapRight)", "kmw(Moonwalk)"]},
+            {"name": "DELAY", "type": "field_number", "default": 1, "min": 0, "max": 10, "step": 0.01}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "webRequest(command) -> waitForSerialTokenLine('k') -> delay"
+        },
+        {
+          "type": "posture",
+          "name": "Posture",
+          "description": "Execute posture movements",
+          "fields": [
+            {"name": "COMMAND", "type": "field_dropdown", "options": ["kup(Stand)", "ksit(Sit)", "d(Rest)", "kpee(Pee)", "khi(SayHi)"]},
+            {"name": "DELAY", "type": "field_number", "default": 0.2, "min": 0, "max": 10, "step": 0.01}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "webRequest(command) -> waitForSerialTokenLine(cmd[0]) -> delay"
+        },
+        {
+          "type": "acrobatic_moves",
+          "name": "Acrobatic Moves",
+          "description": "Execute acrobatic movements",
+          "fields": [
+            {"name": "COMMAND", "type": "field_dropdown", "options": ["khds(Handstand)", "kbx(Boxing)", "kflipD(Backflip)", "kflipF(Frontflip)", "kjmp(Jump)"]},
+            {"name": "DELAY", "type": "field_number", "default": 0.2, "min": 0, "max": 10, "step": 0.01}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "webRequest(command) -> waitForSerialTokenLine('k') -> delay"
+        },
+        {
+          "type": "arm_action",
+          "name": "Arm Action",
+          "description": "Execute arm movements for mechanical arm",
+          "fields": [
+            {"name": "COMMAND", "type": "field_dropdown", "options": ["kpickD(PickDown)", "kpickF(PickFront)", "kpickL(PickLeft)", "kpickR(PickRight)", "kputD(PutDown)", "kputF(PutFront)", "kputL(PutLeft)", "kputR(PutRight)", "klaunch(Shoot)", "ktossF(ThrowFront)", "ktossL(ThrowLeft)", "ktossR(ThrowRight)", "khunt(Hunt)", "kshowOff(ShowOff)", "kclap(Clap)"]},
+            {"name": "DELAY", "type": "field_number", "default": 0.2, "min": 0, "max": 10, "step": 0.01}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "webRequest(command) -> waitForSerialTokenLine(cmd[0]) -> delay"
+        },
+        {
+          "type": "set_joint_angle",
+          "name": "Set Joint Angle",
+          "description": "Set specific joint to absolute angle",
+          "fields": [
+            {"name": "VARIABLE", "type": "input_value", "check": "Array"},
+            {"name": "DELAY", "type": "field_number", "default": 0.2, "min": 0, "max": 10, "step": 0.01}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "encodeMoveCommand('m', params) -> webRequest -> waitForSerialTokenLine('m')"
+        },
+        {
+          "type": "set_joints_angle_seq",
+          "name": "Set Joints Angle (Sequential)",
+          "description": "Set multiple joints angles sequentially (smooth movement)",
+          "fields": [
+            {"name": "VARIABLE", "type": "input_value", "check": "Array"},
+            {"name": "DELAY", "type": "field_number", "default": 0.2, "min": 0, "max": 10, "step": 0.01}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "encodeMoveCommand('m', params) -> webRequest -> waitForSerialTokenLine('m')"
+        },
+        {
+          "type": "set_joints_angle_sim",
+          "name": "Set Joints Angle (Simultaneous)",
+          "description": "Set multiple joints angles simultaneously (instant movement)",
+          "fields": [
+            {"name": "VARIABLE", "type": "input_value", "check": "Array"},
+            {"name": "DELAY", "type": "field_number", "default": 0.2, "min": 0, "max": 10, "step": 0.01}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "encodeMoveCommand('i', params) -> webRequest -> waitForSerialTokenLine('i')"
+        },
+        {
+          "type": "set_joints_angle_sim_raw",
+          "name": "Set Joints Angle Raw (Simultaneous)",
+          "description": "Set joints angles using raw array without relative angle calculation",
+          "fields": [
+            {"name": "VARIABLE", "type": "input_value", "check": "Array"},
+            {"name": "DELAY", "type": "field_number", "default": 0.2, "min": 0, "max": 10, "step": 0.01}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "encodeCommand('L', params) -> webRequest"
+        },
+        {
+          "type": "joints_angle_frame_raw",
+          "name": "Joints Angle Frame (Raw)",
+          "description": "Create raw joint angle array [angle0, angle1, ...]",
+          "fields": [{"name": "VARIABLE", "type": "field_input", "default": "0,0,0,0,0,0,0,0,30,30,30,30,30,30,30,30"}],
+          "output": "Array"
+        },
+        {
+          "type": "joint_absolute_angle_value",
+          "name": "Joint Absolute Angle Value",
+          "description": "Create [jointId, angle] array for absolute positioning",
+          "fields": [
+            {"name": "JOINT", "type": "field_dropdown", "options": ["0(HeadPan)", "1(HeadTilt)", "2(Tail)", "3(Reserved)", "8(LFArm)", "9(RFArm)", "10(RBArm)", "11(LBArm)", "12(LFKnee)", "13(RFKnee)", "14(RBKnee)", "15(LBKnee)"]},
+            {"name": "ANGLE", "type": "input_value", "check": "Number"}
+          ],
+          "output": "Array"
+        },
+        {
+          "type": "joint_relative_angle_value",
+          "name": "Joint Relative Angle Value",
+          "description": "Create [jointId, sign, angle] array for relative positioning",
+          "fields": [
+            {"name": "JOINT", "type": "field_dropdown", "options": ["0(HeadPan)", "1(HeadTilt)", "2(Tail)", "3(Reserved)", "8(LFArm)", "9(RFArm)", "10(RBArm)", "11(LBArm)", "12(LFKnee)", "13(RFKnee)", "14(RBKnee)", "15(LBKnee)"]},
+            {"name": "ANGLE_SIGN", "type": "field_dropdown", "options": ["+", "-"]},
+            {"name": "ANGLE", "type": "input_value", "check": "Number"}
+          ],
+          "output": "Array"
+        },
+        {
+          "type": "get_joint_angle",
+          "name": "Get Joint Angle",
+          "description": "Get current angle of specific joint",
+          "fields": [{"name": "JOINT", "type": "field_dropdown", "options": ["0-15"]}],
+          "output": "Number",
+          "js_code": "encodeCommand('j', [jointId]) -> webRequest -> parseInt"
+        },
+        {
+          "type": "get_all_joint_angles",
+          "name": "Get All Joint Angles",
+          "description": "Get angles of all 16 joints as array",
+          "output": "Array",
+          "js_code": "webRequest('j') -> parseAllJointsResult"
+        },
+        {
+          "type": "action_skill_file",
+          "name": "Action Skill File",
+          "description": "Execute uploaded skill file",
+          "fields": [
+            {"name": "FILENAME", "type": "field_input", "text": ""},
+            {"name": "DELAY", "type": "field_number", "default": 0, "min": 0}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "encodeCommand(token, skillData) -> webRequest -> waitForSerialTokenLine(token) -> delay"
+        }
+      ]
+    },
+    "console": {
+      "name": "Console",
+      "color": "#57AFCF",
+      "description": "Blocks for console input/output and timing",
+      "blocks": [
+        {
+          "type": "console_log_variable",
+          "name": "Console Log Variable",
+          "description": "Print variable value to console log",
+          "fields": [{"name": "VARIABLE", "type": "input_value"}],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "console.log(variable)"
+        },
+        {
+          "type": "console_input",
+          "name": "Console Input",
+          "description": "Get text input from console",
+          "fields": [{"name": "PROMPT", "type": "field_input", "default": "Please input:"}],
+          "output": "String",
+          "js_code": "await consoleInput(prompt)"
+        },
+        {
+          "type": "delay_ms",
+          "name": "Delay",
+          "description": "Pause execution for specified seconds",
+          "fields": [{"name": "DELAY", "type": "field_number", "default": 1, "min": 0}],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "await new Promise(r => setTimeout(r, delayMs)) with stop checking"
+        }
+      ]
+    },
+    "music": {
+      "name": "Music",
+      "color": "#e488ce",
+      "description": "Blocks for playing sounds and melodies",
+      "blocks": [
+        {
+          "type": "play_note",
+          "name": "Play Note",
+          "description": "Play single musical note with duration",
+          "fields": [
+            {"name": "NOTE", "type": "field_dropdown", "options": ["0(Rest)", "8-32(Notes C-C#-D-D#-E-F-F#-G-G#-A-A#-B)"]},
+            {"name": "DURATION", "type": "field_dropdown", "options": ["1(Whole)", "2(Half)", "4(Quarter)", "8(Eighth)", "16(Sixteenth)"], "default": "4"}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "webRequest('b {note} {duration}')"
+        },
+        {
+          "type": "play_melody",
+          "name": "Play Melody",
+          "description": "Play a sequence of notes",
+          "fields": [
+            {"name": "MELODY", "type": "input_statement", "check": "play_note"},
+            {"name": "DELAY", "type": "field_number", "default": 1, "min": 0}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "encodeCommand('B', melodyParams) -> webRequest -> waitForSerialTokenLine('B') -> delay"
+        },
+        {
+          "type": "play_tone_list",
+          "name": "Play Tone List",
+          "description": "Play melody from comma-separated tone list (tone1,duration1,tone2,duration2,...)",
+          "fields": [
+            {"name": "TONE_LIST", "type": "field_input", "default": "14,4,14,4,21,4,21,4,23,4,23,4,21,2"},
+            {"name": "DELAY", "type": "field_number", "default": 1, "min": 0, "max": 10, "step": 0.01}
+          ],
+          "previousStatement": true,
+          "nextStatement": true,
+          "js_code": "bytes:[66,tones...,126] -> webRequest -> waitForSerialTokenLine('B') -> delay"
+        }
+      ]
+    },
+    "math": {
+      "name": "Math",
+      "color": "#5B67A5",
+      "description": "Additional math blocks",
+      "blocks": [
+        {
+          "type": "math_random",
+          "name": "Random Number",
+          "description": "Generate random number in range [from, to]",
+          "fields": [
+            {"name": "FROM", "type": "field_number", "default": 1},
+            {"name": "TO", "type": "field_number", "default": 10},
+            {"name": "TYPE", "type": "field_dropdown", "options": ["Integer", "Decimal"]}
+          ],
+          "output": "Number",
+          "js_code": "Math.floor(Math.random() * (to - from + 1)) + from OR Math.random() * (to - from) + from"
+        }
+      ]
+    }
+  },
+  "command_reference": {
+    "encoding_rules": {
+      "lowercase_direct": {
+        "description": "Lowercase tokens (k*, m, i, b for short melodies only, d, j) are sent as plain strings via webRequest",
+        "examples": ["kwkF", "kup", "d", "m 0 30", "b 14 4 16 4", "j", "j 0"],
+        "use_encodeCommand": false,
+        "note": "lowercase 'b' for music has ~200 byte limit, suitable for short melodies (≤10 notes) only"
+      },
+      "uppercase_encode": {
+        "description": "UPPERCASE tokens (R, W, X*, g with B/b) MUST use encodeCommand()",
+        "examples": {
+          "Rd 34": "encodeCommand('Rd', [34])",
+          "Ra 34": "encodeCommand('Ra', [34])",
+          "Wd 34 1": "encodeCommand('Wd', [34, 1])",
+          "Wa 2 128": "encodeCommand('Wa', [2, 128])",
+          "XU 9 9": "encodeCommand('XU', [9, 9])",
+          "XCr~": "encodeCommand('XCr', [])",
+          "XCP~": "encodeCommand('XCP', [])",
+          "XGr~": "encodeCommand('XGr', [])",
+          "XGp~": "encodeCommand('XGp', [])",
+          "Xg~": "encodeCommand('Xg', [])",
+          "g B": "encodeCommand('g', ['B'])",
+          "g b": "encodeCommand('g', ['b'])"
+        },
+        "use_encodeCommand": true,
+        "note": "encodeCommand returns 'bytes:[...]' for uppercase tokens, which webRequest handles correctly"
+      },
+      "special_cases": {
+        "music_formats": {
+          "short_ascii": {
+            "token": "b (lowercase)",
+            "format": "ASCII string: 'b 14 4 16 4 18 2'",
+            "limit": "~200 bytes total (~10-20 notes)",
+            "use_encodeCommand": false,
+            "example": "webRequest('b 14 4 16 4 18 2', 5000, true)"
+          },
+          "long_binary": {
+            "token": "B (UPPERCASE)",
+            "format": "Binary bytes via encodeCommand: encodeCommand('B', [14, 4, 16, 4, ...])",
+            "capacity": "NyBoard: ~250 notes, BiBoard: ~1250 notes",
+            "use_encodeCommand": true,
+            "example": "const melody = encodeCommand('B', [14, 4, 16, 4, 18, 2, ...]); webRequest(melody, 30000, true)"
+          },
+          "note": "For 30+ note melodies, ALWAYS use UPPERCASE B with encodeCommand and 30-60s timeout"
+        },
+        "B": "UPPERCASE B for long melody uses encodeCommand('B', [tone1, duration1, ...]) - BINARY format supports 250-1250 notes",
+        "L": "UPPERCASE L for raw joint control uses encodeCommand('L', [...])"
+      }
+    },
+    "token_commands": {
+      "g": {"description": "Gyro control", "params": "B(enable) or b(disable)", "example": "encodeCommand('g', ['B'])", "encoding": "MUST use encodeCommand"},
+      "j": {"description": "Query joint angles", "params": "jointId or empty for all", "example": "webRequest('j')", "encoding": "direct string, NO encodeCommand", "response": "=\\nindexes\\nangles\\nj"},
+      "m": {"description": "Move joints sequentially", "params": "[jointId, angle, ...]", "example": "encodeCommand('m', [0, 30, 1, -20])", "encoding": "MUST use encodeCommand"},
+      "i": {"description": "Move joints simultaneously", "params": "[jointId, angle, ...]", "example": "encodeCommand('i', [0, 30, 1, -20])", "encoding": "MUST use encodeCommand"},
+      "L": {"description": "Move joints raw (simultaneous)", "params": "[jointId, angle, ...]", "example": "encodeCommand('L', [0, 30])", "encoding": "MUST use encodeCommand"},
+      "b": {"description": "Play short melody (ASCII format, ≤10 notes recommended)", "params": "tone duration [tone duration ...]", "example": "webRequest('b 14 4 16 4 18 2')", "encoding": "direct string, NO encodeCommand", "limit": "~200 bytes total, suitable for short melodies only", "note_values": "0-35 (0/-1=rest, 14=middle C3, 26=middle C4)", "duration_values": "1=1sec, 2=1/2sec, 4=1/4sec, 8=1/8sec, 16=1/16sec"},
+      "B": {"description": "Play long melody (BINARY format, supports 250-1250 notes)", "params": "[tone1, duration1, tone2, duration2, ...]", "example": "encodeCommand('B', [14, 4, 16, 4, 18, 2, 14, 2])", "encoding": "MUST use encodeCommand", "capacity": "NyBoard: ~250 notes, BiBoard: ~1250 notes", "timeout": "Use 30000-60000ms timeout for long melodies", "note": "For melodies >10 notes, ALWAYS use UPPERCASE B with encodeCommand"},
+      "k*": {"description": "Gait/Posture/Action", "params": "predefined command codes", "example": "webRequest('kwkF')", "encoding": "direct string, NO encodeCommand", "response": "k"},
+      "d": {"description": "Rest position", "params": "none", "example": "webRequest('d')", "encoding": "direct string, NO encodeCommand", "response": "d"},
+      "Wd": {"description": "Digital output", "params": "pin value(0/1)", "example": "encodeCommand('Wd', [34, 1])", "encoding": "MUST use encodeCommand", "response": "R"},
+      "Wa": {"description": "Analog output", "params": "pin value(0-255)", "example": "encodeCommand('Wa', [2, 128])", "encoding": "MUST use encodeCommand", "response": "R"},
+      "Rd": {"description": "Digital input", "params": "pin", "example": "encodeCommand('Rd', [34])", "encoding": "MUST use encodeCommand", "response": "=\\nvalue\\nR"},
+      "Ra": {"description": "Analog input", "params": "pin", "example": "encodeCommand('Ra', [34])", "encoding": "MUST use encodeCommand", "response": "=\\nvalue\\nR"},
+      "XU": {"description": "Ultrasonic sensor", "params": "triggerPin echoPin", "example": "encodeCommand('XU', [9, 9])", "encoding": "MUST use encodeCommand", "response": "=\\ndistance\\nX"},
+      "XCr": {"description": "Camera activate", "params": "none", "example": "encodeCommand('XCr', [])", "encoding": "MUST use encodeCommand", "note": "Auto-adds ~ terminator"},
+      "XCP": {"description": "Camera poll coordinates", "params": "none", "example": "encodeCommand('XCP', [])", "encoding": "MUST use encodeCommand", "response": "=\\nx y size=w h\\nX"},
+      "XGr": {"description": "Gesture enable", "params": "none", "example": "encodeCommand('XGr', [])", "encoding": "MUST use encodeCommand", "note": "Auto-adds ~ terminator"},
+      "XGp": {"description": "Gesture poll", "params": "none", "example": "encodeCommand('XGp', [])", "encoding": "MUST use encodeCommand", "response": "=\\nvalue\\nX", "note": "Auto-adds ~ terminator"},
+      "Xg": {"description": "Gesture exit", "params": "none", "example": "encodeCommand('Xg', [])", "encoding": "MUST use encodeCommand", "response": "X", "note": "Auto-adds ~ terminator"}
+    },
+    "helper_functions": {
+      "encodeCommand(token, params)": "Encodes command with token and parameters, returns 'bytes:[...]' for uppercase tokens",
+      "webRequest(command, timeout, needResponse)": "Sends command via WebSocket or Serial",
+      "waitForSerialTokenLine(token, timeout, fromIndex)": "Waits for token line in serial buffer",
+      "parseSingleResult(rawResult)": "Parses numeric result from response string",
+      "parseAllJointsResult(rawResult)": "Parses joint angles array from response",
+      "parseCameraCoordinateResult(rawResult)": "Parses [x, y, width, height] from camera response",
+      "encodeMoveCommand(token, params)": "Handles relative angles by querying current state first",
+      "checkStopExecution()": "Throws error if execution should stop",
+      "delay(ms)": "Promise-based delay with stop checking"
+    }
+  },
+  "code_generation_patterns": {
+    "basic_async": "await webRequest('command', timeout, true);",
+    "with_delay": "await webRequest('command'); await delay(delayMs);",
+    "serial_wait": "await webRequest('command'); await waitForSerialTokenLine('token');",
+    "with_stop_check": "checkStopExecution(); await (async function() { ... })();",
+    "loop_with_stop_check": "for (...) { await checkStopExecutionInLoop(); ... }",
+    "input_value": "Blockly.JavaScript.valueToCode(block, 'FIELD', Blockly.JavaScript.ORDER_ATOMIC)",
+    "statement": "Blockly.JavaScript.statementToCode(block, 'STATEMENT')",
+    "field_value": "block.getFieldValue('FIELD')"
+  }
+}

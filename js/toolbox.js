@@ -299,6 +299,7 @@ function createToolbox() {
                     { kind: "block", type: "console_log_variable" },
                     { kind: "block", type: "console_input" },
                     { kind: "block", type: "delay_ms" },
+                    { kind: "block", type: "ai_code_generate" },
                 ],
             },
             {
@@ -1423,6 +1424,29 @@ function blocklyGlobalConfig() {
             
             fromField.setColour(isValid ? normalColor : errorColor);
             toField.setColour(isValid ? normalColor : errorColor);
+        }
+    };
+
+    // AI代码生成积木
+    Blockly.Blocks["ai_code_generate"] = {
+        init: function () {
+            this.jsonInit({
+                type: "ai_code_generate",
+                message0: getText("aiCodeGenerateMessage"),
+                args0: [
+                    {
+                        type: "field_input",
+                        name: "DESCRIPTION",
+                        text: getText("aiCodeGenerateDefaultText"),
+                        spellcheck: false,
+                    },
+                ],
+                previousStatement: null,
+                nextStatement: null,
+                colour: CONSOLE_COLOR,
+                tooltip: getText("aiCodeGenerateTooltip"),
+                helpUrl: "",
+            });
         }
     };
 }
