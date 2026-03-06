@@ -327,9 +327,9 @@ function blocklyGlobalConfig() {
         ["35", "35"],
         ["36", "36"],
         ["39", "39"],
-        ["BackTouch(38)", "38"],
-        ["Rx2(9)", "9"],
-        ["Tx2(10)", "10"],
+        ["backtouch(38)", "38"],
+        ["rx2(9)", "9"],
+        ["tx2(10)", "10"],
     ];
 
     const analogInputOptions = [
@@ -337,26 +337,26 @@ function blocklyGlobalConfig() {
         ["35", "35"],
         ["36", "36"],
         ["39", "39"],
-        ["BackTouch(38)", "38"],
-        ["Rx2(9)", "9"],
-        ["Tx2(10)", "10"],
-        ["Battery", "37"],
+        ["backtouch(38)", "38"],
+        ["rx2(9)", "9"],
+        ["tx2(10)", "10"],
+        ["battery", "37"],
     ];
 
     const digitalOutputOptions = [
-        ["BackTouch(38)", "38"],
-        ["Rx2(9)", "9"],
-        ["Tx2(10)", "10"],
-        ["Buzzer","2"],
-        ["LED","27"],
+        ["backtouch(38)", "38"],
+        ["rx2(9)", "9"],
+        ["tx2(10)", "10"],
+        ["buzzer","2"],
+        ["led","27"],
     ];
 
     const analogOutputOptions = [
-        ["BackTouch(38)", "38"],
-        ["Rx2(9)", "9"],
-        ["Tx2(10)", "10"],
-        ["Buzzer","2"],
-        ["LED","27"],
+        ["backtouch(38)", "38"],
+        ["rx2(9)", "9"],
+        ["tx2(10)", "10"],
+        ["buzzer","2"],
+        ["led","27"],
     ];
 
     const jointOptions = [
@@ -433,14 +433,14 @@ function blocklyGlobalConfig() {
 
     // 超声波传感器距离(cm): Trigger [TRPIN] Echo [ECPIN]
     const trpinOptions = [
-        ["BiBoard V0 Rx2", "16"],
-        ["BiBoard V0 Tx2", "17"],
-        ["BiBoard V1 Rx2", "9"],
-        ["BiBoard V1 Tx2", "10"]
+        ["BiBoard V0 rx2", "16"],
+        ["BiBoard V0 tx2", "17"],
+        ["BiBoard V1 rx2", "9"],
+        ["BiBoard V1 tx2", "10"]
     ]
     Blockly.Blocks["getUltrasonicDistance"] = {
         init: function () {
-            const ecpinOptions = [["Same as trigger", "-1"]].concat(trpinOptions);
+            const ecpinOptions = [["same as trigger", "-1"]].concat(trpinOptions);
             this.jsonInit({
                 type: "getUltrasonicDistance",
                 message0: getText("getUltrasonicDistance"),
@@ -510,10 +510,10 @@ function blocklyGlobalConfig() {
         init: function () {
             this.jsonInit({
                 type: "get_gesture_value",
-                message0: "Get gesture sensor value",
+                message0: "get gesture sensor value",
                 output: "Number",
                 colour: COMMUNICATION_COLOR, // 通信：红色
-                tooltip: "Read gesture value (0:Up,1:Down,2:Left,3:Right)"
+                tooltip: "read gesture value (0:up,1:down,2:left,3:right)"
             });
         },
     };
@@ -523,11 +523,11 @@ function blocklyGlobalConfig() {
         init: function () {
             this.jsonInit({
                 type: "exit_gesture_mode",
-                message0: "Exit gesture recognition mode",
+                message0: "exit gesture recognition mode",
                 previousStatement: null,
                 nextStatement: null,
                 colour: COMMUNICATION_COLOR, // 通信：红色
-                tooltip: "Exit gesture recognition mode and stop gesture value printing"
+                tooltip: "exit gesture recognition mode and stop gesture value printing"
             });
         },
     };
@@ -588,8 +588,8 @@ function blocklyGlobalConfig() {
                         type: "field_dropdown",
                         name: "STATE",
                         options: [
-                            ["HIGH", "1"],
-                            ["LOW", "0"],
+                            ["high", "1"],
+                            ["low", "0"],
                         ],
                     },
                 ],
