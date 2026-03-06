@@ -40,16 +40,16 @@
   </div>
   <div class="container">
     <div class="button-group">
-      <button onclick="showCode()" data-i18n="showCode">Show Code</button>
-      <button onclick="runCode()" data-i18n="runCode">Run Code</button>
-      <button onclick="stopCode()" id="stopCodeBtn" data-i18n="stopCode" style="display: none;">Stop Code</button>
-      <button onclick="saveWorkspace()" data-i18n="saveProgram">Save Program</button>
-      <button onclick="document.getElementById('loadInput').click()" data-i18n="loadProgram">Load Program</button>
-      <button onclick="triggerSkillFileUpload()" data-i18n="uploadSkills">Upload Skills</button>
+      <button onclick="runCode()" data-i18n="runCode">▶️ Run Code</button>
+      <button onclick="stopCode()" id="stopCodeBtn" data-i18n="stopCode" style="display: none;">⏹️ Stop Code</button>
+      <button onclick="saveWorkspace()" data-i18n="saveProgram">💾 Save Program</button>
+      <button onclick="document.getElementById('loadInput').click()" data-i18n="loadProgram">📂 Load Program</button>
+      <button onclick="triggerSkillFileUpload()" data-i18n="uploadSkills">📤 Upload Skill Files</button>
       <input type="file" id="skillFileInput" accept=".md" multiple onchange="handleSkillFilesUpload(this.files)"
         style="display: none;">
-      <button onclick="generateLog()" data-i18n="generateLog">Generate Log</button>
-      <button onclick="clearWorkspace()" data-i18n="clearAll">Clear All</button>
+      <button onclick="showCode()" data-i18n="showCode">👁️ Show Code</button>
+      <button onclick="generateLog()" data-i18n="generateLog">📝 Generate Log</button>
+      <button onclick="clearWorkspace()" data-i18n="clearAll">🗑️ Clear All</button>
       <input type="file" id="loadInput" accept=".json" onchange="loadWorkspace(this.files[0])">
       <span id="currentFileLabel" data-i18n="currentFileLabel" style="margin-left: 10px; color: #555;"></span>
       <span id="currentFileName" style="color: #555; font-style: italic;"></span>

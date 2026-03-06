@@ -2,13 +2,13 @@ const TRANSLATIONS = {
   zh: {
     // 按钮和标题
     "appTitle": "Petoi陪拓网页编程积木",
-    "showCode": "显示代码",
-    "runCode": "运行代码",
-    "stopCode": "停止代码",
-    "saveProgram": "保存程序",
-    "loadProgram": "加载程序",
+    "showCode": "👁️ 显示代码",
+    "runCode": "▶️ 运行代码",
+    "stopCode": "⏹️ 停止代码",
+    "saveProgram": "💾 保存程序",
+    "loadProgram": "📂 加载程序",
     "uploadSkill": "上传技能",
-    "uploadSkills": "上传技能文件",
+    "uploadSkills": "📤 上传技能文件",
     "uploadedSkills": "已上传的技能",
     "skillFileUploaded": "技能文件已上传：{filename}",
     "skillFilesUploaded": "已上传 {count} 个技能文件",
@@ -17,8 +17,8 @@ const TRANSLATIONS = {
     "skillLoaded": "已加载技能：{filename}",
     "skillLoadFailed": "技能加载失败",
     "serialNotConnected": "请先连接串口",
-    "clearAll": "清除全部",
-    "generateLog": "生成日志",
+    "clearAll": "🗑️ 清除全部",
+    "generateLog": "📝 生成日志",
 
     "clearLog": "清除日志",
     "consoleLog": "控制台日志",
@@ -407,7 +407,6 @@ const TRANSLATIONS = {
     "save": "保存",
     "saveAs": "另存为",
     "saveWarning": "注意：如果下载文件夹中已有同名文件，浏览器会自动添加数字后缀。",
-    "saveProgram": "保存程序",
 
     // Save success dialog UI text
     "saveSuccess": "保存成功",
@@ -566,13 +565,13 @@ const TRANSLATIONS = {
   en: {
     // Buttons and titles
     "appTitle": "Petoi Web Coding Blocks",
-    "showCode": "Show Code",
-    "runCode": "Run Code",
-    "stopCode": "Stop Code",
-    "saveProgram": "Save Program",
-    "loadProgram": "Load Program",
+    "showCode": "👁️ Show Code",
+    "runCode": "▶️ Run Code",
+    "stopCode": "⏹️ Stop Code",
+    "saveProgram": "💾 Save Program",
+    "loadProgram": "📂 Load Program",
     "uploadSkill": "Upload Skill",
-    "uploadSkills": "Upload Skill Files",
+    "uploadSkills": "📤 Upload Skill Files",
     "uploadedSkills": "Uploaded Skills",
     "skillFileUploaded": "Skill file uploaded: {filename}",
     "skillFilesUploaded": "{count} skill files uploaded",
@@ -581,8 +580,8 @@ const TRANSLATIONS = {
     "skillLoaded": "Skill loaded: {filename}",
     "skillLoadFailed": "Failed to load skill",
     "serialNotConnected": "Please connect to serial port first",
-    "clearAll": "Clear All",
-    "generateLog": "Generate Log",
+    "clearAll": "🗑️ Clear All",
+    "generateLog": "📝 Generate Log",
 
     "clearLog": "Clear Log",
     "consoleLog": "Console Log",
@@ -971,7 +970,6 @@ const TRANSLATIONS = {
     "save": "Save",
     "saveAs": "Save As",
     "saveWarning": "Note: If a file with the same name already exists in the download folder, the browser will automatically add a number suffix.",
-    "saveProgram": "Save Program",
 
     // Save success dialog UI text
     "saveSuccess": "Save successful",
@@ -1129,13 +1127,13 @@ const TRANSLATIONS = {
   ja: {
     // ボタンとタイトル
     "appTitle": "Petoiウェブコーディングブロック",
-    "showCode": "コードを表示",
-    "runCode": "コードを実行",
-    "stopCode": "コードを停止",
-    "saveProgram": "プログラムを保存",
-    "loadProgram": "プログラムを読み込む",
+    "showCode": "👁️ コードを表示",
+    "runCode": "▶️ コードを実行",
+    "stopCode": "⏹️ コードを停止",
+    "saveProgram": "💾 プログラムを保存",
+    "loadProgram": "📂 プログラムを読み込む",
     "uploadSkill": "アップロードスキル",
-    "uploadSkills": "スキルファイルをアップロード",
+    "uploadSkills": "📤 スキルファイルをアップロード",
     "uploadedSkills": "アップロード済みスキル",
     "skillFileUploaded": "スキルファイルアップロード完了：{filename}",
     "skillFilesUploaded": "{count}個のスキルファイルをアップロードしました",
@@ -1144,8 +1142,8 @@ const TRANSLATIONS = {
     "skillLoaded": "スキルロード完了：{filename}",
     "skillLoadFailed": "スキルロード失敗",
     "serialNotConnected": "シリアルポートに接続してください",
-    "clearAll": "すべてクリア",
-    "generateLog": "ログを生成",
+    "clearAll": "🗑️ すべてクリア",
+    "generateLog": "📝 ログを生成",
 
     "clearLog": "ログをクリア",
     "consoleLog": "コンソールログ",
@@ -1535,7 +1533,6 @@ const TRANSLATIONS = {
     "save": "保存",
     "saveAs": "名前を付けて保存",
     "saveWarning": "注：ダウンロードフォルダに同名のファイルがすでに存在する場合、ブラウザは自動的に数字の接尾辞を追加します。",
-    "saveProgram": "プログラムを保存",
 
     // 保存成功ダイアログUIテキスト
     "saveSuccess": "保存成功",
