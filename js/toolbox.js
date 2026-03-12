@@ -1,5 +1,6 @@
 // 定义工具箱颜色变量
-const COMMUNICATION_COLOR = "#e2677c"; // 通信积木：红色
+const PIN_COLOR = "#e2677c";           // 引脚积木：红色
+const SENSOR_COLOR = "#e67e22";        // 传感器积木：橙色
 const MOTION_COLOR = "#546acb";        // 动作积木：蓝色
 const CONSOLE_COLOR = "#57AFCF";       // 控制台积木：蓝色
 const MUSIC_COLOR = "#e488ce";         // 音乐积木：粉色
@@ -8,8 +9,11 @@ const MATH_COLOR = "#5B67A5";          // 数学积木：蓝色
 const customTheme = Blockly.Theme.defineTheme("myCustomTheme", {
     base: Blockly.Themes.Classic, // 继承经典主题的基础配置
     categoryStyles: {
-        communication_category: {
-            colour: COMMUNICATION_COLOR, // 红色
+        pin_category: {
+            colour: PIN_COLOR, // 红色
+        },
+        sensor_category: {
+            colour: SENSOR_COLOR, // 橙色
         },
         motion_category: {
             colour: MOTION_COLOR, // 蓝色
@@ -153,8 +157,8 @@ function createToolbox() {
             },
             {
                 kind: "category",
-                name: getText("categoryCommunication"),
-                categorystyle: "communication_category",
+                name: getText("categoryPin"),
+                categorystyle: "pin_category",
                 contents: [
                     { kind: "block", type: "get_digital_input" },
                     { kind: "block", type: "get_analog_input" },
@@ -171,23 +175,6 @@ function createToolbox() {
                             },
                         } 
                     },
-                    { kind: "block", type: "getUltrasonicDistance" },
-                    { kind: "block", type: "getCameraCoordinate" },
-                    { kind: "block", type: "get_gesture_value" },
-                    { kind: "block", type: "exit_gesture_mode" },
-                    { kind: "block", type: "send_custom_command",
-                        inputs: {
-                            COMMAND: {
-                                shadow: {
-                                    type: "text",
-                                    fields: {
-                                        TEXT: "m 0 60",
-                                    },
-                                },
-                            },
-                        } 
-                    },
-                    { kind: "block", type: "gyro_control" },
                     { kind: "block", type: "get_input" },
                     { kind: "block", type: "set_output",
                         inputs: {
@@ -201,6 +188,51 @@ function createToolbox() {
                             },
                         } 
                     },
+                ],
+            },
+            {
+                kind: "category",
+                name: getText("categorySensor"),
+                categorystyle: "sensor_category",
+                contents: [
+                    { kind: "block", type: "getUltrasonicDistance" },
+                    { kind: "block", type: "getCameraCoordinate" },
+                    { kind: "block", type: "get_gesture_value" },
+                    { kind: "block", type: "exit_gesture_mode" },
+                    { kind: "block", type: "gyro_control" },
+                ],
+            },
+            {
+                kind: "category",
+                name: getText("categoryConsole"),
+                colour: CONSOLE_COLOR,
+                contents: [
+                    { kind: "block", type: "console_log_variable" },
+                    { kind: "block", type: "console_input" },
+                    { kind: "block", type: "delay_ms" },
+                    { kind: "block", type: "send_custom_command",
+                        inputs: {
+                            COMMAND: {
+                                shadow: {
+                                    type: "text",
+                                    fields: {
+                                        TEXT: "m 0 60",
+                                    },
+                                },
+                            },
+                        } 
+                    },
+                    { kind: "block", type: "ai_code_generate" },
+                ],
+            },
+            {
+                kind: "category",
+                name: getText("categoryMusic"),
+                colour: MUSIC_COLOR,
+                contents: [
+                    { kind: "block", type: "play_note" },
+                    { kind: "block", type: "play_melody" },
+                    { kind: "block", type: "play_tone_list" },
                 ],
             },
             {
@@ -256,24 +288,24 @@ function createToolbox() {
                             },
                         },
                     } },
-                    { kind: "block", type: "joint_absolute_angle_value", 
+                    { kind: "block", type: "joint_absolute_angle_value",
                         inputs: {
                             ANGLE: {
                                 shadow: {
                                     type: "math_number"
                                 },
                             },
-                        } 
+                        }
                     },
-                    { kind: "block", 
-                        type: "joint_relative_angle_value", 
+                    { kind: "block",
+                        type: "joint_relative_angle_value",
                         inputs: {
                             ANGLE: {
                                 shadow: {
                                     type: "math_number"
                                 },
                             },
-                        } 
+                        }
                     },
                     { kind: "block", type: "set_joints_angle_sim_raw", inputs: {
                         VARIABLE: {
@@ -289,27 +321,6 @@ function createToolbox() {
                         VARIABLE: "0, 0, 0, 0, 0, 0, 0, 0, 30, 30, 30, 30, 30, 30, 30, 30",
                     } },
                     { kind: "block", type: "action_skill_file" },
-                ],
-            },
-            {
-                kind: "category",
-                name: getText("categoryConsole"),
-                colour: CONSOLE_COLOR,
-                contents: [
-                    { kind: "block", type: "console_log_variable" },
-                    { kind: "block", type: "console_input" },
-                    { kind: "block", type: "delay_ms" },
-                    { kind: "block", type: "ai_code_generate" },
-                ],
-            },
-            {
-                kind: "category",
-                name: getText("categoryMusic"),
-                colour: MUSIC_COLOR,
-                contents: [
-                    { kind: "block", type: "play_note" },
-                    { kind: "block", type: "play_melody" },
-                    { kind: "block", type: "play_tone_list" },
                 ],
             },
         ],
@@ -388,7 +399,7 @@ function blocklyGlobalConfig() {
                     },
                 ],
                 nextStatement: null,
-                colour: COMMUNICATION_COLOR, // 通信积木：红色
+                colour: PIN_COLOR, // 引脚积木：红色
                 tooltip: getText("connectDeviceTooltip"),
                 helpUrl: "",
             });
@@ -425,7 +436,7 @@ function blocklyGlobalConfig() {
                     },
                 ],
                 previousStatement: null,
-                colour: COMMUNICATION_COLOR, // 通信积木：红色
+                colour: SENSOR_COLOR, // 传感器积木：橙色
                 tooltip: "",
             });
         },
@@ -458,7 +469,7 @@ function blocklyGlobalConfig() {
                     },
                 ],
                 output: "Number",
-                colour: COMMUNICATION_COLOR, // 通信积木：红色
+                colour: SENSOR_COLOR, // 传感器积木：橙色
                 tooltip: "",
             });
             this.setFieldValue(trpinOptions[2][1], "TRPIN");
@@ -486,7 +497,7 @@ function blocklyGlobalConfig() {
                     },
                 ],
                 previousStatement: null,
-                colour: COMMUNICATION_COLOR, // 通信积木：红色
+                colour: SENSOR_COLOR, // 传感器积木：橙色
                 tooltip: "",
             });
         },
@@ -499,7 +510,7 @@ function blocklyGlobalConfig() {
                 type: "getCameraCoordinate",
                 message0: getText("getCameraCoordinate"),
                 output: "Array",
-                colour: COMMUNICATION_COLOR, // 通信积木：红色
+                colour: SENSOR_COLOR, // 传感器积木：橙色
                 tooltip: "",
             });
         },
@@ -510,10 +521,10 @@ function blocklyGlobalConfig() {
         init: function () {
             this.jsonInit({
                 type: "get_gesture_value",
-                message0: "get gesture sensor value",
+                message0: getText("getGestureValue"),
                 output: "Number",
-                colour: COMMUNICATION_COLOR, // 通信：红色
-                tooltip: "read gesture value (0:up,1:down,2:left,3:right)"
+                colour: SENSOR_COLOR, // 传感器：橙色
+                tooltip: getText("getGestureTooltip")
             });
         },
     };
@@ -523,11 +534,11 @@ function blocklyGlobalConfig() {
         init: function () {
             this.jsonInit({
                 type: "exit_gesture_mode",
-                message0: "exit gesture recognition mode",
+                message0: getText("exitGestureMode"),
                 previousStatement: null,
                 nextStatement: null,
-                colour: COMMUNICATION_COLOR, // 通信：红色
-                tooltip: "exit gesture recognition mode and stop gesture value printing"
+                colour: SENSOR_COLOR, // 传感器：橙色
+                tooltip: getText("exitGestureTooltip")
             });
         },
     };
@@ -546,7 +557,7 @@ function blocklyGlobalConfig() {
                     },
                 ],
                 output: "Number",
-                colour: COMMUNICATION_COLOR, // 通信积木：红色
+                colour: PIN_COLOR, // 引脚积木：红色
                 tooltip: "",
             });
         }
@@ -566,7 +577,7 @@ function blocklyGlobalConfig() {
                     },
                 ],
                 output: "Number",
-                colour: COMMUNICATION_COLOR, // 通信积木：红色
+                colour: PIN_COLOR, // 引脚积木：红色
                 tooltip: "",
             });
         }
@@ -595,7 +606,7 @@ function blocklyGlobalConfig() {
                 ],
                 previousStatement: null,
                 nextStatement: null,
-                colour: COMMUNICATION_COLOR, // 通信积木：红色
+                colour: PIN_COLOR, // 引脚积木：红色
                 tooltip: "",
             });
         }
@@ -621,7 +632,7 @@ function blocklyGlobalConfig() {
                 ],
                 previousStatement: null,
                 nextStatement: null,
-                colour: COMMUNICATION_COLOR, // 通信积木：红色
+                colour: PIN_COLOR, // 引脚积木：红色
                 tooltip: "",
             })
         }
@@ -650,7 +661,7 @@ function blocklyGlobalConfig() {
                     },
                 ],
                 output: "Number",
-                colour: COMMUNICATION_COLOR, // 通信积木：红色
+                colour: PIN_COLOR, // 引脚积木：红色
                 tooltip: "",
             });
         }
@@ -685,7 +696,7 @@ function blocklyGlobalConfig() {
                 ],
                 previousStatement: null,
                 nextStatement: null,
-                colour: COMMUNICATION_COLOR, // 通信积木：红色
+                colour: PIN_COLOR, // 引脚积木：红色
                 tooltip: "",
             });
         }
@@ -712,7 +723,7 @@ function blocklyGlobalConfig() {
                 ],
                 previousStatement: null,
                 nextStatement: null,
-                colour: COMMUNICATION_COLOR, // 通信积木：红色
+                colour: CONSOLE_COLOR, // 控制台积木：蓝色
                 tooltip: "",
             });
         }
@@ -1005,7 +1016,7 @@ function blocklyGlobalConfig() {
                 ],
                 previousStatement: null,
                 nextStatement: null,
-                colour: COMMUNICATION_COLOR, // 传感器积木：红色
+                colour: SENSOR_COLOR, // 传感器积木：橙色
                 tooltip: "",
             });
         },

@@ -331,7 +331,7 @@
             <p style="margin-bottom: 15px;"><strong id="manualWiFiNote">Important:</strong> <span id="manualWiFiDesc">WiFi connection requires running the website locally due to browser security restrictions.</span></p>
             <ol>
               <li id="manualWiFiStep1"><strong>Online mode (code.petoi.com):</strong> WiFi is NOT available. Please use USB or Bluetooth.</li>
-              <li id="manualWiFiStep2"><strong>Download local version:</strong> <a href="https://github.com/PetoiCamp/PetoiWebCoding" target="_blank" class="github-link">GitHub →</a></li>
+              <li id="manualWiFiStep2"><strong>Download <a href="https://github.com/PetoiCamp/PetoiWebCoding/releases/latest" target="_blank" class="github-link" onclick="recordLocalDownload()">local version</a>:</strong> Click the link to download from GitHub</li>
               <li id="manualWiFiStep3"><strong>Open index.html</strong> in your browser</li>
               <li id="manualWiFiStep4">Now WiFi and all connection methods work!</li>
             </ol>
@@ -359,7 +359,8 @@
           <li id="manualConnectBlock">Connect Device: The first block of every program. With serial connection, IP auto-updates after WiFi connects; or manually enter the device IP</li>
           <li id="manualMotionBlocks">Motion Blocks: Control robot walking, turning, and actions (stand, sit, backflip)</li>
           <li id="manualJointBlocks">Joint Blocks: Precisely control each joint's angle</li>
-          <li id="manualSensorBlocks">Sensor Blocks: Read ultrasonic, touch, and other sensor data</li>
+          <li id="manualPinBlocks">Pin Blocks: Control digital/analog input and output pins</li>
+          <li id="manualSensorBlocks">Sensor Blocks: Read ultrasonic, camera, gesture and other sensor data</li>
           <li id="manualMusicBlocks">Music Blocks: Play notes and melodies</li>
         </ul>
       </div>
@@ -434,7 +435,7 @@
         manualWiFiNote: "Important:",
         manualWiFiDesc: "WiFi connection requires running the website locally due to browser security restrictions.",
         manualWiFiStep1: "Online mode (code.petoi.com): WiFi is NOT available. Please use USB or Bluetooth.",
-        manualWiFiStep2: "Download local version:",
+        manualWiFiStep2: "Download <a href='https://github.com/PetoiCamp/PetoiWebCoding/releases/latest' target='_blank' onclick='recordLocalDownload()'>local version</a>: Click the link to download from GitHub",
         manualWiFiStep3: "Open index.html in your browser",
         manualWiFiStep4: "Now WiFi and all connection methods work!",
         manualQuickConnect: "Quick Connect Button",
@@ -447,7 +448,8 @@
         manualConnectBlock: "Connect Device: The first block of every program. With serial connection, IP auto-updates after WiFi connects; or manually enter the device IP",
         manualMotionBlocks: "Motion Blocks: Control robot walking, turning, and actions (stand, sit, backflip)",
         manualJointBlocks: "Joint Blocks: Precisely control each joint's angle",
-        manualSensorBlocks: "Sensor Blocks: Read ultrasonic, touch, and other sensor data",
+        manualPinBlocks: "Pin Blocks: Control digital/analog input and output pins",
+        manualSensorBlocks: "Sensor Blocks: Read ultrasonic, camera, gesture and other sensor data",
         manualMusicBlocks: "Music Blocks: Play notes and melodies",
         manualImportantNotes: "Important Notes",
         manualNote1: "Every program must start with the \"Connect Device\" block",
@@ -500,7 +502,7 @@
         manualWiFiNote: "重要提示：",
         manualWiFiDesc: "由于浏览器安全限制，WiFi 连接需要以本地方式运行网站。",
         manualWiFiStep1: "在线模式（code.petoi.com）：无法使用 WiFi，请使用 USB 或蓝牙",
-        manualWiFiStep2: "下载本地版本：",
+        manualWiFiStep2: "下载<a href='https://github.com/PetoiCamp/PetoiWebCoding/releases/latest' target='_blank' onclick='recordLocalDownload()'>本地版本</a>：点击链接从 GitHub 下载",
         manualWiFiStep3: "在浏览器中打开 index.html",
         manualWiFiStep4: "现在 WiFi 和所有连接方式都可以使用了！",
         manualQuickConnect: "快速连接按钮",
@@ -513,7 +515,8 @@
         manualConnectBlock: "连接设备：程序的第一个积木。有串口连接时，WiFi 连接成功后 IP 自动更新；也可以手动输入设备 IP",
         manualMotionBlocks: "动作积木：控制机器狗行走、转身、做动作（如站立、坐下、后空翻）",
         manualJointBlocks: "关节积木：精确控制每个关节的角度",
-        manualSensorBlocks: "传感器积木：读取超声波、触摸等传感器数据",
+        manualPinBlocks: "引脚积木：控制数字/模拟输入输出引脚",
+        manualSensorBlocks: "传感器积木：读取超声波、摄像头、手势等传感器数据",
         manualMusicBlocks: "音乐积木：播放音符和旋律",
         manualImportantNotes: "重要提示",
         manualNote1: "每个程序必须以\"连接设备\"积木开头",
@@ -566,7 +569,7 @@
         manualWiFiNote: "重要：",
         manualWiFiDesc: "ブラウザのセキュリティ制限により、WiFi 接続には Web サイトをローカルで実行する必要があります。",
         manualWiFiStep1: "オンラインモード（code.petoi.com）：WiFi は使用できません。USB または Bluetooth を使用してください。",
-        manualWiFiStep2: "ローカルバージョンをダウンロード：",
+        manualWiFiStep2: "<a href='https://github.com/PetoiCamp/PetoiWebCoding/releases/latest' target='_blank' onclick='recordLocalDownload()'>ローカルバージョン</a>をダウンロード：GitHub からダウンロードするにはリンクをクリック",
         manualWiFiStep3: "ブラウザで index.html を開く",
         manualWiFiStep4: "これで WiFi とすべての接続方法が使用可能になります！",
         manualQuickConnect: "クイック接続ボタン",
@@ -579,7 +582,8 @@
         manualConnectBlock: "デバイスに接続：すべてのプログラムの最初のブロック。シリアル接続時、WiFi接続成功後にIPアドレスが自動更新されます。既知のデバイスIPアドレスを手動で入力することもできます",
         manualMotionBlocks: "動作ブロック：ロボットの歩行、旋回、アクション（立つ、座る、バックフリップ）を制御します",
         manualJointBlocks: "関節ブロック：各関節の角度を正確に制御します",
-        manualSensorBlocks: "センサーブロック：超音波、タッチなどのセンサーデータを読み取ります",
+        manualPinBlocks: "ピンブロック：デジタル/アナログ入出力ピンを制御します",
+        manualSensorBlocks: "センサーブロック：超音波、カメラ、ジェスチャーなどのセンサーデータを読み取ります",
         manualMusicBlocks: "音楽ブロック：音符やメロディを再生します",
         manualImportantNotes: "重要な注意事項",
         manualNote1: "すべてのプログラムは「デバイスに接続」ブロックから始める必要があります",
@@ -605,7 +609,7 @@
       document.querySelectorAll('[id]').forEach(element => {
         const key = element.id;
         if (trans[key]) {
-          element.textContent = trans[key];
+          element.innerHTML = trans[key];
         }
       });
     }
@@ -639,10 +643,16 @@
       document.querySelectorAll('[id]').forEach(element => {
         const key = element.id;
         if (trans[key]) {
-          element.textContent = trans[key];
+          element.innerHTML = trans[key];
         }
       });
     });
+
+    // Record that user downloaded local version from help page
+    function recordLocalDownload() {
+      localStorage.setItem('petoiLocalVersionDownloaded', 'true');
+      localStorage.setItem('petoiLocalVersionDownloadTime', Date.now().toString());
+    }
 
     // Reset the help shown flag so it shows again on next visit
     function resetHelpShown() {

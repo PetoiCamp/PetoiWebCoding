@@ -174,7 +174,7 @@
     }
 
     // Global version date variable (format: vYear.Month.Day)
-    const GLOBAL_VERSION_DATE = "v2026.03.06";
+    const GLOBAL_VERSION_DATE = "v2026.03.12";
 
     // Set version date
     function setVersionDate()
@@ -316,10 +316,17 @@
     {
       try
       {
+        // Check both the old status key and the help page download marker
         const value = localStorage.getItem(LOCAL_CONTROL_STATUS_KEY);
         if (value === LOCAL_CONTROL_STATUS_DOWNLOADED)
         {
           return value;
+        }
+        // Also check if user downloaded from help page
+        const helpDownloaded = localStorage.getItem('petoiLocalVersionDownloaded');
+        if (helpDownloaded === 'true')
+        {
+          return LOCAL_CONTROL_STATUS_DOWNLOADED;
         }
       } catch (error)
       {
