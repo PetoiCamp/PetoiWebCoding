@@ -1094,15 +1094,27 @@
       return /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(String(ip || "").trim());
     }
 
+    function isIOSLikeBrowser()
+    {
+      const ua = String(navigator.userAgent || "");
+      const platform = String(navigator.platform || "");
+      return /iPhone|iPad|iPod/i.test(ua) || /iPhone|iPad|iPod/i.test(platform);
+    }
+
     async function connectWifi()
     {
       const ipInput = document.getElementById("wifiIpInput");
       const wifiButton = document.getElementById("connectWifiBtn");
+      const wifiStatus = document.getElementById("wifiStatus");
       const ip = (ipInput.value || "").trim();
       if (!ip)
       {
         const message = getText("wifiIpRequired");
         appendLog(getText("error"), message, "#ff9f9f");
+        if (wifiStatus)
+        {
+          wifiStatus.textContent = message;
+        }
         alert(message);
         ipInput.focus();
         return;
@@ -1111,6 +1123,10 @@
       if (window.location.protocol === "https:" && isLikelyIPv4Address(ip))
       {
         appendLog("Wi-Fi", getText("wifiHttpsHint"), "#ffd39b");
+        if (isIOSLikeBrowser())
+        {
+          alert(getText("wifiHttpsHint"));
+        }
       }
 
       try
@@ -1118,6 +1134,10 @@
         if (wifiButton)
         {
           wifiButton.disabled = true;
+        }
+        if (wifiStatus)
+        {
+          wifiStatus.textContent = getText("wifiConnecting").replace("{ip}", ip);
         }
         appendLog("Wi-Fi", getText("wifiConnecting").replace("{ip}", ip), "#8dc8ff");
         await disconnectWifi();
@@ -1131,11 +1151,19 @@
           // Ignore storage failures.
         }
         appendLog("Wi-Fi", getText("wifiConnected").replace("{ip}", ip), "#8de0a6");
+        if (wifiStatus)
+        {
+          wifiStatus.textContent = getText("wifiConnected").replace("{ip}", ip);
+        }
       } catch (error)
       {
         const detail = error && (error.message || error.name) ? (error.message || error.name) : String(error);
         const message = getText("wifiConnectFailedDetails").replace("{error}", detail);
         appendLog(getText("error"), message, "#ff9f9f");
+        if (wifiStatus)
+        {
+          wifiStatus.textContent = message;
+        }
         alert(message);
       } finally
       {
