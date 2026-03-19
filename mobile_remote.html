@@ -296,7 +296,7 @@
         </div>
         <div>
           <div class="inline">
-            <input id="wifiIpInput" type="text" placeholder="Robot IP (e.g. 192.168.4.1)" data-i18n-placeholder="wifiIpPlaceholder" />
+            <input id="wifiIpInput" type="text" value="192.168.4.1" placeholder="Robot IP (e.g. 192.168.4.1)" data-i18n-placeholder="wifiIpPlaceholder" />
           </div>
           <div class="inline" style="margin-top:8px;">
             <button id="connectWifiBtn" type="button" onclick="connectWifi()" data-i18n="connectWifi">Connect Wi-Fi</button>
@@ -370,6 +370,7 @@
 
   <script>
     const LANGUAGE_STORAGE_KEY = "petoiPreferredLang";
+    const WIFI_IP_STORAGE_KEY = "petoiRemoteWifiIp";
     const SUPPORTED_LANGUAGES = ["zh", "en", "ja"];
     const BAUD_RATE = 115200;
 
@@ -414,6 +415,10 @@
         btDisconnected: "蓝牙已断开。",
         wifiConnected: "Wi-Fi 已连接到 ws://{ip}:81",
         wifiDisconnected: "Wi-Fi 已断开。",
+        wifiConnecting: "正在连接 Wi-Fi：ws://{ip}:81",
+        wifiIpRequired: "请先输入机器人 IP 地址。",
+        wifiConnectFailedDetails: "Wi-Fi 连接失败：{error}",
+        wifiHttpsHint: "当前页面是 HTTPS，在 iOS 浏览器中连接 ws:// 局域网地址可能被系统拦截。若失败，请改用本地 http/file 页面，或使用蓝牙连接。",
         noConnection: "未连接机器人，请先连接蓝牙或 Wi-Fi。",
         sent: "已发送",
         recv: "已返回",
@@ -460,6 +465,10 @@
         btDisconnected: "Bluetooth disconnected.",
         wifiConnected: "Wi-Fi connected to ws://{ip}:81",
         wifiDisconnected: "Wi-Fi disconnected.",
+        wifiConnecting: "Connecting Wi-Fi: ws://{ip}:81",
+        wifiIpRequired: "Please enter the robot IP first.",
+        wifiConnectFailedDetails: "Wi-Fi connection failed: {error}",
+        wifiHttpsHint: "This page is served over HTTPS. On iOS browsers, ws:// LAN connections may be blocked. If connection fails, try a local http/file page or Bluetooth.",
         noConnection: "Robot is not connected. Connect Bluetooth or Wi-Fi first.",
         sent: "Sent",
         recv: "Received",
@@ -506,6 +515,10 @@
         btDisconnected: "Bluetooth 切断済み。",
         wifiConnected: "Wi-Fi 接続完了 ws://{ip}:81",
         wifiDisconnected: "Wi-Fi 切断済み。",
+        wifiConnecting: "Wi-Fi 接続中: ws://{ip}:81",
+        wifiIpRequired: "先にロボットの IP を入力してください。",
+        wifiConnectFailedDetails: "Wi-Fi 接続失敗: {error}",
+        wifiHttpsHint: "現在のページは HTTPS です。iOS ブラウザでは ws:// の LAN 接続が制限される場合があります。失敗する場合はローカルの http/file ページか Bluetooth をお試しください。",
         noConnection: "ロボット未接続です。先に Bluetooth か Wi-Fi を接続してください。",
         sent: "送信",
         recv: "受信",
@@ -1076,24 +1089,60 @@
       updateConnectionStatus();
     }
 
+    function isLikelyIPv4Address(ip)
+    {
+      return /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(String(ip || "").trim());
+    }
+
     async function connectWifi()
     {
-      const ip = (document.getElementById("wifiIpInput").value || "").trim();
+      const ipInput = document.getElementById("wifiIpInput");
+      const wifiButton = document.getElementById("connectWifiBtn");
+      const ip = (ipInput.value || "").trim();
       if (!ip)
       {
+        const message = getText("wifiIpRequired");
+        appendLog(getText("error"), message, "#ff9f9f");
+        alert(message);
+        ipInput.focus();
         return;
       }
+
+      if (window.location.protocol === "https:" && isLikelyIPv4Address(ip))
+      {
+        appendLog("Wi-Fi", getText("wifiHttpsHint"), "#ffd39b");
+      }
+
       try
       {
+        if (wifiButton)
+        {
+          wifiButton.disabled = true;
+        }
+        appendLog("Wi-Fi", getText("wifiConnecting").replace("{ip}", ip), "#8dc8ff");
         await disconnectWifi();
         wifiClient = new PetoiAsyncClient(`ws://${ip}:81`);
         await wifiClient.connect();
+        try
+        {
+          localStorage.setItem(WIFI_IP_STORAGE_KEY, ip);
+        } catch (error)
+        {
+          // Ignore storage failures.
+        }
         appendLog("Wi-Fi", getText("wifiConnected").replace("{ip}", ip), "#8de0a6");
       } catch (error)
       {
-        appendLog(getText("error"), `Wi-Fi connect failed: ${error.message || error}`, "#ff9f9f");
+        const detail = error && (error.message || error.name) ? (error.message || error.name) : String(error);
+        const message = getText("wifiConnectFailedDetails").replace("{error}", detail);
+        appendLog(getText("error"), message, "#ff9f9f");
+        alert(message);
       } finally
       {
+        if (wifiButton)
+        {
+          wifiButton.disabled = false;
+        }
         updateConnectionStatus();
       }
     }
@@ -1441,6 +1490,23 @@
       queueSend(command, 12000);
     }
 
+    function restoreLastWifiIp()
+    {
+      const input = document.getElementById("wifiIpInput");
+      if (!input) return;
+      try
+      {
+        const savedIp = (localStorage.getItem(WIFI_IP_STORAGE_KEY) || "").trim();
+        if (savedIp)
+        {
+          input.value = savedIp;
+        }
+      } catch (error)
+      {
+        // Ignore storage read errors.
+      }
+    }
+
     window.addEventListener("beforeunload", async () =>
     {
       await disconnectWifi();
@@ -1448,6 +1514,7 @@
     });
 
     currentLang = getInitialLanguage();
+    restoreLastWifiIp();
     renderLanguage();
     bindDirectionButtons();
     bindJoystick();
