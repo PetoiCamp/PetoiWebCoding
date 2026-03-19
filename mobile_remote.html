@@ -338,7 +338,6 @@
             <button type="button" data-action-command="kup" data-i18n="stand">Stand</button>
             <button type="button" data-action-command="ksit" data-i18n="sit">Sit</button>
             <button type="button" data-action-command="khi" data-i18n="sayHi">Say Hi</button>
-            <button type="button" class="warn" data-action-command="kclap" data-i18n="clap">Clap</button>
             <button type="button" class="danger" data-action-command="d" data-i18n="rest">Rest</button>
           </div>
 
@@ -371,6 +370,7 @@
   <script>
     const LANGUAGE_STORAGE_KEY = "petoiPreferredLang";
     const WIFI_IP_STORAGE_KEY = "petoiRemoteWifiIp";
+    const LOCAL_CONTROL_DOWNLOAD_URL = "https://github.com/PetoiCamp/PetoiWebCoding/releases/latest";
     const SUPPORTED_LANGUAGES = ["zh", "en", "ja"];
     const BAUD_RATE = 115200;
 
@@ -397,7 +397,6 @@
         stand: "站立",
         sit: "坐下",
         sayHi: "打招呼",
-        clap: "鼓掌",
         rest: "休息",
         rawCommandTitle: "原始命令",
         rawCommandPlaceholder: "输入原始命令，例如 kwkF 或 XGp~",
@@ -419,6 +418,11 @@
         wifiIpRequired: "请先输入机器人 IP 地址。",
         wifiConnectFailedDetails: "Wi-Fi 连接失败：{error}",
         wifiHttpsHint: "当前页面是 HTTPS，在 iOS 浏览器中连接 ws:// 局域网地址可能被系统拦截。若失败，请改用本地 http/file 页面，或使用蓝牙连接。",
+        localVersionDialogTitle: "本地版下载提示",
+        localVersionDialogDescription: "当前 HTTPS 页面无法直接发起到机器人 ws:// 的连接。你可以下载本地版后打开 mobile_remote.html 使用 Wi-Fi 连接。",
+        localVersionDialogDeviceHint: "目标设备地址：{ip}",
+        localVersionDialogDownload: "下载本地版",
+        localVersionDialogCancel: "取消",
         noConnection: "未连接机器人，请先连接蓝牙或 Wi-Fi。",
         sent: "已发送",
         recv: "已返回",
@@ -447,7 +451,6 @@
         stand: "Stand",
         sit: "Sit",
         sayHi: "Say Hi",
-        clap: "Clap",
         rest: "Rest",
         rawCommandTitle: "Raw Command",
         rawCommandPlaceholder: "Enter raw command, e.g. kwkF or XGp~",
@@ -469,6 +472,11 @@
         wifiIpRequired: "Please enter the robot IP first.",
         wifiConnectFailedDetails: "Wi-Fi connection failed: {error}",
         wifiHttpsHint: "This page is served over HTTPS. On iOS browsers, ws:// LAN connections may be blocked. If connection fails, try a local http/file page or Bluetooth.",
+        localVersionDialogTitle: "Local Version Required",
+        localVersionDialogDescription: "This HTTPS page cannot open ws:// directly to the robot. You can download the local version and open mobile_remote.html for Wi-Fi control.",
+        localVersionDialogDeviceHint: "Target device address: {ip}",
+        localVersionDialogDownload: "Download Local Version",
+        localVersionDialogCancel: "Cancel",
         noConnection: "Robot is not connected. Connect Bluetooth or Wi-Fi first.",
         sent: "Sent",
         recv: "Received",
@@ -497,7 +505,6 @@
         stand: "立つ",
         sit: "座る",
         sayHi: "挨拶",
-        clap: "拍手",
         rest: "休息",
         rawCommandTitle: "Raw コマンド",
         rawCommandPlaceholder: "例: kwkF または XGp~",
@@ -519,6 +526,11 @@
         wifiIpRequired: "先にロボットの IP を入力してください。",
         wifiConnectFailedDetails: "Wi-Fi 接続失敗: {error}",
         wifiHttpsHint: "現在のページは HTTPS です。iOS ブラウザでは ws:// の LAN 接続が制限される場合があります。失敗する場合はローカルの http/file ページか Bluetooth をお試しください。",
+        localVersionDialogTitle: "ローカル版ダウンロード案内",
+        localVersionDialogDescription: "この HTTPS ページからはロボットへの ws:// 接続を直接開始できません。ローカル版をダウンロードして mobile_remote.html を開いてください。",
+        localVersionDialogDeviceHint: "接続先アドレス: {ip}",
+        localVersionDialogDownload: "ローカル版をダウンロード",
+        localVersionDialogCancel: "キャンセル",
         noConnection: "ロボット未接続です。先に Bluetooth か Wi-Fi を接続してください。",
         sent: "送信",
         recv: "受信",
@@ -1094,11 +1106,128 @@
       return /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(String(ip || "").trim());
     }
 
+    function isLikelyMixedContentBlockedError(error)
+    {
+      if (window.location.protocol !== "https:")
+      {
+        return false;
+      }
+
+      const detail = String((error && (error.message || error.name)) || error || "").toLowerCase();
+      return detail.includes("insecure websocket") ||
+        detail.includes("mixed content") ||
+        detail.includes("may not be initiated from a page loaded over https") ||
+        detail.includes("ws:// over https") ||
+        detail.includes("securityerror");
+    }
+
     function isIOSLikeBrowser()
     {
       const ua = String(navigator.userAgent || "");
       const platform = String(navigator.platform || "");
       return /iPhone|iPad|iPod/i.test(ua) || /iPhone|iPad|iPod/i.test(platform);
+    }
+
+    function closeLocalVersionDialog()
+    {
+      const dialog = document.querySelector(".local-version-dialog");
+      const overlay = document.querySelector(".local-version-overlay");
+      if (dialog) dialog.remove();
+      if (overlay) overlay.remove();
+    }
+
+    function openLocalVersionDownload()
+    {
+      window.open(LOCAL_CONTROL_DOWNLOAD_URL, "_blank", "noopener,noreferrer");
+    }
+
+    async function showLocalVersionDownloadDialog(ip)
+    {
+      return new Promise((resolve) =>
+      {
+        closeLocalVersionDialog();
+
+        const overlay = document.createElement("div");
+        overlay.className = "local-version-overlay";
+        overlay.style.position = "fixed";
+        overlay.style.inset = "0";
+        overlay.style.background = "rgba(0, 0, 0, 0.45)";
+        overlay.style.zIndex = "3000";
+        document.body.appendChild(overlay);
+
+        const dialog = document.createElement("div");
+        dialog.className = "local-version-dialog";
+        dialog.style.position = "fixed";
+        dialog.style.left = "50%";
+        dialog.style.top = "50%";
+        dialog.style.transform = "translate(-50%, -50%)";
+        dialog.style.width = "min(460px, calc(100vw - 30px))";
+        dialog.style.background = "#fff";
+        dialog.style.borderRadius = "12px";
+        dialog.style.padding = "16px";
+        dialog.style.boxShadow = "0 12px 30px rgba(0, 0, 0, 0.22)";
+        dialog.style.zIndex = "3001";
+
+        const title = document.createElement("h3");
+        title.style.margin = "0 0 8px 0";
+        title.textContent = getText("localVersionDialogTitle");
+
+        const desc = document.createElement("p");
+        desc.style.margin = "0 0 8px 0";
+        desc.style.color = "#4f5e7c";
+        desc.style.fontSize = "14px";
+        desc.style.lineHeight = "1.5";
+        desc.textContent = getText("localVersionDialogDescription");
+
+        const ipHint = document.createElement("p");
+        ipHint.style.margin = "0 0 12px 0";
+        ipHint.style.color = "#6d7a96";
+        ipHint.style.fontSize = "12px";
+        ipHint.style.lineHeight = "1.4";
+        ipHint.textContent = getText("localVersionDialogDeviceHint").replace("{ip}", ip || "");
+
+        const actions = document.createElement("div");
+        actions.style.display = "flex";
+        actions.style.gap = "8px";
+        actions.style.justifyContent = "flex-end";
+        actions.style.flexWrap = "wrap";
+
+        const cancelBtn = document.createElement("button");
+        cancelBtn.type = "button";
+        cancelBtn.className = "secondary";
+        cancelBtn.textContent = getText("localVersionDialogCancel");
+
+        const downloadBtn = document.createElement("button");
+        downloadBtn.type = "button";
+        downloadBtn.textContent = getText("localVersionDialogDownload");
+
+        cancelBtn.addEventListener("click", () =>
+        {
+          closeLocalVersionDialog();
+          resolve("cancel");
+        });
+
+        downloadBtn.addEventListener("click", () =>
+        {
+          openLocalVersionDownload();
+          closeLocalVersionDialog();
+          resolve("download");
+        });
+
+        overlay.addEventListener("click", () =>
+        {
+          closeLocalVersionDialog();
+          resolve("cancel");
+        });
+
+        actions.appendChild(cancelBtn);
+        actions.appendChild(downloadBtn);
+        dialog.appendChild(title);
+        dialog.appendChild(desc);
+        dialog.appendChild(ipHint);
+        dialog.appendChild(actions);
+        document.body.appendChild(dialog);
+      });
     }
 
     async function connectWifi()
@@ -1164,7 +1293,13 @@
         {
           wifiStatus.textContent = message;
         }
-        alert(message);
+        if (isLikelyMixedContentBlockedError(error))
+        {
+          await showLocalVersionDownloadDialog(ip);
+        } else
+        {
+          alert(message);
+        }
       } finally
       {
         if (wifiButton)
