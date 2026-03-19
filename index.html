@@ -92,6 +92,12 @@
       line-height: 1.6;
     }
 
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
     .enter-link {
       display: inline-block;
       text-decoration: none;
@@ -129,7 +135,10 @@
       Open the Blockly workspace and control your Petoi robot directly in your browser.
     </p>
 
-    <a id="enterMainLink" class="enter-link" href="./main.html?lang=en">Petoi Web Coding Blocks</a>
+    <div class="links">
+      <a id="enterMainLink" class="enter-link" href="./main.html?lang=en">Petoi Web Coding Blocks</a>
+      <a id="enterRemoteLink" class="enter-link" href="./mobile_remote.html?lang=en">Mobile Remote Control</a>
+    </div>
     <p class="footer-note" id="langHint">
       The selected language will be used as the default language in the workspace.
     </p>
@@ -143,18 +152,21 @@
       zh: {
         appTitle: "Petoi编程门户",
         enterButton: "Petoi陪拓网页编程积木",
+        remoteButton: "手机网页遥控器",
         portalDesc: "打开 Blockly 工作区，在浏览器中直接控制你的 Petoi 机器人。",
         langHint: "当前语言会自动传递给工作区，作为 main 页面默认语言。"
       },
       en: {
         appTitle: "Petoi Coding Portal",
         enterButton: "Petoi Web Coding Blocks",
+        remoteButton: "Mobile Remote Control",
         portalDesc: "Open the Blockly workspace and control your Petoi robot directly in your browser.",
         langHint: "The selected language will be used as the default language in the workspace."
       },
       ja: {
         appTitle: "Petoiコーディングポータル",
         enterButton: "Petoiウェブコーディングブロック",
+        remoteButton: "モバイルリモコン",
         portalDesc: "Blockly ワークスペースを開き、ブラウザから Petoi ロボットを直接操作できます。",
         langHint: "選択した言語は自動的に main ページへ引き継がれ、初期言語として適用されます。"
       }
@@ -231,6 +243,10 @@
       const mainLink = document.getElementById("enterMainLink");
       mainLink.textContent = TEXTS[currentLang].enterButton || "Petoi Web Coding Blocks";
       mainLink.href = "./main.html?lang=" + encodeURIComponent(currentLang);
+
+      const remoteLink = document.getElementById("enterRemoteLink");
+      remoteLink.textContent = TEXTS[currentLang].remoteButton || "Mobile Remote Control";
+      remoteLink.href = "./mobile_remote.html?lang=" + encodeURIComponent(currentLang);
     }
 
     function setLanguage(lang)
