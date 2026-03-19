@@ -407,9 +407,11 @@
         encodeAndSend: "编码并发送",
         logTitle: "通信日志",
         clearLog: "清空日志",
-        btUnsupported: "当前浏览器不支持 Web Serial 蓝牙串口（建议 Android Chrome）。",
-        btConnected: "蓝牙串口已连接（115200）。",
-        btDisconnected: "蓝牙串口已断开。",
+        btUnsupported: "当前浏览器不支持可用的网页蓝牙接口（Web Serial / Web Bluetooth）。请改用 Wi-Fi，或在支持的浏览器中重试。",
+        btConnected: "蓝牙已连接。",
+        btConnectedSerial: "蓝牙串口已连接（115200）。",
+        btConnectedBle: "蓝牙 BLE 已连接。",
+        btDisconnected: "蓝牙已断开。",
         wifiConnected: "Wi-Fi 已连接到 ws://{ip}:81",
         wifiDisconnected: "Wi-Fi 已断开。",
         noConnection: "未连接机器人，请先连接蓝牙或 Wi-Fi。",
@@ -451,9 +453,11 @@
         encodeAndSend: "Encode & Send",
         logTitle: "Communication Log",
         clearLog: "Clear Log",
-        btUnsupported: "This browser does not support Web Serial Bluetooth (use Android Chrome).",
-        btConnected: "Bluetooth serial connected (115200).",
-        btDisconnected: "Bluetooth serial disconnected.",
+        btUnsupported: "This browser does not support an available web Bluetooth API (Web Serial / Web Bluetooth). Please use Wi-Fi or try a supported browser.",
+        btConnected: "Bluetooth connected.",
+        btConnectedSerial: "Bluetooth serial connected (115200).",
+        btConnectedBle: "Bluetooth BLE connected.",
+        btDisconnected: "Bluetooth disconnected.",
         wifiConnected: "Wi-Fi connected to ws://{ip}:81",
         wifiDisconnected: "Wi-Fi disconnected.",
         noConnection: "Robot is not connected. Connect Bluetooth or Wi-Fi first.",
@@ -495,9 +499,11 @@
         encodeAndSend: "エンコードして送信",
         logTitle: "通信ログ",
         clearLog: "ログをクリア",
-        btUnsupported: "このブラウザは Web Serial Bluetooth をサポートしていません（Android Chrome 推奨）。",
-        btConnected: "Bluetooth シリアル接続完了（115200）。",
-        btDisconnected: "Bluetooth シリアル切断済み。",
+        btUnsupported: "このブラウザは利用可能な Web Bluetooth API（Web Serial / Web Bluetooth）に対応していません。Wi-Fi を使うか、対応ブラウザでお試しください。",
+        btConnected: "Bluetooth 接続済み。",
+        btConnectedSerial: "Bluetooth シリアル接続完了（115200）。",
+        btConnectedBle: "Bluetooth BLE 接続完了。",
+        btDisconnected: "Bluetooth 切断済み。",
         wifiConnected: "Wi-Fi 接続完了 ws://{ip}:81",
         wifiDisconnected: "Wi-Fi 切断済み。",
         noConnection: "ロボット未接続です。先に Bluetooth か Wi-Fi を接続してください。",
@@ -514,11 +520,33 @@
     let serialWriter = null;
     let serialReadLoopRunning = false;
     let serialReadShouldStop = false;
+    let bleDevice = null;
+    let bleServer = null;
+    let bleWriteCharacteristic = null;
+    let bleNotifyCharacteristic = null;
+    let bleNotificationHandler = null;
     let wifiClient = null;
     let sendQueue = Promise.resolve();
     let activeDirection = "stop";
     let joystickPointerId = null;
     let joystickBaseRect = null;
+    const BLE_SERVICE_CANDIDATES = [
+      "6e400001-b5a3-f393-e0a9-e50e24dcca9e", // Nordic UART service
+      0xffe0, // HM-10 style UART service
+      0xff00,
+      0xfee0
+    ];
+    const BLE_WRITE_CHARACTERISTIC_CANDIDATES = [
+      "6e400002-b5a3-f393-e0a9-e50e24dcca9e", // Nordic UART TX (write)
+      0xffe1,
+      0xff02
+    ];
+    const BLE_NOTIFY_CHARACTERISTIC_CANDIDATES = [
+      "6e400003-b5a3-f393-e0a9-e50e24dcca9e", // Nordic UART RX (notify)
+      0xffe1,
+      0xff01
+    ];
+    const BLE_WRITE_CHUNK_SIZE = 20;
     const DIRECTION_COMMANDS = {
       up: "kwkF",
       down: "kbkF",
@@ -633,8 +661,18 @@
       const btStatus = document.getElementById("btStatus");
       const wifiStatus = document.getElementById("wifiStatus");
       const hasSerial = !!(serialPort && serialWriter);
+      const hasBle = !!(bleDevice && bleDevice.gatt && bleDevice.gatt.connected && bleWriteCharacteristic);
       const hasWifi = !!(wifiClient && wifiClient.connected);
-      btStatus.textContent = hasSerial ? getText("btConnected") : getText("btDisconnected");
+      if (hasSerial)
+      {
+        btStatus.textContent = getText("btConnectedSerial");
+      } else if (hasBle)
+      {
+        btStatus.textContent = getText("btConnectedBle");
+      } else
+      {
+        btStatus.textContent = getText("btDisconnected");
+      }
       const ip = (document.getElementById("wifiIpInput").value || "").trim();
       wifiStatus.textContent = hasWifi
         ? getText("wifiConnected").replace("{ip}", ip || "device")
@@ -644,33 +682,245 @@
     function getActiveTransport()
     {
       if (serialPort && serialWriter) return "serial";
+      if (bleDevice && bleDevice.gatt && bleDevice.gatt.connected && bleWriteCharacteristic) return "ble";
       if (wifiClient && wifiClient.connected) return "wifi";
       return "";
     }
 
     async function connectBluetooth()
     {
-      if (!("serial" in navigator))
+      await disconnectBluetooth();
+
+      if ("serial" in navigator)
       {
-        appendLog(getText("error"), getText("btUnsupported"), "#ff9f9f");
-        alert(getText("btUnsupported"));
-        return;
+        try
+        {
+          await connectBluetoothViaSerial();
+          return;
+        } catch (error)
+        {
+          appendLog(getText("error"), `Web Serial failed: ${error.message || error}`, "#ff9f9f");
+          updateConnectionStatus();
+          return;
+        }
       }
+
+      if (navigator.bluetooth && typeof navigator.bluetooth.requestDevice === "function")
+      {
+        try
+        {
+          await connectBluetoothViaBle();
+          return;
+        } catch (error)
+        {
+          appendLog(getText("error"), `Web Bluetooth failed: ${error.message || error}`, "#ff9f9f");
+          updateConnectionStatus();
+          return;
+        }
+      }
+
+      appendLog(getText("error"), getText("btUnsupported"), "#ff9f9f");
+      alert(getText("btUnsupported"));
+    }
+
+    async function connectBluetoothViaSerial()
+    {
+      const port = await navigator.serial.requestPort({});
+      await port.open({ baudRate: BAUD_RATE });
+      serialPort = port;
+      serialWriter = port.writable ? port.writable.getWriter() : null;
+      if (!serialWriter)
+      {
+        throw new Error("Serial writer unavailable");
+      }
+      serialReadShouldStop = false;
+      startSerialReadLoop();
+      updateConnectionStatus();
+      appendLog("Bluetooth", getText("btConnectedSerial"), "#8de0a6");
+    }
+
+    async function connectBluetoothViaBle()
+    {
+      bleDevice = await requestBluetoothDeviceWithFallback();
+      if (!bleDevice || !bleDevice.gatt)
+      {
+        throw new Error("No BLE GATT device selected");
+      }
+
+      bleDevice.addEventListener("gattserverdisconnected", handleBleDisconnected);
+      bleServer = await bleDevice.gatt.connect();
+      const channel = await resolveBleChannel(bleServer);
+      bleWriteCharacteristic = channel.writeCharacteristic;
+      bleNotifyCharacteristic = channel.notifyCharacteristic;
+
+      if (!bleWriteCharacteristic)
+      {
+        throw new Error("No writable BLE characteristic found");
+      }
+
+      if (bleNotifyCharacteristic)
+      {
+        bleNotificationHandler = (event) =>
+        {
+          const value = event && event.target ? event.target.value : null;
+          if (!value) return;
+          const bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+          const text = decodeBlePayload(bytes);
+          if (text)
+          {
+            appendLog(getText("recv"), text, "#ffd39b");
+          }
+        };
+        await bleNotifyCharacteristic.startNotifications();
+        bleNotifyCharacteristic.addEventListener("characteristicvaluechanged", bleNotificationHandler);
+      }
+
+      updateConnectionStatus();
+      appendLog("Bluetooth", getText("btConnectedBle"), "#8de0a6");
+    }
+
+    async function requestBluetoothDeviceWithFallback()
+    {
+      const prefixes = ["Petoi", "Bittle", "Nybble", "BiBoard", "OpenCat", "PetoiCamp"];
       try
       {
-        await disconnectBluetooth();
-        const port = await navigator.serial.requestPort({});
-        await port.open({ baudRate: BAUD_RATE });
-        serialPort = port;
-        serialWriter = port.writable ? port.writable.getWriter() : null;
-        serialReadShouldStop = false;
-        startSerialReadLoop();
-        updateConnectionStatus();
-        appendLog("Bluetooth", getText("btConnected"), "#8de0a6");
+        return await navigator.bluetooth.requestDevice({
+          filters: prefixes.map((prefix) => ({ namePrefix: prefix })),
+          optionalServices: BLE_SERVICE_CANDIDATES
+        });
       } catch (error)
       {
-        appendLog(getText("error"), `Bluetooth connect failed: ${error.message || error}`, "#ff9f9f");
+        if (error && error.name === "NotFoundError")
+        {
+          return await navigator.bluetooth.requestDevice({
+            acceptAllDevices: true,
+            optionalServices: BLE_SERVICE_CANDIDATES
+          });
+        }
+        throw error;
       }
+    }
+
+    async function resolveBleChannel(server)
+    {
+      let writeCharacteristic = null;
+      let notifyCharacteristic = null;
+
+      async function selectFromService(service)
+      {
+        if (!service) return;
+
+        for (const candidate of BLE_WRITE_CHARACTERISTIC_CANDIDATES)
+        {
+          try
+          {
+            const characteristic = await service.getCharacteristic(candidate);
+            if (characteristic && (characteristic.properties.write || characteristic.properties.writeWithoutResponse))
+            {
+              writeCharacteristic = writeCharacteristic || characteristic;
+              break;
+            }
+          } catch (error)
+          {
+            // Ignore missing characteristic candidates.
+          }
+        }
+
+        for (const candidate of BLE_NOTIFY_CHARACTERISTIC_CANDIDATES)
+        {
+          try
+          {
+            const characteristic = await service.getCharacteristic(candidate);
+            if (characteristic && (characteristic.properties.notify || characteristic.properties.indicate))
+            {
+              notifyCharacteristic = notifyCharacteristic || characteristic;
+              break;
+            }
+          } catch (error)
+          {
+            // Ignore missing characteristic candidates.
+          }
+        }
+
+        const characteristics = await service.getCharacteristics();
+        for (const characteristic of characteristics)
+        {
+          if (!writeCharacteristic && (characteristic.properties.write || characteristic.properties.writeWithoutResponse))
+          {
+            writeCharacteristic = characteristic;
+          }
+          if (!notifyCharacteristic && (characteristic.properties.notify || characteristic.properties.indicate))
+          {
+            notifyCharacteristic = characteristic;
+          }
+          if (writeCharacteristic && notifyCharacteristic)
+          {
+            return;
+          }
+        }
+      }
+
+      for (const serviceId of BLE_SERVICE_CANDIDATES)
+      {
+        try
+        {
+          const service = await server.getPrimaryService(serviceId);
+          await selectFromService(service);
+          if (writeCharacteristic)
+          {
+            break;
+          }
+        } catch (error)
+        {
+          // Try next service candidate.
+        }
+      }
+
+      if (!writeCharacteristic)
+      {
+        try
+        {
+          const services = await server.getPrimaryServices();
+          for (const service of services)
+          {
+            await selectFromService(service);
+            if (writeCharacteristic)
+            {
+              break;
+            }
+          }
+        } catch (error)
+        {
+          // Ignore scanning errors and let caller handle missing characteristic.
+        }
+      }
+
+      return {
+        writeCharacteristic,
+        notifyCharacteristic
+      };
+    }
+
+    function decodeBlePayload(bytes)
+    {
+      if (!bytes || bytes.length === 0)
+      {
+        return;
+      }
+
+      try
+      {
+        const text = new TextDecoder().decode(bytes).replace(/\0/g, "").trim();
+        if (text)
+        {
+          return text;
+        }
+      } catch (error)
+      {
+        // Fallback to hex string.
+      }
+
+      return "0x" + Array.from(bytes).map((item) => item.toString(16).padStart(2, "0")).join(" ");
     }
 
     async function startSerialReadLoop()
@@ -720,7 +970,16 @@
       }
     }
 
-    async function disconnectBluetooth()
+    function handleBleDisconnected()
+    {
+      appendLog("Bluetooth", getText("btDisconnected"), "#ff9f9f");
+      disconnectBluetoothBle().finally(() =>
+      {
+        updateConnectionStatus();
+      });
+    }
+
+    async function disconnectBluetoothSerial()
     {
       serialReadShouldStop = true;
       try
@@ -759,6 +1018,61 @@
       serialReader = null;
       serialWriter = null;
       serialPort = null;
+    }
+
+    async function disconnectBluetoothBle()
+    {
+      try
+      {
+        if (bleDevice)
+        {
+          bleDevice.removeEventListener("gattserverdisconnected", handleBleDisconnected);
+        }
+      } catch (error)
+      {
+        // Ignore listener cleanup errors.
+      }
+
+      try
+      {
+        if (bleNotifyCharacteristic && bleNotificationHandler)
+        {
+          bleNotifyCharacteristic.removeEventListener("characteristicvaluechanged", bleNotificationHandler);
+          try
+          {
+            await bleNotifyCharacteristic.stopNotifications();
+          } catch (error)
+          {
+            // Ignore stop notification errors.
+          }
+        }
+      } catch (error)
+      {
+        // Ignore BLE listener cleanup errors.
+      }
+
+      try
+      {
+        if (bleDevice && bleDevice.gatt && bleDevice.gatt.connected)
+        {
+          bleDevice.gatt.disconnect();
+        }
+      } catch (error)
+      {
+        // Ignore BLE disconnect errors.
+      }
+
+      bleNotificationHandler = null;
+      bleNotifyCharacteristic = null;
+      bleWriteCharacteristic = null;
+      bleServer = null;
+      bleDevice = null;
+    }
+
+    async function disconnectBluetooth()
+    {
+      await disconnectBluetoothSerial();
+      await disconnectBluetoothBle();
       updateConnectionStatus();
     }
 
@@ -879,6 +1193,12 @@
         return;
       }
 
+      if (transport === "ble")
+      {
+        await sendCommandViaBle(command);
+        return;
+      }
+
       let finalCommand = command;
       if (command.startsWith("bytes:"))
       {
@@ -909,6 +1229,39 @@
       }
       appendLog(getText("sent"), command, "#8dc8ff");
       await serialWriter.write(payload);
+    }
+
+    async function sendCommandViaBle(command)
+    {
+      if (!bleWriteCharacteristic)
+      {
+        throw new Error(getText("noConnection"));
+      }
+
+      let payload;
+      if (command.startsWith("bytes:"))
+      {
+        const byteArray = JSON.parse(command.substring(6));
+        payload = new Uint8Array(byteArray);
+      } else
+      {
+        payload = new TextEncoder().encode(command);
+      }
+
+      appendLog(getText("sent"), command, "#8dc8ff");
+
+      for (let offset = 0; offset < payload.length; offset += BLE_WRITE_CHUNK_SIZE)
+      {
+        const chunk = payload.slice(offset, offset + BLE_WRITE_CHUNK_SIZE);
+        if (bleWriteCharacteristic.properties.writeWithoutResponse &&
+          typeof bleWriteCharacteristic.writeValueWithoutResponse === "function")
+        {
+          await bleWriteCharacteristic.writeValueWithoutResponse(chunk);
+        } else
+        {
+          await bleWriteCharacteristic.writeValue(chunk);
+        }
+      }
     }
 
     function setDirectionButtonState(direction)
