@@ -1608,13 +1608,32 @@
 
     function parseBinaryPayload(text)
     {
-      return String(text || "")
+      const values = [];
+      const chunks = String(text || "")
         .split(/[\s,]+/)
         .map((item) => item.trim())
-        .filter((item) => item.length > 0)
-        .map((item) => Number(item))
-        .filter((item) => Number.isFinite(item))
-        .map((item) => item & 0xff);
+        .filter((item) => item.length > 0);
+
+      chunks.forEach((chunk) =>
+      {
+        const numeric = Number(chunk);
+        if (Number.isFinite(numeric))
+        {
+          values.push(numeric & 0xff);
+          return;
+        }
+
+        // In binary mode, letters are converted to ASCII bytes.
+        if (/^[a-zA-Z]+$/.test(chunk))
+        {
+          for (const char of chunk)
+          {
+            values.push(char.charCodeAt(0) & 0xff);
+          }
+        }
+      });
+
+      return values;
     }
 
     function parseAsciiBytes(text)
