@@ -201,6 +201,28 @@
       touch-action: none;
     }
 
+    .joystick-zone {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .joystick-zone.outer {
+      width: 164px;
+      height: 164px;
+      border: 1.5px solid rgba(77, 120, 255, 0.5);
+    }
+
+    .joystick-zone.inner {
+      width: 98px;
+      height: 98px;
+      border: 1.5px solid rgba(77, 120, 255, 0.85);
+      background: rgba(77, 120, 255, 0.07);
+    }
+
     .joystick-knob {
       width: 78px;
       height: 78px;
@@ -211,23 +233,6 @@
       left: 66px;
       top: 66px;
       transition: transform 60ms linear;
-    }
-
-    .direction-buttons {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-      width: min(320px, 100%);
-      margin: 0 auto;
-    }
-
-    .direction-buttons button {
-      min-height: 44px;
-      background: #5477f8;
-    }
-
-    .direction-buttons button.active {
-      background: #2f52d7;
     }
 
     .actions {
@@ -314,22 +319,12 @@
           <div class="block-title" data-i18n="driveTitle">Drive Control</div>
           <div class="joystick-wrap">
             <div class="joystick-base" id="joystickBase">
+              <div class="joystick-zone outer" aria-hidden="true"></div>
+              <div class="joystick-zone inner" aria-hidden="true"></div>
               <div class="joystick-knob" id="joystickKnob"></div>
             </div>
           </div>
-          <div class="tiny" data-i18n="joystickTip">Drag joystick to move: forward/back/left/right. Release to stop.</div>
-
-          <div class="direction-buttons" style="margin-top:12px;">
-            <div></div>
-            <button type="button" data-direction="up" data-i18n="forward">Forward</button>
-            <div></div>
-            <button type="button" data-direction="left" data-i18n="left">Left</button>
-            <button type="button" data-direction="stop" class="danger" data-i18n="stop">Stop</button>
-            <button type="button" data-direction="right" data-i18n="right">Right</button>
-            <div></div>
-            <button type="button" data-direction="down" data-i18n="backward">Backward</button>
-            <div></div>
-          </div>
+          <div class="tiny" data-i18n="joystickTip">Drag joystick to move. Inner ring uses walk gaits, outer ring uses trot gaits for forward/left/right. Release to stop.</div>
         </div>
 
         <div>
@@ -341,19 +336,21 @@
             <button type="button" class="danger" data-action-command="d" data-i18n="rest">Rest</button>
           </div>
 
-          <div class="block-title" style="margin-top:12px;" data-i18n="rawCommandTitle">Raw Command</div>
+          <div class="block-title" style="margin-top:12px;" data-i18n="commandEncoderTitle">Command Encoder &amp; Sender</div>
           <div class="inline">
-            <input id="rawCommandInput" type="text" value="kwkF" data-i18n-placeholder="rawCommandPlaceholder" />
-            <button type="button" onclick="sendRawCommand()" data-i18n="sendRaw">Send</button>
+            <input id="tokenInput" type="text" value="" data-i18n-placeholder="tokenPlaceholder" />
           </div>
-
-          <div class="block-title" style="margin-top:12px;" data-i18n="tokenEncodeTitle">Token Encode (same as Blocks)</div>
-          <div class="inline">
-            <input id="tokenInput" type="text" value="XU" data-i18n-placeholder="tokenPlaceholder" />
-            <input id="paramsInput" type="text" value="9,9" data-i18n-placeholder="paramsPlaceholder" />
-            <button type="button" onclick="encodeAndSend()" data-i18n="encodeAndSend">Encode &amp; Send</button>
+          <div class="inline" style="margin-top:8px;">
+            <select id="payloadModeSelect" style="border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:14px;">
+              <option value="ascii" data-i18n="encodingAscii">ASCII</option>
+              <option value="binary" data-i18n="encodingBinary">Binary Numbers</option>
+            </select>
+            <input id="payloadInput" type="text" value="kwkF" data-i18n-placeholder="payloadPlaceholder" />
           </div>
-          <div class="tiny" id="encodePreview"></div>
+          <div class="inline" style="margin-top:8px;">
+            <button type="button" onclick="sendEncodedCommand()" data-i18n="sendEncoded">Encode &amp; Send</button>
+          </div>
+          <div class="tiny" id="commandPreview"></div>
         </div>
       </div>
     </section>
@@ -387,24 +384,20 @@
         wifiIpPlaceholder: "机器人 IP（例如 192.168.4.1）",
         connectionPriority: "蓝牙串口与 Wi-Fi 同时可用时，优先使用蓝牙串口发送命令。",
         driveTitle: "方向控制",
-        joystickTip: "拖动摇杆控制前后左右，松手自动停止。",
-        forward: "前进",
-        backward: "后退",
-        left: "左转",
-        right: "右转",
-        stop: "停止",
+        joystickTip: "拖动摇杆控制。前/左/右：内圆发送行走(kwk*)，外圆发送小跑(ktr*)；后退保持 kbkF；松手自动停止。",
         quickActions: "快捷动作",
         stand: "站立",
         sit: "坐下",
         sayHi: "打招呼",
         rest: "休息",
-        rawCommandTitle: "原始命令",
-        rawCommandPlaceholder: "输入原始命令，例如 kwkF 或 XGp~",
-        sendRaw: "发送",
-        tokenEncodeTitle: "Token 编码发送（与积木一致）",
-        tokenPlaceholder: "Token，例如 XU / g / m",
-        paramsPlaceholder: "参数，逗号或空格分隔",
-        encodeAndSend: "编码并发送",
+        commandEncoderTitle: "命令发送（Command + Token Encode）",
+        tokenPlaceholder: "Token（可选），例如 XU / g / m；留空则直接发送 payload",
+        payloadPlaceholder: "Payload：ASCII 文本或 Binary 数值（空格/逗号分隔）",
+        encodingAscii: "ASCII 文本",
+        encodingBinary: "Binary 数值",
+        sendEncoded: "编码并发送",
+        invalidPayload: "请先输入有效 payload。",
+        commandPreviewPrefix: "预览：",
         logTitle: "通信日志",
         clearLog: "清空日志",
         btUnsupported: "当前浏览器不支持可用的网页蓝牙接口（Web Serial / Web Bluetooth）。请改用 Wi-Fi，或在支持的浏览器中重试。",
@@ -441,24 +434,20 @@
         wifiIpPlaceholder: "Robot IP (e.g. 192.168.4.1)",
         connectionPriority: "When both Bluetooth serial and Wi-Fi are available, Bluetooth serial is preferred.",
         driveTitle: "Drive Control",
-        joystickTip: "Drag joystick to move forward/back/left/right. Release to stop.",
-        forward: "Forward",
-        backward: "Backward",
-        left: "Left",
-        right: "Right",
-        stop: "Stop",
+        joystickTip: "Drag joystick to move. For forward/left/right: inner ring sends walk gaits (kwk*), outer ring sends trot gaits (ktr*). Backward stays kbkF. Release to stop.",
         quickActions: "Quick Actions",
         stand: "Stand",
         sit: "Sit",
         sayHi: "Say Hi",
         rest: "Rest",
-        rawCommandTitle: "Raw Command",
-        rawCommandPlaceholder: "Enter raw command, e.g. kwkF or XGp~",
-        sendRaw: "Send",
-        tokenEncodeTitle: "Token Encode (same as Blocks)",
-        tokenPlaceholder: "Token, e.g. XU / g / m",
-        paramsPlaceholder: "Parameters, split by comma or space",
-        encodeAndSend: "Encode & Send",
+        commandEncoderTitle: "Command Sender (Command + Token Encode)",
+        tokenPlaceholder: "Token (optional), e.g. XU / g / m; leave blank to send payload directly",
+        payloadPlaceholder: "Payload: ASCII text or binary numbers (split by space/comma)",
+        encodingAscii: "ASCII Text",
+        encodingBinary: "Binary Numbers",
+        sendEncoded: "Encode & Send",
+        invalidPayload: "Please enter a valid payload first.",
+        commandPreviewPrefix: "Preview:",
         logTitle: "Communication Log",
         clearLog: "Clear Log",
         btUnsupported: "This browser does not support an available web Bluetooth API (Web Serial / Web Bluetooth). Please use Wi-Fi or try a supported browser.",
@@ -495,24 +484,20 @@
         wifiIpPlaceholder: "ロボット IP（例 192.168.4.1）",
         connectionPriority: "Bluetooth シリアルと Wi-Fi が両方使える場合は Bluetooth を優先します。",
         driveTitle: "方向コントロール",
-        joystickTip: "ジョイスティックをドラッグして移動、離すと停止。",
-        forward: "前進",
-        backward: "後退",
-        left: "左",
-        right: "右",
-        stop: "停止",
+        joystickTip: "ジョイスティックで移動。前/左/右は内円で歩行(kwk*)、外円で小走り(ktr*)、後退は kbkF のまま。離すと停止。",
         quickActions: "クイックアクション",
         stand: "立つ",
         sit: "座る",
         sayHi: "挨拶",
         rest: "休息",
-        rawCommandTitle: "Raw コマンド",
-        rawCommandPlaceholder: "例: kwkF または XGp~",
-        sendRaw: "送信",
-        tokenEncodeTitle: "Token エンコード送信（Blocks と同一）",
-        tokenPlaceholder: "Token（例 XU / g / m）",
-        paramsPlaceholder: "パラメータ（カンマ/空白区切り）",
-        encodeAndSend: "エンコードして送信",
+        commandEncoderTitle: "コマンド送信（Command + Token Encode）",
+        tokenPlaceholder: "Token（任意）例: XU / g / m。空欄なら payload を直接送信",
+        payloadPlaceholder: "Payload：ASCII 文字列 または Binary 数値（空白/カンマ区切り）",
+        encodingAscii: "ASCII 文字列",
+        encodingBinary: "Binary 数値",
+        sendEncoded: "エンコードして送信",
+        invalidPayload: "有効な payload を入力してください。",
+        commandPreviewPrefix: "プレビュー:",
         logTitle: "通信ログ",
         clearLog: "ログをクリア",
         btUnsupported: "このブラウザは利用可能な Web Bluetooth API（Web Serial / Web Bluetooth）に対応していません。Wi-Fi を使うか、対応ブラウザでお試しください。",
@@ -552,7 +537,7 @@
     let bleNotificationHandler = null;
     let wifiClient = null;
     let sendQueue = Promise.resolve();
-    let activeDirection = "stop";
+    let activeMotionKey = "stop";
     let joystickPointerId = null;
     let joystickBaseRect = null;
     const BLE_SERVICE_CANDIDATES = [
@@ -572,13 +557,18 @@
       0xff01
     ];
     const BLE_WRITE_CHUNK_SIZE = 20;
-    const DIRECTION_COMMANDS = {
-      up: "kwkF",
-      down: "kbkF",
+    const WALK_GAITS = {
+      forward: "kwkF",
       left: "kwkL",
-      right: "kwkR",
-      stop: "d"
+      right: "kwkR"
     };
+    const TROT_GAITS = {
+      forward: "ktrF",
+      left: "ktrL",
+      right: "ktrR"
+    };
+    const BACKWARD_GAIT = "kbkF";
+    const STOP_GAIT = "d";
 
     function normalizeLanguageCode(lang)
     {
@@ -653,6 +643,10 @@
         const key = el.getAttribute("data-i18n-placeholder");
         el.setAttribute("placeholder", getText(key));
       });
+      if (typeof updateCommandPreview === "function")
+      {
+        updateCommandPreview();
+      }
       updateConnectionStatus();
     }
 
@@ -1330,19 +1324,6 @@
       }
     }
 
-    function parseParams(text)
-    {
-      return String(text || "")
-        .split(/[\s,]+/)
-        .map((item) => item.trim())
-        .filter((item) => item.length > 0)
-        .map((item) =>
-        {
-          const num = Number(item);
-          return Number.isFinite(num) ? num : item;
-        });
-    }
-
     function encodeCommand(token, params)
     {
       if (token.charCodeAt(0) >= 65 && token.charCodeAt(0) <= 90)
@@ -1476,72 +1457,54 @@
       }
     }
 
-    function setDirectionButtonState(direction)
+    function getJoystickMotion(dx, dy, maxRadius)
     {
-      document.querySelectorAll("[data-direction]").forEach((button) =>
-      {
-        button.classList.toggle("active", button.getAttribute("data-direction") === direction);
-      });
-    }
-
-    function commandFromJoystick(dx, dy, radius)
-    {
-      const threshold = radius * 0.3;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      if (distance < threshold)
+      const stopThreshold = maxRadius * 0.22;
+      const innerRadius = maxRadius * 0.58;
+
+      if (distance < stopThreshold)
       {
-        return "stop";
+        return {
+          key: "stop",
+          command: STOP_GAIT
+        };
       }
+
+      // Backward remains unchanged without speed tiers.
+      if (dy > Math.abs(dx) * 0.6)
+      {
+        return {
+          key: "backward",
+          command: BACKWARD_GAIT
+        };
+      }
+
+      let direction = "forward";
       if (Math.abs(dx) > Math.abs(dy))
       {
-        return dx > 0 ? "right" : "left";
+        direction = dx > 0 ? "right" : "left";
       }
-      return dy > 0 ? "down" : "up";
+
+      const tier = distance <= innerRadius ? "walk" : "trot";
+      const command = tier === "walk" ? WALK_GAITS[direction] : TROT_GAITS[direction];
+      return {
+        key: `${direction}-${tier}`,
+        command: command
+      };
     }
 
-    function sendDirection(direction)
+    function sendMotionCommand(command, key)
     {
-      if (!DIRECTION_COMMANDS[direction]) return;
-      if (activeDirection === direction) return;
-      activeDirection = direction;
-      setDirectionButtonState(direction);
-      queueSend(DIRECTION_COMMANDS[direction], 8000);
+      if (!command || !key) return;
+      if (activeMotionKey === key) return;
+      activeMotionKey = key;
+      queueSend(command, 8000);
     }
 
-    function stopDirection()
+    function stopMotion()
     {
-      sendDirection("stop");
-    }
-
-    function bindDirectionButtons()
-    {
-      const buttons = document.querySelectorAll("[data-direction]");
-      buttons.forEach((button) =>
-      {
-        const direction = button.getAttribute("data-direction");
-        if (direction === "stop")
-        {
-          button.addEventListener("click", () =>
-          {
-            stopDirection();
-          });
-          return;
-        }
-        const onDown = (event) =>
-        {
-          event.preventDefault();
-          sendDirection(direction);
-        };
-        const onUp = (event) =>
-        {
-          event.preventDefault();
-          stopDirection();
-        };
-        button.addEventListener("pointerdown", onDown);
-        button.addEventListener("pointerup", onUp);
-        button.addEventListener("pointercancel", onUp);
-        button.addEventListener("pointerleave", onUp);
-      });
+      sendMotionCommand(STOP_GAIT, "stop");
     }
 
     function resetJoystickKnob()
@@ -1574,14 +1537,8 @@
           dy *= ratio;
         }
         knob.style.transform = `translate(${dx}px, ${dy}px)`;
-        const direction = commandFromJoystick(dx, dy, maxRadius);
-        if (direction === "stop")
-        {
-          stopDirection();
-        } else
-        {
-          sendDirection(direction);
-        }
+        const motion = getJoystickMotion(dx, dy, maxRadius);
+        sendMotionCommand(motion.command, motion.key);
       }
 
       base.addEventListener("pointerdown", (event) =>
@@ -1613,7 +1570,7 @@
         }
         joystickPointerId = null;
         resetJoystickKnob();
-        stopDirection();
+        stopMotion();
       }
 
       base.addEventListener("pointerup", releaseJoystick);
@@ -1632,25 +1589,106 @@
       });
     }
 
-    function sendRawCommand()
+    function parseBinaryPayload(text)
     {
-      const command = document.getElementById("rawCommandInput").value.trim();
-      if (!command) return;
-      queueSend(command, 10000);
+      return String(text || "")
+        .split(/[\s,]+/)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0)
+        .map((item) => Number(item))
+        .filter((item) => Number.isFinite(item))
+        .map((item) => item & 0xff);
     }
 
-    function encodeAndSend()
+    function parseAsciiBytes(text)
+    {
+      return Array.from(new TextEncoder().encode(String(text || "")));
+    }
+
+    function buildUnifiedCommand()
     {
       const token = document.getElementById("tokenInput").value.trim();
+      const mode = document.getElementById("payloadModeSelect").value;
+      const payloadInput = document.getElementById("payloadInput").value || "";
+      const payloadText = payloadInput.trim();
+
       if (!token)
       {
-        appendLog(getText("error"), getText("invalidToken"), "#ff9f9f");
+        if (mode === "ascii")
+        {
+          return {
+            command: payloadText,
+            preview: payloadText
+          };
+        }
+        const bytes = parseBinaryPayload(payloadText);
+        return {
+          command: bytes.length > 0 ? ("bytes:" + JSON.stringify(bytes)) : "",
+          preview: bytes.join(" ")
+        };
+      }
+
+      const isUppercaseToken = token.charCodeAt(0) >= 65 && token.charCodeAt(0) <= 90;
+      if (isUppercaseToken)
+      {
+        const params = mode === "ascii" ? parseAsciiBytes(payloadInput) : parseBinaryPayload(payloadText);
+        const command = encodeCommand(token, params);
+        return {
+          command: command,
+          preview: `${token} ${params.join(" ")}`
+        };
+      }
+
+      if (mode === "ascii")
+      {
+        const command = payloadText ? `${token}${payloadText}` : token;
+        return {
+          command: command,
+          preview: command
+        };
+      }
+
+      const params = parseBinaryPayload(payloadText);
+      const command = encodeCommand(token, params);
+      return {
+        command: command,
+        preview: `${token}${params.length ? (" " + params.join(" ")) : ""}`
+      };
+    }
+
+    function updateCommandPreview()
+    {
+      const previewEl = document.getElementById("commandPreview");
+      if (!previewEl) return;
+      const built = buildUnifiedCommand();
+      previewEl.textContent = `${getText("commandPreviewPrefix")} ${built.preview || ""}`;
+    }
+
+    function sendEncodedCommand()
+    {
+      const built = buildUnifiedCommand();
+      const command = (built.command || "").trim();
+      if (!command)
+      {
+        appendLog(getText("error"), getText("invalidPayload"), "#ff9f9f");
         return;
       }
-      const params = parseParams(document.getElementById("paramsInput").value);
-      const command = encodeCommand(token, params);
-      document.getElementById("encodePreview").textContent = command;
+      updateCommandPreview();
       queueSend(command, 12000);
+    }
+
+    function bindCommandEncoder()
+    {
+      const tokenInput = document.getElementById("tokenInput");
+      const payloadInput = document.getElementById("payloadInput");
+      const payloadModeSelect = document.getElementById("payloadModeSelect");
+      [tokenInput, payloadInput, payloadModeSelect].forEach((element) =>
+      {
+        if (!element) return;
+        element.addEventListener("input", updateCommandPreview);
+        element.addEventListener("change", updateCommandPreview);
+      });
+      updateCommandPreview();
     }
 
     function restoreLastWifiIp()
@@ -1679,9 +1717,9 @@
     currentLang = getInitialLanguage();
     restoreLastWifiIp();
     renderLanguage();
-    bindDirectionButtons();
     bindJoystick();
     bindActionButtons();
+    bindCommandEncoder();
     updateConnectionStatus();
   </script>
 </body>
