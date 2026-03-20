@@ -11,7 +11,7 @@
     gtag('js', new Date());
     gtag('config', 'G-6XRBBDPBJS');
   </script>
-  <title>Petoi Mobile Remote</title>
+  <title>Petoi Web Controller</title>
   <script src="./js/timeout_config.js"></script>
   <script src="./js/petoi_async_client.js?v=20260227-2"></script>
   <style>
@@ -287,14 +287,14 @@
   <main class="page">
     <section class="card">
       <div class="header">
-        <h1 class="title" data-i18n="title">Petoi Mobile Remote</h1>
+        <h1 class="title" data-i18n="title">Petoi Web Controller</h1>
         <div class="lang-switch" aria-label="Language switcher">
           <button class="lang-btn" id="zhBtn" type="button" onclick="setLanguage('zh')">中文</button>
           <button class="lang-btn" id="enBtn" type="button" onclick="setLanguage('en')">English</button>
           <button class="lang-btn" id="jaBtn" type="button" onclick="setLanguage('ja')">日本語</button>
         </div>
       </div>
-      <p class="muted" data-i18n="subtitle">Use phone browser controls to drive your robot through Bluetooth serial or Wi-Fi.</p>
+      <p class="muted" data-i18n="subtitle">Control your robot in browser through Bluetooth serial or Wi-Fi.</p>
       <p class="tiny" data-i18n="encodingHint">Command encoding follows the same rules as Petoi Web Coding Blocks.</p>
     </section>
 
@@ -382,8 +382,8 @@
 
     const TEXTS = {
       zh: {
-        title: "Petoi 手机遥控器",
-        subtitle: "在手机浏览器中通过蓝牙串口或 Wi-Fi 连接机器人并实时操控。",
+        title: "Petoi Web Controller",
+        subtitle: "在浏览器中通过蓝牙串口或 Wi-Fi 连接机器人并实时操控。",
         encodingHint: "命令编码规则与 Petoi Web Coding Blocks 完全一致。",
         connectionTitle: "连接",
         connectBluetooth: "连接蓝牙",
@@ -421,7 +421,7 @@
         wifiConnectFailedDetails: "Wi-Fi 连接失败：{error}",
         wifiHttpsHint: "当前页面是 HTTPS，在 iOS 浏览器中连接 ws:// 局域网地址可能被系统拦截。若失败，请改用本地 http/file 页面，或使用蓝牙连接。",
         localVersionDialogTitle: "本地版下载提示",
-        localVersionDialogDescription: "当前 HTTPS 页面无法直接发起到机器人 ws:// 的连接。你可以下载本地版后打开 mobile_remote.html 使用 Wi-Fi 连接。",
+        localVersionDialogDescription: "当前 HTTPS 页面无法直接发起到机器人 ws:// 的连接。你可以下载本地版后在本地打开本控制页面使用 Wi-Fi 连接。",
         localVersionDialogDeviceHint: "目标设备地址：{ip}",
         localVersionDialogDownload: "下载本地版",
         localVersionDialogCancel: "取消",
@@ -432,8 +432,8 @@
         invalidToken: "Token 不能为空。"
       },
       en: {
-        title: "Petoi Mobile Remote",
-        subtitle: "Control your robot in mobile browser via Bluetooth serial or Wi-Fi.",
+        title: "Petoi Web Controller",
+        subtitle: "Control your robot in browser via Bluetooth serial or Wi-Fi.",
         encodingHint: "Command encoding follows exactly the same rules as Petoi Web Coding Blocks.",
         connectionTitle: "Connection",
         connectBluetooth: "Connect Bluetooth",
@@ -471,7 +471,7 @@
         wifiConnectFailedDetails: "Wi-Fi connection failed: {error}",
         wifiHttpsHint: "This page is served over HTTPS. On iOS browsers, ws:// LAN connections may be blocked. If connection fails, try a local http/file page or Bluetooth.",
         localVersionDialogTitle: "Local Version Required",
-        localVersionDialogDescription: "This HTTPS page cannot open ws:// directly to the robot. You can download the local version and open mobile_remote.html for Wi-Fi control.",
+        localVersionDialogDescription: "This HTTPS page cannot open ws:// directly to the robot. You can download the local version and open this controller page locally for Wi-Fi control.",
         localVersionDialogDeviceHint: "Target device address: {ip}",
         localVersionDialogDownload: "Download Local Version",
         localVersionDialogCancel: "Cancel",
@@ -482,8 +482,8 @@
         invalidToken: "Token cannot be empty."
       },
       ja: {
-        title: "Petoi モバイルリモコン",
-        subtitle: "スマホブラウザから Bluetooth シリアルまたは Wi-Fi でロボットを操作します。",
+        title: "Petoi Web Controller",
+        subtitle: "ブラウザから Bluetooth シリアルまたは Wi-Fi でロボットを操作します。",
         encodingHint: "コマンドエンコードは Petoi Web Coding Blocks と同一です。",
         connectionTitle: "接続",
         connectBluetooth: "Bluetooth 接続",
@@ -521,7 +521,7 @@
         wifiConnectFailedDetails: "Wi-Fi 接続失敗: {error}",
         wifiHttpsHint: "現在のページは HTTPS です。iOS ブラウザでは ws:// の LAN 接続が制限される場合があります。失敗する場合はローカルの http/file ページか Bluetooth をお試しください。",
         localVersionDialogTitle: "ローカル版ダウンロード案内",
-        localVersionDialogDescription: "この HTTPS ページからはロボットへの ws:// 接続を直接開始できません。ローカル版をダウンロードして mobile_remote.html を開いてください。",
+        localVersionDialogDescription: "この HTTPS ページからはロボットへの ws:// 接続を直接開始できません。ローカル版をダウンロードして本コントローラーページをローカルで開いてください。",
         localVersionDialogDeviceHint: "接続先アドレス: {ip}",
         localVersionDialogDownload: "ローカル版をダウンロード",
         localVersionDialogCancel: "キャンセル",
