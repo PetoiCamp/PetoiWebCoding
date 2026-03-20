@@ -385,7 +385,7 @@
         wifiIpPlaceholder: "机器人 IP（例如 192.168.4.1）",
         connectionPriority: "蓝牙串口与 Wi-Fi 同时可用时，优先使用蓝牙串口发送命令。",
         driveTitle: "方向控制",
-        joystickTip: "拖动摇杆控制。前/左/右：内圆发送行走(kwk*)；外圆前进发送小跑(ktrF)，外圆左右发送原地旋转(kvtL/kvtR)；后退保持 kbkF；松手自动停止。",
+        joystickTip: "拖动摇杆控制。前/左/右：内圆发送行走(kwk*)；外圆前进发送小跑(ktrF)，外圆左右发送原地旋转(kvtL/kvtR)；后退保持 kbkF；松手发送 kup（站立）。",
         quickActions: "快捷动作",
         stand: "站立",
         sit: "坐下",
@@ -435,7 +435,7 @@
         wifiIpPlaceholder: "Robot IP (e.g. 192.168.4.1)",
         connectionPriority: "When both Bluetooth serial and Wi-Fi are available, Bluetooth serial is preferred.",
         driveTitle: "Drive Control",
-        joystickTip: "Drag joystick to move. For forward/left/right: inner ring sends walk gaits (kwk*); outer ring sends trot forward (ktrF) and in-place rotate on left/right (kvtL/kvtR). Backward stays kbkF. Release to stop.",
+        joystickTip: "Drag joystick to move. For forward/left/right: inner ring sends walk gaits (kwk*); outer ring sends trot forward (ktrF) and in-place rotate on left/right (kvtL/kvtR). Backward stays kbkF. Release sends kup (stand).",
         quickActions: "Quick Actions",
         stand: "Stand",
         sit: "Sit",
@@ -485,7 +485,7 @@
         wifiIpPlaceholder: "ロボット IP（例 192.168.4.1）",
         connectionPriority: "Bluetooth シリアルと Wi-Fi が両方使える場合は Bluetooth を優先します。",
         driveTitle: "方向コントロール",
-        joystickTip: "ジョイスティックで移動。前/左/右は内円で歩行(kwk*)、外円は前進で小走り(ktrF)、左右でその場回転(kvtL/kvtR)。後退は kbkF のまま。離すと停止。",
+        joystickTip: "ジョイスティックで移動。前/左/右は内円で歩行(kwk*)、外円は前進で小走り(ktrF)、左右でその場回転(kvtL/kvtR)。後退は kbkF のまま。離すと kup（立ち）を送信。",
         quickActions: "クイックアクション",
         stand: "立つ",
         sit: "座る",
@@ -573,7 +573,7 @@
       right: "kvtR"
     };
     const BACKWARD_GAIT = "kbkF";
-    const STOP_GAIT = "d";
+    const STOP_GAIT = "kup";
 
     function normalizeLanguageCode(lang)
     {
