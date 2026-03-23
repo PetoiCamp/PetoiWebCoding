@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Petoi Web Coding Blocks</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" sizes="any" />
   <link rel="shortcut icon" href="./assets/logo.svg" type="image/svg+xml" />
@@ -49,25 +50,24 @@
     </div>
   </div>
   <div class="container">
-    <div class="button-group">
-      <button onclick="runCode()" data-i18n="runCode">▶️ Run Code</button>
-      <button onclick="stopCode()" id="stopCodeBtn" data-i18n="stopCode" style="display: none;">⏹️ Stop Code</button>
-      <button onclick="saveWorkspace()" data-i18n="saveProgram">💾 Save Program</button>
-      <button onclick="document.getElementById('loadInput').click()" data-i18n="loadProgram">📂 Load Program</button>
-      <button onclick="triggerSkillFileUpload()" data-i18n="uploadSkills">📤 Upload Skill Files</button>
+    <div class="button-group main-action-bar">
+      <button id="runCodeBtn" class="mobile-main-action" data-mobile-icon="▶️" data-mobile-i18n-key="runCode" onclick="runCode()" data-i18n="runCode">▶️ Run Code</button>
+      <button onclick="stopCode()" id="stopCodeBtn" class="mobile-main-action" data-mobile-icon="⏹️" data-mobile-i18n-key="stopCode" data-i18n="stopCode" style="display: none;">⏹️ Stop Code</button>
+      <button id="saveProgramBtn" class="mobile-main-action" data-mobile-icon="💾" data-mobile-i18n-key="saveProgram" onclick="saveWorkspace()" data-i18n="saveProgram">💾 Save Program</button>
+      <button id="loadProgramBtn" class="mobile-main-action" data-mobile-icon="📂" data-mobile-i18n-key="loadProgram" onclick="document.getElementById('loadInput').click()" data-i18n="loadProgram">📂 Load Program</button>
+      <button id="uploadSkillsBtn" class="mobile-main-action" data-mobile-icon="📤" data-mobile-i18n-key="uploadSkills" onclick="triggerSkillFileUpload()" data-i18n="uploadSkills">📤 Upload Skill Files</button>
       <input type="file" id="skillFileInput" accept=".md" multiple onchange="handleSkillFilesUpload(this.files)"
         style="display: none;">
-      <button onclick="showCode()" data-i18n="showCode">👁️ Show Code</button>
-      <button onclick="generateLog()" data-i18n="generateLog">📝 Generate Log</button>
-      <button onclick="clearWorkspace()" data-i18n="clearAll">🗑️ Clear All</button>
+      <button id="showCodeBtn" class="mobile-main-action" data-mobile-icon="👁️" data-mobile-i18n-key="showCode" onclick="showCode()" data-i18n="showCode">👁️ Show Code</button>
+      <button id="generateLogBtn" class="mobile-main-action" data-mobile-icon="📝" data-mobile-i18n-key="generateLog" onclick="generateLog()" data-i18n="generateLog">📝 Generate Log</button>
+      <button id="clearWorkspaceBtn" class="mobile-main-action" data-mobile-icon="🗑️" data-mobile-i18n-key="clearAll" onclick="clearWorkspace()" data-i18n="clearAll">🗑️ Clear All</button>
       <input type="file" id="loadInput" accept=".json" onchange="loadWorkspace(this.files[0])">
       <span id="currentFileLabel" data-i18n="currentFileLabel" style="margin-left: 10px; color: #555;"></span>
       <span id="currentFileName" style="color: #555; font-style: italic;"></span>
       <div class="right-aligned-container">
-        <button onclick="quickConnect()" id="quickConnectBtn" data-i18n="quickConnect">Quick Connect</button>
+        <button onclick="quickConnect()" id="quickConnectBtn" class="mobile-main-action" data-mobile-icon="🔌" data-mobile-i18n-key="quickConnect" data-i18n="quickConnect">Quick Connect</button>
       </div>
     </div>
-
     <div class="workspace-container">
       <div id="blocklyDiv"></div>
       <div class="resizer" id="divider"></div>
@@ -196,6 +196,340 @@
         versionElement.textContent = GLOBAL_VERSION_DATE;
       }
     }
+
+    const MOBILE_ACTION_TOOLTIP_DELAY = 550;
+    const MOBILE_LAYOUT_I18N = {
+      zh: {
+        rotateHint: '建议横屏使用，编程区会更大。',
+        rotateHintLandscape: '已进入横屏模式。'
+      },
+      en: {
+        rotateHint: 'Rotate to landscape for a larger coding area.',
+        rotateHintLandscape: 'Landscape mode detected.'
+      },
+      ja: {
+        rotateHint: '横向表示にすると、コーディング領域が広くなります。',
+        rotateHintLandscape: '横向きモードを検出しました。'
+      }
+    };
+
+    const mobileLayoutState = {
+      isActive: false,
+      isPortrait: false,
+      tier: 'desktop',
+      initialized: false
+    };
+
+    let mobileLayoutRafToken = 0;
+    let mobileActionPressTimer = null;
+    let activeHintButton = null;
+
+    function getMobileLayoutText(key)
+    {
+      const lang = (typeof currentLang === 'string' && MOBILE_LAYOUT_I18N[currentLang]) ? currentLang : 'en';
+      return (MOBILE_LAYOUT_I18N[lang] && MOBILE_LAYOUT_I18N[lang][key]) ||
+        (MOBILE_LAYOUT_I18N.en && MOBILE_LAYOUT_I18N.en[key]) ||
+        key;
+    }
+
+    function isTouchPrimaryDevice()
+    {
+      return !!(
+        (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) ||
+        (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches)
+      );
+    }
+
+    function isMobileLikeViewport()
+    {
+      const width = window.innerWidth || document.documentElement.clientWidth || 0;
+      const height = window.innerHeight || document.documentElement.clientHeight || 0;
+      const shortestSide = Math.min(width, height);
+      const longestSide = Math.max(width, height);
+      return isTouchPrimaryDevice() && shortestSide <= 900 && longestSide <= 1400;
+    }
+
+    function resolveMobileTier()
+    {
+      const shortestSide = Math.min(window.innerWidth || 0, window.innerHeight || 0);
+      if (shortestSide <= 380)
+      {
+        return 'compact';
+      }
+      if (shortestSide <= 500)
+      {
+        return 'small';
+      }
+      return 'regular';
+    }
+
+    function isPortraitViewport()
+    {
+      return (window.innerHeight || 0) >= (window.innerWidth || 0);
+    }
+
+    function getOrCreateMobileOrientationHint()
+    {
+      let hint = document.getElementById('mobileOrientationHint');
+      if (hint)
+      {
+        return hint;
+      }
+
+      const actionBar = document.querySelector('.main-action-bar');
+      if (!actionBar || !actionBar.parentElement)
+      {
+        return null;
+      }
+
+      hint = document.createElement('div');
+      hint.id = 'mobileOrientationHint';
+      hint.className = 'mobile-orientation-hint';
+      hint.setAttribute('aria-live', 'polite');
+
+      const icon = document.createElement('span');
+      icon.className = 'mobile-orientation-icon';
+      icon.textContent = '↻';
+      hint.appendChild(icon);
+
+      const text = document.createElement('span');
+      text.className = 'mobile-orientation-text';
+      hint.appendChild(text);
+
+      actionBar.insertAdjacentElement('afterend', hint);
+      return hint;
+    }
+
+    function updateMobileOrientationHint()
+    {
+      const hint = getOrCreateMobileOrientationHint();
+      if (!hint)
+      {
+        return;
+      }
+      const textNode = hint.querySelector('.mobile-orientation-text');
+      if (textNode)
+      {
+        textNode.textContent = mobileLayoutState.isPortrait
+          ? getMobileLayoutText('rotateHint')
+          : getMobileLayoutText('rotateHintLandscape');
+      }
+    }
+
+    function getMainActionButtons()
+    {
+      return Array.from(document.querySelectorAll('.main-action-bar .mobile-main-action'));
+    }
+
+    function formatMainActionButtonText(button)
+    {
+      const icon = button.getAttribute('data-mobile-icon') || '';
+      const i18nKey = button.getAttribute('data-mobile-i18n-key') || '';
+      const label = i18nKey ? getText(i18nKey) : button.textContent.trim();
+      button.setAttribute('data-mobile-label', label);
+      button.setAttribute('aria-label', label);
+      button.title = label;
+
+      // Keep connected IP on desktop while still using icon-only mode on mobile.
+      if (button.id === 'quickConnectBtn' && button.hasAttribute('data-connected') && !mobileLayoutState.isActive)
+      {
+        const ipText = currentDeviceIP && currentDeviceIP !== '192.168.4.1' ? currentDeviceIP : label;
+        button.textContent = ipText;
+        button.classList.remove('mobile-icon-only');
+        return;
+      }
+
+      if (mobileLayoutState.isActive)
+      {
+        button.textContent = icon || label;
+        button.classList.add('mobile-icon-only');
+      } else
+      {
+        button.textContent = icon ? `${icon} ${label}` : label;
+        button.classList.remove('mobile-icon-only');
+      }
+    }
+
+    function updateMainActionButtonLabels()
+    {
+      const buttons = getMainActionButtons();
+      buttons.forEach((button) =>
+      {
+        formatMainActionButtonText(button);
+      });
+    }
+
+    function getOrCreateMobileActionTooltip()
+    {
+      let tooltip = document.getElementById('mobileActionTooltip');
+      if (tooltip)
+      {
+        return tooltip;
+      }
+      tooltip = document.createElement('div');
+      tooltip.id = 'mobileActionTooltip';
+      tooltip.className = 'mobile-action-tooltip';
+      tooltip.style.display = 'none';
+      document.body.appendChild(tooltip);
+      return tooltip;
+    }
+
+    function hideMobileActionTooltip()
+    {
+      const tooltip = document.getElementById('mobileActionTooltip');
+      if (tooltip)
+      {
+        tooltip.style.display = 'none';
+      }
+    }
+
+    function showMobileActionTooltip(button)
+    {
+      if (!mobileLayoutState.isActive || !button)
+      {
+        return;
+      }
+      const label = button.getAttribute('data-mobile-label') || button.title || '';
+      if (!label)
+      {
+        return;
+      }
+      const tooltip = getOrCreateMobileActionTooltip();
+      tooltip.textContent = label;
+      tooltip.style.display = 'block';
+
+      const rect = button.getBoundingClientRect();
+      const tooltipRect = tooltip.getBoundingClientRect();
+      const left = Math.max(8, Math.min((window.innerWidth || 0) - tooltipRect.width - 8, rect.left + (rect.width - tooltipRect.width) / 2));
+      const top = Math.max(8, rect.top - tooltipRect.height - 10);
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${top}px`;
+    }
+
+    function clearMainActionLongPressState()
+    {
+      if (mobileActionPressTimer)
+      {
+        clearTimeout(mobileActionPressTimer);
+        mobileActionPressTimer = null;
+      }
+      activeHintButton = null;
+      hideMobileActionTooltip();
+    }
+
+    function setupMainActionButtonLongPressHint()
+    {
+      const buttons = getMainActionButtons();
+      buttons.forEach((button) =>
+      {
+        if (button.getAttribute('data-mobile-hint-bound') === '1')
+        {
+          return;
+        }
+        button.setAttribute('data-mobile-hint-bound', '1');
+
+        const startHint = () =>
+        {
+          if (!mobileLayoutState.isActive)
+          {
+            return;
+          }
+          clearMainActionLongPressState();
+          activeHintButton = button;
+          mobileActionPressTimer = setTimeout(() =>
+          {
+            if (activeHintButton === button)
+            {
+              showMobileActionTooltip(button);
+            }
+          }, MOBILE_ACTION_TOOLTIP_DELAY);
+        };
+
+        const stopHint = () =>
+        {
+          clearMainActionLongPressState();
+        };
+
+        button.addEventListener('pointerdown', startHint, { passive: true });
+        button.addEventListener('pointerup', stopHint, { passive: true });
+        button.addEventListener('pointercancel', stopHint, { passive: true });
+        button.addEventListener('pointerleave', stopHint, { passive: true });
+        button.addEventListener('contextmenu', stopHint);
+      });
+    }
+
+    function applyAdaptiveMobileLayout()
+    {
+      const active = isMobileLikeViewport();
+      const portrait = isPortraitViewport();
+      const tier = active ? resolveMobileTier() : 'desktop';
+      const body = document.body;
+      if (!body)
+      {
+        return;
+      }
+
+      mobileLayoutState.isActive = active;
+      mobileLayoutState.isPortrait = active ? portrait : false;
+      mobileLayoutState.tier = tier;
+
+      body.classList.toggle('mobile-layout', active);
+      body.classList.toggle('mobile-portrait', active && portrait);
+      body.classList.toggle('mobile-landscape', active && !portrait);
+      body.classList.toggle('mobile-layout-compact', active && tier === 'compact');
+      body.classList.toggle('mobile-layout-small', active && tier === 'small');
+
+      updateMobileOrientationHint();
+      updateMainActionButtonLabels();
+      setupMainActionButtonLongPressHint();
+
+      const divider = document.getElementById('divider');
+      const horizontalDivider = document.getElementById('console-serial-divider');
+      if (divider)
+      {
+        divider.style.display = active ? 'none' : '';
+      }
+      if (horizontalDivider && !active && !port)
+      {
+        horizontalDivider.style.display = 'none';
+      }
+
+      resizeBlocklyWorkspace();
+    }
+
+    function queueAdaptiveMobileLayoutUpdate()
+    {
+      if (mobileLayoutRafToken)
+      {
+        cancelAnimationFrame(mobileLayoutRafToken);
+      }
+      mobileLayoutRafToken = requestAnimationFrame(() =>
+      {
+        mobileLayoutRafToken = 0;
+        applyAdaptiveMobileLayout();
+      });
+    }
+
+    function initializeAdaptiveMobileLayout()
+    {
+      if (mobileLayoutState.initialized)
+      {
+        queueAdaptiveMobileLayoutUpdate();
+        return;
+      }
+      mobileLayoutState.initialized = true;
+      setupMainActionButtonLongPressHint();
+      applyAdaptiveMobileLayout();
+      window.addEventListener('resize', queueAdaptiveMobileLayoutUpdate);
+      window.addEventListener('orientationchange', queueAdaptiveMobileLayoutUpdate);
+      document.addEventListener('scroll', hideMobileActionTooltip, true);
+    }
+
+    window.applyMobileMainActionLabels = function applyMobileMainActionLabels()
+    {
+      updateMainActionButtonLabels();
+      queueAdaptiveMobileLayoutUpdate();
+    };
 
     // Load configuration file
     async function loadConfig()
@@ -1035,6 +1369,10 @@
 
         // 更新UI文本
         updateUITranslations();
+        if (typeof window.applyMobileMainActionLabels === 'function')
+        {
+          window.applyMobileMainActionLabels();
+        }
 
         isChangingLanguage = false;
       });
@@ -1065,6 +1403,10 @@
 
         // 更新UI文本
         updateUIText();
+        if (typeof window.applyMobileMainActionLabels === 'function')
+        {
+          window.applyMobileMainActionLabels();
+        }
 
         // 设置版本日期
         setVersionDate();
@@ -1169,6 +1511,9 @@
 
       // 初始化复制功能
       setupCopyKeyboardShortcuts();
+
+      // 初始化移动端自适应布局（识别设备并应用尺寸规则）
+      initializeAdaptiveMobileLayout();
 
       // 移除旧的checkbox事件监听器，现在使用按钮点击事件
     });
@@ -1737,7 +2082,7 @@
       stopBtn.style.display = 'inline-block';
       stopBtn.style.backgroundColor = '#ff4444';
       stopBtn.style.color = 'white';
-      document.querySelector('button[onclick="runCode()"]').style.display = 'none';
+      document.getElementById('runCodeBtn').style.display = 'none';
 
       if (showDebug) console.log(getText("programExecutionStarted"));
 
@@ -2466,7 +2811,7 @@ async function closeConnection() {
         stopBtn.style.display = 'none';
         stopBtn.style.backgroundColor = '';
         stopBtn.style.color = '';
-        document.querySelector('button[onclick="runCode()"]').style.display = 'inline-block';
+        document.getElementById('runCodeBtn').style.display = 'inline-block';
       }
     }
 
@@ -5743,6 +6088,10 @@ Respond with ONLY executable JavaScript code, nothing else.`;
         quickConnectBtn.style.backgroundColor = ''; // 恢复默认颜色
         quickConnectBtn.removeAttribute('data-connected'); // 移除连接状态标记
       }
+      if (typeof window.applyMobileMainActionLabels === 'function')
+      {
+        window.applyMobileMainActionLabels();
+      }
     }
 
     // 更新快速连接按钮状态（统一管理函数）
@@ -5763,6 +6112,10 @@ Respond with ONLY executable JavaScript code, nothing else.`;
         quickConnectBtn.textContent = getText("quickConnect");
         quickConnectBtn.style.backgroundColor = '';
         quickConnectBtn.removeAttribute('data-connected');
+      }
+      if (typeof window.applyMobileMainActionLabels === 'function')
+      {
+        window.applyMobileMainActionLabels();
       }
     }
 
@@ -5790,6 +6143,10 @@ Respond with ONLY executable JavaScript code, nothing else.`;
       {
         // 如果按钮未连接，更新为当前语言的文本
         quickConnectBtn.textContent = getText("quickConnect");
+      }
+      if (typeof window.applyMobileMainActionLabels === 'function')
+      {
+        window.applyMobileMainActionLabels();
       }
     }
 
@@ -6890,6 +7247,11 @@ Respond with ONLY executable JavaScript code, nothing else.`;
       const windowsContainer = document.querySelector('.windows-container');
       const consoleWindow = document.getElementById('consoleWindow');
       const serialContainer = document.getElementById('serialContainer');
+
+      if (!divider || !container || !blocklyDiv || !windowsContainer || !consoleWindow || !serialContainer)
+      {
+        return;
+      }
 
       // 确保分隔线初始隐藏
       if (horizontalDivider)
