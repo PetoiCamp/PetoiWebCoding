@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" sizes="any" />
+  <link rel="shortcut icon" href="./assets/logo.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./assets/logo.svg" />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6XRBBDPBJS"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-6XRBBDPBJS');
+  </script>
+  <title>Petoi Web Controller</title>
+  <script src="./js/timeout_config.js"></script>
+  <script src="./js/petoi_async_client.js?v=20260227-2"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --text: #1e2a43;
+      --sub: #617090;
+      --primary: #3a63ff;
+      --primary-press: #2f52d7;
+      --ok: #1b9e5a;
+      --warn: #d88000;
+      --danger: #cf2d2d;
+      --border: #d8e1f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #edf3ff 0%, var(--bg) 45%, #f8f9fc 100%);
+      padding: 14px;
+    }
+
+    .page {
+      width: min(920px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(33, 61, 124, 0.08);
+      padding: 14px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+
+    .lang-switch {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f7faff;
+    }
+
+    .lang-btn {
+      border: 0;
+      background: transparent;
+      color: var(--sub);
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .lang-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .muted {
+      margin: 8px 0 0;
+      color: var(--sub);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .connection-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .block-title {
+      font-size: 14px;
+      color: var(--sub);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .inline {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+      color: var(--text);
+      background: #fff;
+    }
+
+    input[type="text"]:focus {
+      border-color: #96adf7;
+      box-shadow: 0 0 0 3px rgba(74, 114, 255, 0.12);
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary);
+      cursor: pointer;
+    }
+
+    button:active {
+      background: var(--primary-press);
+    }
+
+    button.secondary {
+      background: #6d7a96;
+    }
+
+    button.warn {
+      background: var(--warn);
+    }
+
+    button.danger {
+      background: var(--danger);
+    }
+
+    button.success {
+      background: var(--ok);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .status-line {
+      font-size: 13px;
+      color: var(--sub);
+      margin-top: 8px;
+      word-break: break-word;
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .joystick-wrap {
+      display: grid;
+      place-items: center;
+      margin-top: 4px;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .joystick-base {
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      border: 2px solid #c8d4ef;
+      background: radial-gradient(circle at 50% 50%, #f7faff 0%, #eaf1ff 65%, #dde7fb 100%);
+      position: relative;
+      touch-action: none;
+    }
+
+    .joystick-zone {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .joystick-zone.outer {
+      width: 164px;
+      height: 164px;
+      border: 1.5px solid rgba(77, 120, 255, 0.5);
+    }
+
+    .joystick-zone.inner {
+      width: 98px;
+      height: 98px;
+      border: 1.5px solid rgba(77, 120, 255, 0.85);
+      background: rgba(77, 120, 255, 0.07);
+    }
+
+    .joystick-knob {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      background: #426af8;
+      box-shadow: 0 8px 18px rgba(35, 74, 205, 0.34);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(calc(-50% + var(--tx, 0px)), calc(-50% + var(--ty, 0px)));
+      transition: transform 60ms linear;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .log {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #101820;
+      color: #b8d2ff;
+      min-height: 130px;
+      max-height: 220px;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      padding: 10px;
+      white-space: pre-wrap;
+    }
+
+    .tiny {
+      font-size: 12px;
+      color: var(--sub);
+      margin-top: 8px;
+      line-height: 1.45;
+    }
+
+    @media (min-width: 860px) {
+      .connection-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .control-grid {
+        grid-template-columns: 1.1fr 0.9fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="card">
+      <div class="header">
+        <h1 class="title" data-i18n="title">Petoi Web Controller</h1>
+        <div class="lang-switch" aria-label="Language switcher">
+          <button class="lang-btn" id="zhBtn" type="button" onclick="setLanguage('zh')">中文</button>
+          <button class="lang-btn" id="enBtn" type="button" onclick="setLanguage('en')">English</button>
+          <button class="lang-btn" id="jaBtn" type="button" onclick="setLanguage('ja')">日本語</button>
+        </div>
+      </div>
+      <p class="muted" data-i18n="subtitle">Control your robot in browser through Bluetooth serial or Wi-Fi.</p>
+      <p class="tiny" data-i18n="encodingHint">Command encoding follows the same rules as Petoi Web Coding Blocks.</p>
+    </section>
+
+    <section class="card">
+      <div class="block-title" data-i18n="connectionTitle">Connection</div>
+      <div class="connection-grid">
+        <div>
+          <div class="inline">
+            <button id="connectBtBtn" class="success" type="button" onclick="connectBluetooth()" data-i18n="connectBluetooth">Connect Bluetooth</button>
+            <button id="disconnectBtBtn" class="secondary" type="button" onclick="disconnectBluetooth()" data-i18n="disconnectBluetooth">Disconnect Bluetooth</button>
+          </div>
+          <div class="status-line" id="btStatus"></div>
+        </div>
+        <div>
+          <div class="inline">
+            <input id="wifiIpInput" type="text" value="192.168.4.1" placeholder="Robot IP (e.g. 192.168.4.1)" data-i18n-placeholder="wifiIpPlaceholder" />
+          </div>
+          <div class="inline" style="margin-top:8px;">
+            <button id="connectWifiBtn" type="button" onclick="connectWifi()" data-i18n="connectWifi">Connect Wi-Fi</button>
+            <button id="disconnectWifiBtn" class="secondary" type="button" onclick="disconnectWifi()" data-i18n="disconnectWifi">Disconnect Wi-Fi</button>
+          </div>
+          <div class="status-line" id="wifiStatus"></div>
+        </div>
+      </div>
+      <div class="tiny" data-i18n="connectionPriority">When both are connected, Bluetooth serial is used first for command sending.</div>
+    </section>
+
+    <section class="card">
+      <div class="control-grid">
+        <div>
+          <div class="block-title" data-i18n="driveTitle">Drive Control</div>
+          <div class="joystick-wrap">
+            <div class="joystick-base" id="joystickBase">
+              <div class="joystick-zone outer" aria-hidden="true"></div>
+              <div class="joystick-zone inner" aria-hidden="true"></div>
+              <div class="joystick-knob" id="joystickKnob"></div>
+            </div>
+          </div>
+          <div class="tiny" data-i18n="joystickTip">Drag joystick to move. Inner ring uses walk gaits; outer ring uses trot for forward and spin in place for left/right. Release to stop.</div>
+        </div>
+
+        <div>
+          <div class="block-title" data-i18n="quickActions">Quick Actions</div>
+          <div class="actions">
+            <button type="button" data-action-command="kup" data-i18n="stand">Stand</button>
+            <button type="button" data-action-command="ksit" data-i18n="sit">Sit</button>
+            <button type="button" data-action-command="khi" data-i18n="sayHi">Say Hi</button>
+            <button type="button" class="danger" data-action-command="d" data-i18n="rest">Rest</button>
+          </div>
+
+          <div class="block-title" style="margin-top:12px;" data-i18n="commandEncoderTitle">Command Encoder &amp; Sender</div>
+          <div class="inline">
+            <input id="tokenInput" type="text" value="" data-i18n-placeholder="tokenPlaceholder" />
+          </div>
+          <div class="inline" style="margin-top:8px;">
+            <select id="payloadModeSelect" style="border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:14px;">
+              <option value="ascii" data-i18n="encodingAscii">ASCII</option>
+              <option value="binary" data-i18n="encodingBinary">Binary Numbers</option>
+            </select>
+            <input id="payloadInput" type="text" value="kwkF" data-i18n-placeholder="payloadPlaceholder" />
+          </div>
+          <div class="inline" style="margin-top:8px;">
+            <button type="button" onclick="sendEncodedCommand()" data-i18n="sendEncoded">Encode &amp; Send</button>
+          </div>
+          <div class="tiny" id="commandPreview"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="inline" style="justify-content: space-between;">
+        <div class="block-title" style="margin-bottom: 0;" data-i18n="logTitle">Communication Log</div>
+        <button class="secondary" type="button" onclick="clearLog()" data-i18n="clearLog">Clear</button>
+      </div>
+      <div class="log" id="logPanel"></div>
+    </section>
+  </main>
+
+  <script>
+    const LANGUAGE_STORAGE_KEY = "petoiPreferredLang";
+    const WIFI_IP_STORAGE_KEY = "petoiRemoteWifiIp";
+    const LOCAL_CONTROL_DOWNLOAD_URL = "https://github.com/PetoiCamp/PetoiWebCoding/releases/latest";
+    const SUPPORTED_LANGUAGES = ["zh", "en", "ja"];
+    const BAUD_RATE = 115200;
+
+    const TEXTS = {
+      zh: {
+        title: "Petoi Web Controller",
+        subtitle: "在浏览器中通过蓝牙串口或 Wi-Fi 连接机器人并实时操控。",
+        encodingHint: "命令编码规则与 Petoi Web Coding Blocks 完全一致。",
+        connectionTitle: "连接",
+        connectBluetooth: "连接蓝牙",
+        disconnectBluetooth: "断开蓝牙",
+        connectWifi: "连接 Wi-Fi",
+        disconnectWifi: "断开 Wi-Fi",
+        wifiIpPlaceholder: "机器人 IP（例如 192.168.4.1）",
+        connectionPriority: "蓝牙串口与 Wi-Fi 同时可用时，优先使用蓝牙串口发送命令。",
+        driveTitle: "方向控制",
+        joystickTip: "拖动摇杆控制。前/左/右：内圆发送行走(kwk*)；外圆前进发送小跑(ktrF)，外圆左右发送原地旋转(kvtL/kvtR)；后退保持 kbkF；松手发送 kup（站立）。",
+        quickActions: "快捷动作",
+        stand: "站立",
+        sit: "坐下",
+        sayHi: "打招呼",
+        rest: "休息",
+        commandEncoderTitle: "命令发送（Command + Token Encode）",
+        tokenPlaceholder: "Token（可选），例如 XU / g / m；留空则直接发送 payload",
+        payloadPlaceholder: "Payload：ASCII 文本或 Binary 数值（空格/逗号分隔）",
+        encodingAscii: "ASCII 文本",
+        encodingBinary: "Binary 数值",
+        sendEncoded: "编码并发送",
+        invalidPayload: "请先输入有效 payload。",
+        commandPreviewPrefix: "预览：",
+        logTitle: "通信日志",
+        clearLog: "清空日志",
+        btUnsupported: "当前浏览器不支持可用的网页蓝牙接口（Web Serial / Web Bluetooth）。请改用 Wi-Fi，或在支持的浏览器中重试。",
+        btConnected: "蓝牙已连接。",
+        btConnectedSerial: "蓝牙串口已连接（115200）。",
+        btConnectedBle: "蓝牙 BLE 已连接。",
+        btDisconnected: "蓝牙已断开。",
+        wifiConnected: "Wi-Fi 已连接到 ws://{ip}:81",
+        wifiDisconnected: "Wi-Fi 已断开。",
+        wifiConnecting: "正在连接 Wi-Fi：ws://{ip}:81",
+        wifiIpRequired: "请先输入机器人 IP 地址。",
+        wifiConnectFailedDetails: "Wi-Fi 连接失败：{error}",
+        wifiHttpsHint: "当前页面是 HTTPS，在 iOS 浏览器中连接 ws:// 局域网地址可能被系统拦截。若失败，请改用本地 http/file 页面，或使用蓝牙连接。",
+        localVersionDialogTitle: "本地版下载提示",
+        localVersionDialogDescription: "当前 HTTPS 页面无法直接发起到机器人 ws:// 的连接。你可以下载本地版后在本地打开本控制页面使用 Wi-Fi 连接。",
+        localVersionDialogDeviceHint: "目标设备地址：{ip}",
+        localVersionDialogDownload: "下载本地版",
+        localVersionDialogCancel: "取消",
+        noConnection: "未连接机器人，请先连接蓝牙或 Wi-Fi。",
+        sent: "已发送",
+        recv: "已返回",
+        error: "错误",
+        invalidToken: "Token 不能为空。"
+      },
+      en: {
+        title: "Petoi Web Controller",
+        subtitle: "Control your robot in browser via Bluetooth serial or Wi-Fi.",
+        encodingHint: "Command encoding follows exactly the same rules as Petoi Web Coding Blocks.",
+        connectionTitle: "Connection",
+        connectBluetooth: "Connect Bluetooth",
+        disconnectBluetooth: "Disconnect Bluetooth",
+        connectWifi: "Connect Wi-Fi",
+        disconnectWifi: "Disconnect Wi-Fi",
+        wifiIpPlaceholder: "Robot IP (e.g. 192.168.4.1)",
+        connectionPriority: "When both Bluetooth serial and Wi-Fi are available, Bluetooth serial is preferred.",
+        driveTitle: "Drive Control",
+        joystickTip: "Drag joystick to move. For forward/left/right: inner ring sends walk gaits (kwk*); outer ring sends trot forward (ktrF) and in-place rotate on left/right (kvtL/kvtR). Backward stays kbkF. Release sends kup (stand).",
+        quickActions: "Quick Actions",
+        stand: "Stand",
+        sit: "Sit",
+        sayHi: "Say Hi",
+        rest: "Rest",
+        commandEncoderTitle: "Command Sender (Command + Token Encode)",
+        tokenPlaceholder: "Token (optional), e.g. XU / g / m; leave blank to send payload directly",
+        payloadPlaceholder: "Payload: ASCII text or binary numbers (split by space/comma)",
+        encodingAscii: "ASCII Text",
+        encodingBinary: "Binary Numbers",
+        sendEncoded: "Encode & Send",
+        invalidPayload: "Please enter a valid payload first.",
+        commandPreviewPrefix: "Preview:",
+        logTitle: "Communication Log",
+        clearLog: "Clear Log",
+        btUnsupported: "This browser does not support an available web Bluetooth API (Web Serial / Web Bluetooth). Please use Wi-Fi or try a supported browser.",
+        btConnected: "Bluetooth connected.",
+        btConnectedSerial: "Bluetooth serial connected (115200).",
+        btConnectedBle: "Bluetooth BLE connected.",
+        btDisconnected: "Bluetooth disconnected.",
+        wifiConnected: "Wi-Fi connected to ws://{ip}:81",
+        wifiDisconnected: "Wi-Fi disconnected.",
+        wifiConnecting: "Connecting Wi-Fi: ws://{ip}:81",
+        wifiIpRequired: "Please enter the robot IP first.",
+        wifiConnectFailedDetails: "Wi-Fi connection failed: {error}",
+        wifiHttpsHint: "This page is served over HTTPS. On iOS browsers, ws:// LAN connections may be blocked. If connection fails, try a local http/file page or Bluetooth.",
+        localVersionDialogTitle: "Local Version Required",
+        localVersionDialogDescription: "This HTTPS page cannot open ws:// directly to the robot. You can download the local version and open this controller page locally for Wi-Fi control.",
+        localVersionDialogDeviceHint: "Target device address: {ip}",
+        localVersionDialogDownload: "Download Local Version",
+        localVersionDialogCancel: "Cancel",
+        noConnection: "Robot is not connected. Connect Bluetooth or Wi-Fi first.",
+        sent: "Sent",
+        recv: "Received",
+        error: "Error",
+        invalidToken: "Token cannot be empty."
+      },
+      ja: {
+        title: "Petoi Web Controller",
+        subtitle: "ブラウザから Bluetooth シリアルまたは Wi-Fi でロボットを操作します。",
+        encodingHint: "コマンドエンコードは Petoi Web Coding Blocks と同一です。",
+        connectionTitle: "接続",
+        connectBluetooth: "Bluetooth 接続",
+        disconnectBluetooth: "Bluetooth 切断",
+        connectWifi: "Wi-Fi 接続",
+        disconnectWifi: "Wi-Fi 切断",
+        wifiIpPlaceholder: "ロボット IP（例 192.168.4.1）",
+        connectionPriority: "Bluetooth シリアルと Wi-Fi が両方使える場合は Bluetooth を優先します。",
+        driveTitle: "方向コントロール",
+        joystickTip: "ジョイスティックで移動。前/左/右は内円で歩行(kwk*)、外円は前進で小走り(ktrF)、左右でその場回転(kvtL/kvtR)。後退は kbkF のまま。離すと kup（立ち）を送信。",
+        quickActions: "クイックアクション",
+        stand: "立つ",
+        sit: "座る",
+        sayHi: "挨拶",
+        rest: "休息",
+        commandEncoderTitle: "コマンド送信（Command + Token Encode）",
+        tokenPlaceholder: "Token（任意）例: XU / g / m。空欄なら payload を直接送信",
+        payloadPlaceholder: "Payload：ASCII 文字列 または Binary 数値（空白/カンマ区切り）",
+        encodingAscii: "ASCII 文字列",
+        encodingBinary: "Binary 数値",
+        sendEncoded: "エンコードして送信",
+        invalidPayload: "有効な payload を入力してください。",
+        commandPreviewPrefix: "プレビュー:",
+        logTitle: "通信ログ",
+        clearLog: "ログをクリア",
+        btUnsupported: "このブラウザは利用可能な Web Bluetooth API（Web Serial / Web Bluetooth）に対応していません。Wi-Fi を使うか、対応ブラウザでお試しください。",
+        btConnected: "Bluetooth 接続済み。",
+        btConnectedSerial: "Bluetooth シリアル接続完了（115200）。",
+        btConnectedBle: "Bluetooth BLE 接続完了。",
+        btDisconnected: "Bluetooth 切断済み。",
+        wifiConnected: "Wi-Fi 接続完了 ws://{ip}:81",
+        wifiDisconnected: "Wi-Fi 切断済み。",
+        wifiConnecting: "Wi-Fi 接続中: ws://{ip}:81",
+        wifiIpRequired: "先にロボットの IP を入力してください。",
+        wifiConnectFailedDetails: "Wi-Fi 接続失敗: {error}",
+        wifiHttpsHint: "現在のページは HTTPS です。iOS ブラウザでは ws:// の LAN 接続が制限される場合があります。失敗する場合はローカルの http/file ページか Bluetooth をお試しください。",
+        localVersionDialogTitle: "ローカル版ダウンロード案内",
+        localVersionDialogDescription: "この HTTPS ページからはロボットへの ws:// 接続を直接開始できません。ローカル版をダウンロードして本コントローラーページをローカルで開いてください。",
+        localVersionDialogDeviceHint: "接続先アドレス: {ip}",
+        localVersionDialogDownload: "ローカル版をダウンロード",
+        localVersionDialogCancel: "キャンセル",
+        noConnection: "ロボット未接続です。先に Bluetooth か Wi-Fi を接続してください。",
+        sent: "送信",
+        recv: "受信",
+        error: "エラー",
+        invalidToken: "Token は空にできません。"
+      }
+    };
+
+    let currentLang = "en";
+    let serialPort = null;
+    let serialReader = null;
+    let serialWriter = null;
+    let serialReadLoopRunning = false;
+    let serialReadShouldStop = false;
+    let bleDevice = null;
+    let bleServer = null;
+    let bleWriteCharacteristic = null;
+    let bleNotifyCharacteristic = null;
+    let bleNotificationHandler = null;
+    let wifiClient = null;
+    let sendQueue = Promise.resolve();
+    let activeMotionKey = "stop";
+    let joystickPointerId = null;
+    let joystickBaseRect = null;
+    const BLE_SERVICE_CANDIDATES = [
+      "6e400001-b5a3-f393-e0a9-e50e24dcca9e", // Nordic UART service
+      0xffe0, // HM-10 style UART service
+      0xff00,
+      0xfee0
+    ];
+    const BLE_WRITE_CHARACTERISTIC_CANDIDATES = [
+      "6e400002-b5a3-f393-e0a9-e50e24dcca9e", // Nordic UART TX (write)
+      0xffe1,
+      0xff02
+    ];
+    const BLE_NOTIFY_CHARACTERISTIC_CANDIDATES = [
+      "6e400003-b5a3-f393-e0a9-e50e24dcca9e", // Nordic UART RX (notify)
+      0xffe1,
+      0xff01
+    ];
+    const BLE_WRITE_CHUNK_SIZE = 20;
+    const WALK_GAITS = {
+      forward: "kwkF",
+      left: "kwkL",
+      right: "kwkR"
+    };
+    const TROT_GAITS = {
+      forward: "ktrF",
+      left: "ktrL",
+      right: "ktrR"
+    };
+    const OUTER_ROTATE_GAITS = {
+      left: "kvtL",
+      right: "kvtR"
+    };
+    const BACKWARD_GAIT = "kbkF";
+    const STOP_GAIT = "kup";
+
+    function normalizeLanguageCode(lang)
+    {
+      if (!lang || typeof lang !== "string")
+      {
+        return "";
+      }
+      const normalized = lang.toLowerCase();
+      if (normalized.startsWith("zh")) return "zh";
+      if (normalized.startsWith("en")) return "en";
+      if (normalized.startsWith("ja")) return "ja";
+      return "";
+    }
+
+    function getText(key)
+    {
+      const table = TEXTS[currentLang] || TEXTS.en;
+      return (table && table[key]) || (TEXTS.en && TEXTS.en[key]) || key;
+    }
+
+    function getInitialLanguage()
+    {
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = normalizeLanguageCode(params.get("lang"));
+      if (fromUrl) return fromUrl;
+      try
+      {
+        const fromStore = normalizeLanguageCode(localStorage.getItem(LANGUAGE_STORAGE_KEY));
+        if (fromStore) return fromStore;
+      } catch (error)
+      {
+        console.warn("Failed to read language preference:", error);
+      }
+      const fromBrowser = normalizeLanguageCode(navigator.language || ((navigator.languages && navigator.languages[0]) || ""));
+      return fromBrowser || "en";
+    }
+
+    function setLanguage(lang)
+    {
+      const normalized = normalizeLanguageCode(lang);
+      if (!normalized) return;
+      currentLang = normalized;
+      try
+      {
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLang);
+      } catch (error)
+      {
+        console.warn("Failed to persist language:", error);
+      }
+      renderLanguage();
+    }
+
+    function renderLanguage()
+    {
+      if (!SUPPORTED_LANGUAGES.includes(currentLang))
+      {
+        currentLang = "en";
+      }
+      document.documentElement.lang = currentLang;
+      document.title = getText("title");
+      document.getElementById("zhBtn").classList.toggle("active", currentLang === "zh");
+      document.getElementById("enBtn").classList.toggle("active", currentLang === "en");
+      document.getElementById("jaBtn").classList.toggle("active", currentLang === "ja");
+
+      document.querySelectorAll("[data-i18n]").forEach((el) =>
+      {
+        const key = el.getAttribute("data-i18n");
+        el.textContent = getText(key);
+      });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach((el) =>
+      {
+        const key = el.getAttribute("data-i18n-placeholder");
+        el.setAttribute("placeholder", getText(key));
+      });
+      if (typeof updateCommandPreview === "function")
+      {
+        updateCommandPreview();
+      }
+      updateConnectionStatus();
+    }
+
+    function getTimestamp()
+    {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      const ss = String(now.getSeconds()).padStart(2, "0");
+      const ms = String(now.getMilliseconds()).padStart(3, "0");
+      return `${hh}:${mm}:${ss}.${ms}`;
+    }
+
+    function appendLog(prefix, message, color = "#b8d2ff")
+    {
+      const logPanel = document.getElementById("logPanel");
+      const line = document.createElement("div");
+      line.style.color = color;
+      line.textContent = `[${getTimestamp()}] ${prefix} ${message}`;
+      logPanel.appendChild(line);
+      logPanel.scrollTop = logPanel.scrollHeight;
+    }
+
+    function clearLog()
+    {
+      document.getElementById("logPanel").textContent = "";
+    }
+
+    function updateConnectionStatus()
+    {
+      const btStatus = document.getElementById("btStatus");
+      const wifiStatus = document.getElementById("wifiStatus");
+      const hasSerial = !!(serialPort && serialWriter);
+      const hasBle = !!(bleDevice && bleDevice.gatt && bleDevice.gatt.connected && bleWriteCharacteristic);
+      const hasWifi = !!(wifiClient && wifiClient.connected);
+      if (hasSerial)
+      {
+        btStatus.textContent = getText("btConnectedSerial");
+      } else if (hasBle)
+      {
+        btStatus.textContent = getText("btConnectedBle");
+      } else
+      {
+        btStatus.textContent = getText("btDisconnected");
+      }
+      const ip = (document.getElementById("wifiIpInput").value || "").trim();
+      wifiStatus.textContent = hasWifi
+        ? getText("wifiConnected").replace("{ip}", ip || "device")
+        : getText("wifiDisconnected");
+    }
+
+    function getActiveTransport()
+    {
+      if (serialPort && serialWriter) return "serial";
+      if (bleDevice && bleDevice.gatt && bleDevice.gatt.connected && bleWriteCharacteristic) return "ble";
+      if (wifiClient && wifiClient.connected) return "wifi";
+      return "";
+    }
+
+    async function connectBluetooth()
+    {
+      await disconnectBluetooth();
+
+      if ("serial" in navigator)
+      {
+        try
+        {
+          await connectBluetoothViaSerial();
+          return;
+        } catch (error)
+        {
+          appendLog(getText("error"), `Web Serial failed: ${error.message || error}`, "#ff9f9f");
+          updateConnectionStatus();
+          return;
+        }
+      }
+
+      if (navigator.bluetooth && typeof navigator.bluetooth.requestDevice === "function")
+      {
+        try
+        {
+          await connectBluetoothViaBle();
+          return;
+        } catch (error)
+        {
+          appendLog(getText("error"), `Web Bluetooth failed: ${error.message || error}`, "#ff9f9f");
+          updateConnectionStatus();
+          return;
+        }
+      }
+
+      appendLog(getText("error"), getText("btUnsupported"), "#ff9f9f");
+      alert(getText("btUnsupported"));
+    }
+
+    async function connectBluetoothViaSerial()
+    {
+      const port = await navigator.serial.requestPort({});
+      await port.open({ baudRate: BAUD_RATE });
+      serialPort = port;
+      serialWriter = port.writable ? port.writable.getWriter() : null;
+      if (!serialWriter)
+      {
+        throw new Error("Serial writer unavailable");
+      }
+      serialReadShouldStop = false;
+      startSerialReadLoop();
+      updateConnectionStatus();
+      appendLog("Bluetooth", getText("btConnectedSerial"), "#8de0a6");
+    }
+
+    async function connectBluetoothViaBle()
+    {
+      bleDevice = await requestBluetoothDeviceWithFallback();
+      if (!bleDevice || !bleDevice.gatt)
+      {
+        throw new Error("No BLE GATT device selected");
+      }
+
+      bleDevice.addEventListener("gattserverdisconnected", handleBleDisconnected);
+      bleServer = await bleDevice.gatt.connect();
+      const channel = await resolveBleChannel(bleServer);
+      bleWriteCharacteristic = channel.writeCharacteristic;
+      bleNotifyCharacteristic = channel.notifyCharacteristic;
+
+      if (!bleWriteCharacteristic)
+      {
+        throw new Error("No writable BLE characteristic found");
+      }
+
+      if (bleNotifyCharacteristic)
+      {
+        bleNotificationHandler = (event) =>
+        {
+          const value = event && event.target ? event.target.value : null;
+          if (!value) return;
+          const bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+          const text = decodeBlePayload(bytes);
+          if (text)
+          {
+            appendLog(getText("recv"), text, "#ffd39b");
+          }
+        };
+        await bleNotifyCharacteristic.startNotifications();
+        bleNotifyCharacteristic.addEventListener("characteristicvaluechanged", bleNotificationHandler);
+      }
+
+      updateConnectionStatus();
+      appendLog("Bluetooth", getText("btConnectedBle"), "#8de0a6");
+    }
+
+    async function requestBluetoothDeviceWithFallback()
+    {
+      const prefixes = ["Petoi", "Bittle", "Nybble", "BiBoard", "OpenCat", "PetoiCamp"];
+      try
+      {
+        return await navigator.bluetooth.requestDevice({
+          filters: prefixes.map((prefix) => ({ namePrefix: prefix })),
+          optionalServices: BLE_SERVICE_CANDIDATES
+        });
+      } catch (error)
+      {
+        if (error && error.name === "NotFoundError")
+        {
+          return await navigator.bluetooth.requestDevice({
+            acceptAllDevices: true,
+            optionalServices: BLE_SERVICE_CANDIDATES
+          });
+        }
+        throw error;
+      }
+    }
+
+    async function resolveBleChannel(server)
+    {
+      let writeCharacteristic = null;
+      let notifyCharacteristic = null;
+
+      async function selectFromService(service)
+      {
+        if (!service) return;
+
+        for (const candidate of BLE_WRITE_CHARACTERISTIC_CANDIDATES)
+        {
+          try
+          {
+            const characteristic = await service.getCharacteristic(candidate);
+            if (characteristic && (characteristic.properties.write || characteristic.properties.writeWithoutResponse))
+            {
+              writeCharacteristic = writeCharacteristic || characteristic;
+              break;
+            }
+          } catch (error)
+          {
+            // Ignore missing characteristic candidates.
+          }
+        }
+
+        for (const candidate of BLE_NOTIFY_CHARACTERISTIC_CANDIDATES)
+        {
+          try
+          {
+            const characteristic = await service.getCharacteristic(candidate);
+            if (characteristic && (characteristic.properties.notify || characteristic.properties.indicate))
+            {
+              notifyCharacteristic = notifyCharacteristic || characteristic;
+              break;
+            }
+          } catch (error)
+          {
+            // Ignore missing characteristic candidates.
+          }
+        }
+
+        const characteristics = await service.getCharacteristics();
+        for (const characteristic of characteristics)
+        {
+          if (!writeCharacteristic && (characteristic.properties.write || characteristic.properties.writeWithoutResponse))
+          {
+            writeCharacteristic = characteristic;
+          }
+          if (!notifyCharacteristic && (characteristic.properties.notify || characteristic.properties.indicate))
+          {
+            notifyCharacteristic = characteristic;
+          }
+          if (writeCharacteristic && notifyCharacteristic)
+          {
+            return;
+          }
+        }
+      }
+
+      for (const serviceId of BLE_SERVICE_CANDIDATES)
+      {
+        try
+        {
+          const service = await server.getPrimaryService(serviceId);
+          await selectFromService(service);
+          if (writeCharacteristic)
+          {
+            break;
+          }
+        } catch (error)
+        {
+          // Try next service candidate.
+        }
+      }
+
+      if (!writeCharacteristic)
+      {
+        try
+        {
+          const services = await server.getPrimaryServices();
+          for (const service of services)
+          {
+            await selectFromService(service);
+            if (writeCharacteristic)
+            {
+              break;
+            }
+          }
+        } catch (error)
+        {
+          // Ignore scanning errors and let caller handle missing characteristic.
+        }
+      }
+
+      return {
+        writeCharacteristic,
+        notifyCharacteristic
+      };
+    }
+
+    function decodeBlePayload(bytes)
+    {
+      if (!bytes || bytes.length === 0)
+      {
+        return;
+      }
+
+      try
+      {
+        const text = new TextDecoder().decode(bytes).replace(/\0/g, "").trim();
+        if (text)
+        {
+          return text;
+        }
+      } catch (error)
+      {
+        // Fallback to hex string.
+      }
+
+      return "0x" + Array.from(bytes).map((item) => item.toString(16).padStart(2, "0")).join(" ");
+    }
+
+    async function startSerialReadLoop()
+    {
+      if (!serialPort || !serialPort.readable || serialReadLoopRunning) return;
+      serialReadLoopRunning = true;
+      try
+      {
+        serialReader = serialPort.readable.getReader();
+        const decoder = new TextDecoder();
+        while (!serialReadShouldStop)
+        {
+          const result = await serialReader.read();
+          if (!result || result.done)
+          {
+            break;
+          }
+          if (result.value)
+          {
+            const text = decoder.decode(result.value, { stream: true });
+            if (text && text.trim())
+            {
+              appendLog(getText("recv"), text.trim(), "#ffd39b");
+            }
+          }
+        }
+      } catch (error)
+      {
+        if (!serialReadShouldStop)
+        {
+          appendLog(getText("error"), `Bluetooth read failed: ${error.message || error}`, "#ff9f9f");
+        }
+      } finally
+      {
+        try
+        {
+          if (serialReader)
+          {
+            serialReader.releaseLock();
+          }
+        } catch (error)
+        {
+          // Ignore release errors.
+        }
+        serialReader = null;
+        serialReadLoopRunning = false;
+      }
+    }
+
+    function handleBleDisconnected()
+    {
+      appendLog("Bluetooth", getText("btDisconnected"), "#ff9f9f");
+      disconnectBluetoothBle().finally(() =>
+      {
+        updateConnectionStatus();
+      });
+    }
+
+    async function disconnectBluetoothSerial()
+    {
+      serialReadShouldStop = true;
+      try
+      {
+        if (serialReader)
+        {
+          await serialReader.cancel();
+        }
+      } catch (error)
+      {
+        // Ignore reader cancel errors.
+      }
+
+      try
+      {
+        if (serialWriter)
+        {
+          serialWriter.releaseLock();
+        }
+      } catch (error)
+      {
+        // Ignore writer release errors.
+      }
+
+      try
+      {
+        if (serialPort)
+        {
+          await serialPort.close();
+        }
+      } catch (error)
+      {
+        // Ignore close errors.
+      }
+
+      serialReader = null;
+      serialWriter = null;
+      serialPort = null;
+    }
+
+    async function disconnectBluetoothBle()
+    {
+      try
+      {
+        if (bleDevice)
+        {
+          bleDevice.removeEventListener("gattserverdisconnected", handleBleDisconnected);
+        }
+      } catch (error)
+      {
+        // Ignore listener cleanup errors.
+      }
+
+      try
+      {
+        if (bleNotifyCharacteristic && bleNotificationHandler)
+        {
+          bleNotifyCharacteristic.removeEventListener("characteristicvaluechanged", bleNotificationHandler);
+          try
+          {
+            await bleNotifyCharacteristic.stopNotifications();
+          } catch (error)
+          {
+            // Ignore stop notification errors.
+          }
+        }
+      } catch (error)
+      {
+        // Ignore BLE listener cleanup errors.
+      }
+
+      try
+      {
+        if (bleDevice && bleDevice.gatt && bleDevice.gatt.connected)
+        {
+          bleDevice.gatt.disconnect();
+        }
+      } catch (error)
+      {
+        // Ignore BLE disconnect errors.
+      }
+
+      bleNotificationHandler = null;
+      bleNotifyCharacteristic = null;
+      bleWriteCharacteristic = null;
+      bleServer = null;
+      bleDevice = null;
+    }
+
+    async function disconnectBluetooth()
+    {
+      await disconnectBluetoothSerial();
+      await disconnectBluetoothBle();
+      updateConnectionStatus();
+    }
+
+    function isLikelyIPv4Address(ip)
+    {
+      return /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(String(ip || "").trim());
+    }
+
+    function isLikelyMixedContentBlockedError(error)
+    {
+      if (window.location.protocol !== "https:")
+      {
+        return false;
+      }
+
+      const detail = String((error && (error.message || error.name)) || error || "").toLowerCase();
+      return detail.includes("insecure websocket") ||
+        detail.includes("mixed content") ||
+        detail.includes("may not be initiated from a page loaded over https") ||
+        detail.includes("ws:// over https") ||
+        detail.includes("securityerror");
+    }
+
+    function isIOSLikeBrowser()
+    {
+      const ua = String(navigator.userAgent || "");
+      const platform = String(navigator.platform || "");
+      return /iPhone|iPad|iPod/i.test(ua) || /iPhone|iPad|iPod/i.test(platform);
+    }
+
+    function closeLocalVersionDialog()
+    {
+      const dialog = document.querySelector(".local-version-dialog");
+      const overlay = document.querySelector(".local-version-overlay");
+      if (dialog) dialog.remove();
+      if (overlay) overlay.remove();
+    }
+
+    function openLocalVersionDownload()
+    {
+      window.open(LOCAL_CONTROL_DOWNLOAD_URL, "_blank", "noopener,noreferrer");
+    }
+
+    async function showLocalVersionDownloadDialog(ip)
+    {
+      return new Promise((resolve) =>
+      {
+        closeLocalVersionDialog();
+
+        const overlay = document.createElement("div");
+        overlay.className = "local-version-overlay";
+        overlay.style.position = "fixed";
+        overlay.style.inset = "0";
+        overlay.style.background = "rgba(0, 0, 0, 0.45)";
+        overlay.style.zIndex = "3000";
+        document.body.appendChild(overlay);
+
+        const dialog = document.createElement("div");
+        dialog.className = "local-version-dialog";
+        dialog.style.position = "fixed";
+        dialog.style.left = "50%";
+        dialog.style.top = "50%";
+        dialog.style.transform = "translate(-50%, -50%)";
+        dialog.style.width = "min(460px, calc(100vw - 30px))";
+        dialog.style.background = "#fff";
+        dialog.style.borderRadius = "12px";
+        dialog.style.padding = "16px";
+        dialog.style.boxShadow = "0 12px 30px rgba(0, 0, 0, 0.22)";
+        dialog.style.zIndex = "3001";
+
+        const title = document.createElement("h3");
+        title.style.margin = "0 0 8px 0";
+        title.textContent = getText("localVersionDialogTitle");
+
+        const desc = document.createElement("p");
+        desc.style.margin = "0 0 8px 0";
+        desc.style.color = "#4f5e7c";
+        desc.style.fontSize = "14px";
+        desc.style.lineHeight = "1.5";
+        desc.textContent = getText("localVersionDialogDescription");
+
+        const ipHint = document.createElement("p");
+        ipHint.style.margin = "0 0 12px 0";
+        ipHint.style.color = "#6d7a96";
+        ipHint.style.fontSize = "12px";
+        ipHint.style.lineHeight = "1.4";
+        ipHint.textContent = getText("localVersionDialogDeviceHint").replace("{ip}", ip || "");
+
+        const actions = document.createElement("div");
+        actions.style.display = "flex";
+        actions.style.gap = "8px";
+        actions.style.justifyContent = "flex-end";
+        actions.style.flexWrap = "wrap";
+
+        const cancelBtn = document.createElement("button");
+        cancelBtn.type = "button";
+        cancelBtn.className = "secondary";
+        cancelBtn.textContent = getText("localVersionDialogCancel");
+
+        const downloadBtn = document.createElement("button");
+        downloadBtn.type = "button";
+        downloadBtn.textContent = getText("localVersionDialogDownload");
+
+        cancelBtn.addEventListener("click", () =>
+        {
+          closeLocalVersionDialog();
+          resolve("cancel");
+        });
+
+        downloadBtn.addEventListener("click", () =>
+        {
+          openLocalVersionDownload();
+          closeLocalVersionDialog();
+          resolve("download");
+        });
+
+        overlay.addEventListener("click", () =>
+        {
+          closeLocalVersionDialog();
+          resolve("cancel");
+        });
+
+        actions.appendChild(cancelBtn);
+        actions.appendChild(downloadBtn);
+        dialog.appendChild(title);
+        dialog.appendChild(desc);
+        dialog.appendChild(ipHint);
+        dialog.appendChild(actions);
+        document.body.appendChild(dialog);
+      });
+    }
+
+    async function connectWifi()
+    {
+      const ipInput = document.getElementById("wifiIpInput");
+      const wifiButton = document.getElementById("connectWifiBtn");
+      const wifiStatus = document.getElementById("wifiStatus");
+      const ip = (ipInput.value || "").trim();
+      if (!ip)
+      {
+        const message = getText("wifiIpRequired");
+        appendLog(getText("error"), message, "#ff9f9f");
+        if (wifiStatus)
+        {
+          wifiStatus.textContent = message;
+        }
+        alert(message);
+        ipInput.focus();
+        return;
+      }
+
+      if (window.location.protocol === "https:" && isLikelyIPv4Address(ip))
+      {
+        appendLog("Wi-Fi", getText("wifiHttpsHint"), "#ffd39b");
+        if (isIOSLikeBrowser())
+        {
+          alert(getText("wifiHttpsHint"));
+        }
+      }
+
+      try
+      {
+        if (wifiButton)
+        {
+          wifiButton.disabled = true;
+        }
+        if (wifiStatus)
+        {
+          wifiStatus.textContent = getText("wifiConnecting").replace("{ip}", ip);
+        }
+        appendLog("Wi-Fi", getText("wifiConnecting").replace("{ip}", ip), "#8dc8ff");
+        await disconnectWifi();
+        wifiClient = new PetoiAsyncClient(`ws://${ip}:81`);
+        await wifiClient.connect();
+        try
+        {
+          localStorage.setItem(WIFI_IP_STORAGE_KEY, ip);
+        } catch (error)
+        {
+          // Ignore storage failures.
+        }
+        appendLog("Wi-Fi", getText("wifiConnected").replace("{ip}", ip), "#8de0a6");
+        if (wifiStatus)
+        {
+          wifiStatus.textContent = getText("wifiConnected").replace("{ip}", ip);
+        }
+      } catch (error)
+      {
+        const detail = error && (error.message || error.name) ? (error.message || error.name) : String(error);
+        const message = getText("wifiConnectFailedDetails").replace("{error}", detail);
+        appendLog(getText("error"), message, "#ff9f9f");
+        if (wifiStatus)
+        {
+          wifiStatus.textContent = message;
+        }
+        if (isLikelyMixedContentBlockedError(error))
+        {
+          await showLocalVersionDownloadDialog(ip);
+        } else
+        {
+          alert(message);
+        }
+      } finally
+      {
+        if (wifiButton)
+        {
+          wifiButton.disabled = false;
+        }
+        updateConnectionStatus();
+      }
+    }
+
+    async function disconnectWifi()
+    {
+      if (!wifiClient)
+      {
+        updateConnectionStatus();
+        return;
+      }
+      try
+      {
+        await wifiClient.disconnect();
+      } catch (error)
+      {
+        // Ignore disconnect errors.
+      } finally
+      {
+        wifiClient = null;
+        updateConnectionStatus();
+      }
+    }
+
+    function encodeCommand(token, params)
+    {
+      if (token.charCodeAt(0) >= 65 && token.charCodeAt(0) <= 90)
+      {
+        let byteArray = [];
+        for (let i = 0; i < token.length; i++)
+        {
+          byteArray.push(token.charCodeAt(i));
+        }
+        for (let i = 0; i < params.length; i++)
+        {
+          byteArray.push(params[i] & 0xff);
+        }
+        byteArray.push(126);
+        return "bytes:" + JSON.stringify(byteArray);
+      }
+      if (params.length > 0)
+      {
+        return `${token}${params.join(" ")}`;
+      }
+      return token;
+    }
+
+    function bytesCommandToB64(command)
+    {
+      const byteArrayStr = command.substring(6);
+      const byteArray = JSON.parse(byteArrayStr);
+      const uint8Array = new Uint8Array(byteArray);
+      const dataText = String.fromCharCode.apply(null, uint8Array);
+      return "b64:" + btoa(dataText);
+    }
+
+    function queueSend(command, timeout = 5000)
+    {
+      const normalized = String(command || "").trim();
+      if (!normalized)
+      {
+        return Promise.resolve();
+      }
+      sendQueue = sendQueue
+        .then(() => sendCommandInternal(normalized, timeout))
+        .catch((error) =>
+        {
+          appendLog(getText("error"), error.message || String(error), "#ff9f9f");
+        });
+      return sendQueue;
+    }
+
+    async function sendCommandInternal(command, timeout = 5000)
+    {
+      const transport = getActiveTransport();
+      if (!transport)
+      {
+        throw new Error(getText("noConnection"));
+      }
+
+      if (transport === "serial")
+      {
+        await sendCommandViaSerial(command);
+        return;
+      }
+
+      if (transport === "ble")
+      {
+        await sendCommandViaBle(command);
+        return;
+      }
+
+      let finalCommand = command;
+      if (command.startsWith("bytes:"))
+      {
+        finalCommand = bytesCommandToB64(command);
+      }
+      appendLog(getText("sent"), finalCommand, "#8dc8ff");
+      const result = await wifiClient.sendCommand(finalCommand, timeout);
+      if (result !== undefined && result !== null && result !== "")
+      {
+        appendLog(getText("recv"), Array.isArray(result) ? JSON.stringify(result) : String(result), "#ffd39b");
+      }
+    }
+
+    async function sendCommandViaSerial(command)
+    {
+      if (!serialWriter)
+      {
+        throw new Error(getText("noConnection"));
+      }
+      let payload;
+      if (command.startsWith("bytes:"))
+      {
+        const byteArray = JSON.parse(command.substring(6));
+        payload = new Uint8Array(byteArray);
+      } else
+      {
+        payload = new TextEncoder().encode(command);
+      }
+      appendLog(getText("sent"), command, "#8dc8ff");
+      await serialWriter.write(payload);
+    }
+
+    async function sendCommandViaBle(command)
+    {
+      if (!bleWriteCharacteristic)
+      {
+        throw new Error(getText("noConnection"));
+      }
+
+      let payload;
+      if (command.startsWith("bytes:"))
+      {
+        const byteArray = JSON.parse(command.substring(6));
+        payload = new Uint8Array(byteArray);
+      } else
+      {
+        payload = new TextEncoder().encode(command);
+      }
+
+      appendLog(getText("sent"), command, "#8dc8ff");
+
+      for (let offset = 0; offset < payload.length; offset += BLE_WRITE_CHUNK_SIZE)
+      {
+        const chunk = payload.slice(offset, offset + BLE_WRITE_CHUNK_SIZE);
+        if (bleWriteCharacteristic.properties.writeWithoutResponse &&
+          typeof bleWriteCharacteristic.writeValueWithoutResponse === "function")
+        {
+          await bleWriteCharacteristic.writeValueWithoutResponse(chunk);
+        } else
+        {
+          await bleWriteCharacteristic.writeValue(chunk);
+        }
+      }
+    }
+
+    function getJoystickMotion(dx, dy, maxRadius)
+    {
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const stopThreshold = maxRadius * 0.22;
+      const innerRadius = maxRadius * 0.58;
+
+      if (distance < stopThreshold)
+      {
+        return {
+          key: "stop",
+          command: STOP_GAIT
+        };
+      }
+
+      // Backward remains unchanged without speed tiers.
+      if (dy > Math.abs(dx) * 0.6)
+      {
+        return {
+          key: "backward",
+          command: BACKWARD_GAIT
+        };
+      }
+
+      let direction = "forward";
+      if (Math.abs(dx) > Math.abs(dy))
+      {
+        direction = dx > 0 ? "right" : "left";
+      }
+
+      const tier = distance <= innerRadius ? "walk" : "trot";
+      let command = "";
+      if (tier === "walk")
+      {
+        command = WALK_GAITS[direction];
+      } else if (direction === "left" || direction === "right")
+      {
+        command = OUTER_ROTATE_GAITS[direction];
+      } else
+      {
+        command = TROT_GAITS[direction];
+      }
+      return {
+        key: `${direction}-${tier}-${command}`,
+        command: command
+      };
+    }
+
+    function sendMotionCommand(command, key)
+    {
+      if (!command || !key) return;
+      if (activeMotionKey === key) return;
+      activeMotionKey = key;
+      queueSend(command, 8000);
+    }
+
+    function stopMotion()
+    {
+      sendMotionCommand(STOP_GAIT, "stop");
+    }
+
+    function resetJoystickKnob()
+    {
+      const knob = document.getElementById("joystickKnob");
+      knob.style.setProperty("--tx", "0px");
+      knob.style.setProperty("--ty", "0px");
+    }
+
+    function bindJoystick()
+    {
+      const base = document.getElementById("joystickBase");
+      const knob = document.getElementById("joystickKnob");
+      const maxRadius = 64;
+
+      function updateByPointer(clientX, clientY)
+      {
+        if (!joystickBaseRect)
+        {
+          joystickBaseRect = base.getBoundingClientRect();
+        }
+        const centerX = joystickBaseRect.left + joystickBaseRect.width / 2;
+        const centerY = joystickBaseRect.top + joystickBaseRect.height / 2;
+        let dx = clientX - centerX;
+        let dy = clientY - centerY;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        if (length > maxRadius)
+        {
+          const ratio = maxRadius / length;
+          dx *= ratio;
+          dy *= ratio;
+        }
+        knob.style.setProperty("--tx", `${dx}px`);
+        knob.style.setProperty("--ty", `${dy}px`);
+        const motion = getJoystickMotion(dx, dy, maxRadius);
+        sendMotionCommand(motion.command, motion.key);
+      }
+
+      base.addEventListener("pointerdown", (event) =>
+      {
+        event.preventDefault();
+        joystickPointerId = event.pointerId;
+        joystickBaseRect = base.getBoundingClientRect();
+        base.setPointerCapture(joystickPointerId);
+        updateByPointer(event.clientX, event.clientY);
+      });
+
+      base.addEventListener("pointermove", (event) =>
+      {
+        if (event.pointerId !== joystickPointerId) return;
+        event.preventDefault();
+        updateByPointer(event.clientX, event.clientY);
+      });
+
+      function releaseJoystick(event)
+      {
+        if (joystickPointerId === null || event.pointerId !== joystickPointerId) return;
+        event.preventDefault();
+        try
+        {
+          base.releasePointerCapture(joystickPointerId);
+        } catch (error)
+        {
+          // Ignore release errors.
+        }
+        joystickPointerId = null;
+        resetJoystickKnob();
+        stopMotion();
+      }
+
+      base.addEventListener("pointerup", releaseJoystick);
+      base.addEventListener("pointercancel", releaseJoystick);
+    }
+
+    function bindActionButtons()
+    {
+      document.querySelectorAll("[data-action-command]").forEach((button) =>
+      {
+        button.addEventListener("click", () =>
+        {
+          const cmd = button.getAttribute("data-action-command");
+          queueSend(cmd, 12000);
+        });
+      });
+    }
+
+    function parseBinaryPayload(text)
+    {
+      const values = [];
+      const chunks = String(text || "")
+        .split(/[\s,]+/)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+
+      chunks.forEach((chunk) =>
+      {
+        const numeric = Number(chunk);
+        if (Number.isFinite(numeric))
+        {
+          values.push(numeric & 0xff);
+          return;
+        }
+
+        // In binary mode, letters are converted to ASCII bytes.
+        if (/^[a-zA-Z]+$/.test(chunk))
+        {
+          for (const char of chunk)
+          {
+            values.push(char.charCodeAt(0) & 0xff);
+          }
+        }
+      });
+
+      return values;
+    }
+
+    function parseAsciiBytes(text)
+    {
+      return Array.from(new TextEncoder().encode(String(text || "")));
+    }
+
+    function buildUnifiedCommand()
+    {
+      const token = document.getElementById("tokenInput").value.trim();
+      const mode = document.getElementById("payloadModeSelect").value;
+      const payloadInput = document.getElementById("payloadInput").value || "";
+      const payloadText = payloadInput.trim();
+
+      if (!token)
+      {
+        if (mode === "ascii")
+        {
+          return {
+            command: payloadText,
+            preview: payloadText
+          };
+        }
+        const bytes = parseBinaryPayload(payloadText);
+        return {
+          command: bytes.length > 0 ? ("bytes:" + JSON.stringify(bytes)) : "",
+          preview: bytes.join(" ")
+        };
+      }
+
+      const isUppercaseToken = token.charCodeAt(0) >= 65 && token.charCodeAt(0) <= 90;
+      if (isUppercaseToken)
+      {
+        const params = mode === "ascii" ? parseAsciiBytes(payloadInput) : parseBinaryPayload(payloadText);
+        const command = encodeCommand(token, params);
+        return {
+          command: command,
+          preview: `${token} ${params.join(" ")}`
+        };
+      }
+
+      if (mode === "ascii")
+      {
+        const command = payloadText ? `${token}${payloadText}` : token;
+        return {
+          command: command,
+          preview: command
+        };
+      }
+
+      const params = parseBinaryPayload(payloadText);
+      const command = encodeCommand(token, params);
+      return {
+        command: command,
+        preview: `${token}${params.length ? (" " + params.join(" ")) : ""}`
+      };
+    }
+
+    function updateCommandPreview()
+    {
+      const previewEl = document.getElementById("commandPreview");
+      if (!previewEl) return;
+      const built = buildUnifiedCommand();
+      previewEl.textContent = `${getText("commandPreviewPrefix")} ${built.preview || ""}`;
+    }
+
+    function sendEncodedCommand()
+    {
+      const built = buildUnifiedCommand();
+      const command = (built.command || "").trim();
+      if (!command)
+      {
+        appendLog(getText("error"), getText("invalidPayload"), "#ff9f9f");
+        return;
+      }
+      updateCommandPreview();
+      queueSend(command, 12000);
+    }
+
+    function bindCommandEncoder()
+    {
+      const tokenInput = document.getElementById("tokenInput");
+      const payloadInput = document.getElementById("payloadInput");
+      const payloadModeSelect = document.getElementById("payloadModeSelect");
+      [tokenInput, payloadInput, payloadModeSelect].forEach((element) =>
+      {
+        if (!element) return;
+        element.addEventListener("input", updateCommandPreview);
+        element.addEventListener("change", updateCommandPreview);
+      });
+      updateCommandPreview();
+    }
+
+    function restoreLastWifiIp()
+    {
+      const input = document.getElementById("wifiIpInput");
+      if (!input) return;
+      try
+      {
+        const savedIp = (localStorage.getItem(WIFI_IP_STORAGE_KEY) || "").trim();
+        if (savedIp)
+        {
+          input.value = savedIp;
+        }
+      } catch (error)
+      {
+        // Ignore storage read errors.
+      }
+    }
+
+    window.addEventListener("beforeunload", async () =>
+    {
+      await disconnectWifi();
+      await disconnectBluetooth();
+    });
+
+    currentLang = getInitialLanguage();
+    restoreLastWifiIp();
+    renderLanguage();
+    bindJoystick();
+    bindActionButtons();
+    bindCommandEncoder();
+    updateConnectionStatus();
+  </script>
+</body>
+</html>

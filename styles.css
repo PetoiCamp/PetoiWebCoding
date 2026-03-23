@@ -1278,3 +1278,167 @@ body {
         transform: translateY(0);
     }
 }
+
+/* Mobile adaptive layout for coding page */
+.mobile-orientation-hint {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 12px 0;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.mobile-orientation-icon {
+    font-size: 14px;
+}
+
+.mobile-action-tooltip {
+    position: fixed;
+    z-index: 1600;
+    background: rgba(15, 23, 42, 0.92);
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+}
+
+body.mobile-layout {
+    overflow-x: hidden;
+}
+
+body.mobile-layout .container {
+    padding: 10px 8px;
+}
+
+body.mobile-layout .header {
+    padding: 8px 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+body.mobile-layout .title {
+    font-size: 16px;
+}
+
+body.mobile-layout .header-right {
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+body.mobile-layout .language-switch {
+    gap: 6px;
+}
+
+body.mobile-layout .lang-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+body.mobile-layout .main-action-bar {
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: stretch;
+}
+
+body.mobile-layout .main-action-bar #currentFileLabel,
+body.mobile-layout .main-action-bar #currentFileName {
+    display: none !important;
+}
+
+body.mobile-layout .main-action-bar .right-aligned-container {
+    margin-left: 0;
+}
+
+body.mobile-layout .main-action-bar .mobile-main-action {
+    margin-right: 0;
+}
+
+body.mobile-layout .main-action-bar .mobile-main-action.mobile-icon-only {
+    min-width: 42px;
+    min-height: 40px;
+    padding: 8px;
+    font-size: 19px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+body.mobile-layout .mobile-orientation-hint {
+    display: inline-flex;
+}
+
+body.mobile-layout .workspace-container {
+    height: calc(100vh - 190px);
+    min-height: 420px;
+}
+
+body.mobile-layout.mobile-portrait .workspace-container {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100vh - 210px);
+}
+
+body.mobile-layout.mobile-portrait #blocklyDiv {
+    width: 100% !important;
+    flex-basis: auto !important;
+    min-height: 52vh;
+    height: 52vh;
+}
+
+body.mobile-layout.mobile-portrait .windows-container {
+    width: 100% !important;
+    flex-basis: auto !important;
+    min-height: 36vh;
+    padding: 8px;
+    overflow: auto;
+}
+
+body.mobile-layout.mobile-landscape #blocklyDiv {
+    width: 68% !important;
+    flex-basis: 68% !important;
+}
+
+body.mobile-layout.mobile-landscape .windows-container {
+    width: 31% !important;
+    flex-basis: 31% !important;
+    padding: 8px;
+}
+
+body.mobile-layout .workspace-container #consoleWindow,
+body.mobile-layout .workspace-container #serialContainer {
+    min-height: 160px;
+}
+
+body.mobile-layout .workspace-container #consoleLog,
+body.mobile-layout .workspace-container .serial-output {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: auto;
+}
+
+body.mobile-layout.mobile-layout-small .main-action-bar .mobile-main-action.mobile-icon-only {
+    min-width: 40px;
+    min-height: 38px;
+    font-size: 18px;
+}
+
+body.mobile-layout.mobile-layout-compact .main-action-bar .mobile-main-action.mobile-icon-only {
+    min-width: 36px;
+    min-height: 34px;
+    font-size: 16px;
+    border-radius: 7px;
+    padding: 6px;
+}
+
+body.mobile-layout.mobile-layout-compact .workspace-container {
+    min-height: 380px;
+}
