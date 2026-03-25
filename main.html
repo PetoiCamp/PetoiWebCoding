@@ -17,12 +17,12 @@
     gtag('config', 'G-6XRBBDPBJS');
   </script>
   <!-- 1. 首先加载 Blockly 核心文件 -->
-  <script src="./node_modules/blockly/blockly_compressed.js"></script>
-  <script src="./node_modules/blockly/blocks_compressed.js"></script>
-  <script src="./node_modules/blockly/javascript_compressed.js"></script>
+  <script src="./lib/blockly/blockly_compressed.js"></script>
+  <script src="./lib/blockly/blocks_compressed.js"></script>
+  <script src="./lib/blockly/javascript_compressed.js"></script>
   <!-- 2. 语言文件改为动态加载 -->
-  <!-- <script src="./node_modules/blockly/msg/zh-hans.js"></script> -->
-  <!-- <script src="./node_modules/blockly/msg/en.js"></script> -->
+  <!-- <script src="./lib/blockly/msg/zh-hans.js"></script> -->
+  <!-- <script src="./lib/blockly/msg/en.js"></script> -->
   <!-- 3. 加载自定义翻译 -->
   <script src="./lang/translations.js"></script>
   <!-- 4. 加载超时配置 -->
@@ -1219,7 +1219,7 @@
       blocklyGlobalConfig();
       const newToolbox = createToolbox();
       workspace = Blockly.inject('blocklyDiv', {
-        media: './node_modules/blockly/media/',
+        media: './lib/blockly/media/',
         toolbox: newToolbox,
         theme: customTheme,
         grid: {
@@ -1544,9 +1544,9 @@
 
       // 根据语言选择对应的Blockly语言文件
       const langMap = {
-        'zh': './node_modules/blockly/msg/zh-hans.js',
-        'en': './node_modules/blockly/msg/en.js',
-        'ja': './node_modules/blockly/msg/ja.js'
+        'zh': './lib/blockly/msg/zh-hans.js',
+        'en': './lib/blockly/msg/en.js',
+        'ja': './lib/blockly/msg/ja.js'
         // 可以在这里添加更多语言
       };
       script.src = langMap[lang] || langMap['en']; // 默认使用英文
