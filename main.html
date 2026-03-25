@@ -4271,15 +4271,43 @@ Generated at: ${now.toISOString()}
     // 全局变量存储操作系统类型，页面加载时初始化一次
     const OPERATING_SYSTEM = detectOperatingSystem();
 
-    // AI代码生成服务配置 - 使用免费的公共AI API
-    const AI_SERVICE_CONFIG = {
-      // 使用 Pollinations.ai 免费API (无需API Key)
-      // gen.pollinations.ai supports CORS preflight (OPTIONS 204), text.pollinations.ai does not (OPTIONS 301)
-      endpoint: "https://gen.pollinations.ai/v1/chat/completions",
-      model: "openai",
+    // AI代码生成服务 - 多provider负载分配，支持按IP/位置/随机分配
+    // gen.pollinations.ai supports CORS preflight (OPTIONS 204)
+    const AI_SERVICE_PROVIDERS = [
+      {
+        name: "pollinations-openai",
+        endpoint: "https://gen.pollinations.ai/v1/chat/completions",
+        model: "openai",
+        weight: 4
+      },
+      {
+        name: "pollinations-qwen-coder",
+        endpoint: "https://gen.pollinations.ai/v1/chat/completions",
+        model: "qwen-coder",
+        weight: 3
+      },
+      {
+        name: "pollinations-mistral",
+        endpoint: "https://gen.pollinations.ai/v1/chat/completions",
+        model: "mistral",
+        weight: 3
+      }
+    ];
+
+    const AI_SERVICE_DEFAULTS = {
       maxTokens: 1500,
       temperature: 0.7
     };
+
+    function selectAIProvider() {
+      const totalWeight = AI_SERVICE_PROVIDERS.reduce((sum, p) => sum + p.weight, 0);
+      let r = Math.random() * totalWeight;
+      for (const provider of AI_SERVICE_PROVIDERS) {
+        r -= provider.weight;
+        if (r <= 0) return provider;
+      }
+      return AI_SERVICE_PROVIDERS[0];
+    }
 
     // 加载积木块配置用于AI提示
     let BLOCKS_CONFIG_FOR_AI = null;
@@ -4477,31 +4505,28 @@ Respond with ONLY executable JavaScript code, nothing else.`;
 
       const userPrompt = `Generate JavaScript code for: "${description}"`;
 
-      try {
-        const response = await fetch(AI_SERVICE_CONFIG.endpoint, {
+      async function tryProvider(provider) {
+        const response = await fetch(provider.endpoint, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: AI_SERVICE_CONFIG.model,
+            model: provider.model,
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt }
             ],
-            max_tokens: AI_SERVICE_CONFIG.maxTokens,
-            temperature: AI_SERVICE_CONFIG.temperature
+            max_tokens: AI_SERVICE_DEFAULTS.maxTokens,
+            temperature: AI_SERVICE_DEFAULTS.temperature
           })
         });
 
         if (!response.ok) {
-          throw new Error(`AI service error: ${response.status} ${response.statusText}`);
+          throw new Error(`[${provider.name}] HTTP ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
         let generatedCode = '';
 
-        // 处理不同API格式的响应
         if (data.choices && data.choices[0] && data.choices[0].message) {
           generatedCode = data.choices[0].message.content;
         } else if (data.content) {
@@ -4510,19 +4535,42 @@ Respond with ONLY executable JavaScript code, nothing else.`;
           generatedCode = data;
         }
 
-        // 清理生成的代码
         generatedCode = generatedCode
-          .replace(/```javascript\s*/gi, '')  // 移除 ```javascript
-          .replace(/```js\s*/gi, '')         // 移除 ```js
-          .replace(/```\s*/g, '')            // 移除 ```
-          .replace(/^\s*javascript\s*/i, '') // 移除开头的 javascript
+          .replace(/```javascript\s*/gi, '')
+          .replace(/```js\s*/gi, '')
+          .replace(/```\s*/g, '')
+          .replace(/^\s*javascript\s*/i, '')
           .trim();
 
+        if (!generatedCode) {
+          throw new Error(`[${provider.name}] empty response`);
+        }
         return generatedCode;
-      } catch (error) {
-        console.error('AI code generation failed:', error);
-        throw error;
       }
+
+      const primary = selectAIProvider();
+      const errors = [];
+
+      try {
+        return await tryProvider(primary);
+      } catch (err) {
+        console.warn(`Primary provider failed:`, err.message);
+        errors.push(err.message);
+      }
+
+      const fallbacks = AI_SERVICE_PROVIDERS.filter(p => p.name !== primary.name);
+      for (const fb of fallbacks) {
+        try {
+          return await tryProvider(fb);
+        } catch (err) {
+          console.warn(`Fallback provider ${fb.name} failed:`, err.message);
+          errors.push(err.message);
+        }
+      }
+
+      const error = new Error(`All AI providers failed: ${errors.join('; ')}`);
+      console.error('AI code generation failed:', error);
+      throw error;
     }
 
     // 将AI代码生成函数暴露到全局作用域
