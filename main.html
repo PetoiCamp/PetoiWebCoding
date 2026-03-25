@@ -185,7 +185,8 @@
     }
 
     // Global version date variable (format: vYear.Month.Day)
-    const GLOBAL_VERSION_DATE = "v2026.03.12";
+    const GLOBAL_VERSION_DATE = "v2026.03.26";
+    const GLOBAL_VERSION_LAST_MODIFIED = "2026-03-26 01:10:36";
 
     // Set version date
     function setVersionDate()
@@ -193,8 +194,8 @@
       const versionElement = document.getElementById('versionDate');
       if (versionElement)
       {
-        // Use global version date variable
         versionElement.textContent = GLOBAL_VERSION_DATE;
+        versionElement.title = "Last modified: " + GLOBAL_VERSION_LAST_MODIFIED;
       }
     }
 
@@ -4271,43 +4272,14 @@ Generated at: ${now.toISOString()}
     // 全局变量存储操作系统类型，页面加载时初始化一次
     const OPERATING_SYSTEM = detectOperatingSystem();
 
-    // AI代码生成服务 - 多provider负载分配，支持按IP/位置/随机分配
-    // gen.pollinations.ai supports CORS preflight (OPTIONS 204)
-    const AI_SERVICE_PROVIDERS = [
-      {
-        name: "pollinations-openai",
-        endpoint: "https://gen.pollinations.ai/v1/chat/completions",
-        model: "openai",
-        weight: 4
-      },
-      {
-        name: "pollinations-qwen-coder",
-        endpoint: "https://gen.pollinations.ai/v1/chat/completions",
-        model: "qwen-coder",
-        weight: 3
-      },
-      {
-        name: "pollinations-mistral",
-        endpoint: "https://gen.pollinations.ai/v1/chat/completions",
-        model: "mistral",
-        weight: 3
-      }
-    ];
-
-    const AI_SERVICE_DEFAULTS = {
-      maxTokens: 1500,
-      temperature: 0.7
+    // AI代码生成服务 - 使用 Pollinations.ai 免费 GET API (无需API Key, CORS友好)
+    // text.pollinations.ai GET endpoint: OPTIONS 204, no auth required
+    // URL pattern: https://text.pollinations.ai/{prompt}?model={model}&system={system}&seed={seed}
+    const AI_SERVICE_CONFIG = {
+      baseUrl: "https://text.pollinations.ai",
+      model: "openai",
+      maxPromptLength: 7000
     };
-
-    function selectAIProvider() {
-      const totalWeight = AI_SERVICE_PROVIDERS.reduce((sum, p) => sum + p.weight, 0);
-      let r = Math.random() * totalWeight;
-      for (const provider of AI_SERVICE_PROVIDERS) {
-        r -= provider.weight;
-        if (r <= 0) return provider;
-      }
-      return AI_SERVICE_PROVIDERS[0];
-    }
 
     // 加载积木块配置用于AI提示
     let BLOCKS_CONFIG_FOR_AI = null;
@@ -4504,36 +4476,19 @@ for (let i = 0; i < 5; i++) {
 Respond with ONLY executable JavaScript code, nothing else.`;
 
       const userPrompt = `Generate JavaScript code for: "${description}"`;
+      const fullPrompt = userPrompt;
+      const seed = Math.floor(Math.random() * 1000000);
 
-      async function tryProvider(provider) {
-        const response = await fetch(provider.endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: provider.model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt }
-            ],
-            max_tokens: AI_SERVICE_DEFAULTS.maxTokens,
-            temperature: AI_SERVICE_DEFAULTS.temperature
-          })
-        });
+      try {
+        const url = `${AI_SERVICE_CONFIG.baseUrl}/${encodeURIComponent(fullPrompt)}?model=${encodeURIComponent(AI_SERVICE_CONFIG.model)}&system=${encodeURIComponent(systemPrompt)}&seed=${seed}`;
+
+        const response = await fetch(url);
 
         if (!response.ok) {
-          throw new Error(`[${provider.name}] HTTP ${response.status} ${response.statusText}`);
+          throw new Error(`AI service error: ${response.status} ${response.statusText}`);
         }
 
-        const data = await response.json();
-        let generatedCode = '';
-
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-          generatedCode = data.choices[0].message.content;
-        } else if (data.content) {
-          generatedCode = data.content;
-        } else if (typeof data === 'string') {
-          generatedCode = data;
-        }
+        let generatedCode = await response.text();
 
         generatedCode = generatedCode
           .replace(/```javascript\s*/gi, '')
@@ -4543,34 +4498,14 @@ Respond with ONLY executable JavaScript code, nothing else.`;
           .trim();
 
         if (!generatedCode) {
-          throw new Error(`[${provider.name}] empty response`);
+          throw new Error('AI returned empty response');
         }
+
         return generatedCode;
+      } catch (error) {
+        console.error('AI code generation failed:', error);
+        throw error;
       }
-
-      const primary = selectAIProvider();
-      const errors = [];
-
-      try {
-        return await tryProvider(primary);
-      } catch (err) {
-        console.warn(`Primary provider failed:`, err.message);
-        errors.push(err.message);
-      }
-
-      const fallbacks = AI_SERVICE_PROVIDERS.filter(p => p.name !== primary.name);
-      for (const fb of fallbacks) {
-        try {
-          return await tryProvider(fb);
-        } catch (err) {
-          console.warn(`Fallback provider ${fb.name} failed:`, err.message);
-          errors.push(err.message);
-        }
-      }
-
-      const error = new Error(`All AI providers failed: ${errors.join('; ')}`);
-      console.error('AI code generation failed:', error);
-      throw error;
     }
 
     // 将AI代码生成函数暴露到全局作用域
