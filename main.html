@@ -4308,11 +4308,15 @@ IMPORTANT RULES:
 3. Always use await for async functions
 4. Include checkStopExecution() at appropriate points in loops
 5. All code must be valid JavaScript that can be executed in an async context
+6. CRITICAL: For ALL motion/action commands, use sendAndWait() to wait for the robot's completion token BEFORE executing the next command. NEVER fire-and-forget motion commands.
+7. Define sendAndWait() and delayAfterToken() helpers at the top of generated code as shown in CODE PATTERNS
+8. Use delayAfterToken(ms) instead of delay(ms) for delays between actions - it starts timing from when the robot finished, not when the command was sent
 
 AVAILABLE HELPER FUNCTIONS:
 - checkStopExecution(): Call at the start of code and in loops to respect stop signals
 - checkStopExecutionInLoop(): Use inside loops for stop checking with yield
 - webRequest(command, timeout=5000, needResponse=true): Send command to robot via WebSocket/Serial
+- waitForSerialTokenLine(token, timeout, fromIndex): Wait for robot completion token in serial mode
 - delay(ms): Promise-based delay with stop checking
 - encodeCommand(token, params): Encode command with token and parameters
 - parseSingleResult(rawResult): Parse numeric result from response
@@ -4380,98 +4384,91 @@ IMPORTANT ENCODING RULES:
    - Note: UPPERCASE B uses binary encoding, supports 250-1250 notes vs 10-20 for lowercase b
 5. When in doubt: Motion/short music use direct strings, I/O/sensors/long music use encodeCommand
 
-CODE PATTERNS:
-// Motion (direct string, lowercase k* or d):
-await webRequest("kwkF", 20000, true);
-if (typeof window !== 'undefined') window.__lastTokenReceivedAt = Date.now();
+CRITICAL: WAITING FOR ROBOT TOKEN BEFORE NEXT COMMAND
+Every command MUST wait for the robot's completion token before executing the next command.
+Use the sendAndWait() helper which handles both Serial and WebSocket modes:
 
-// With delay after token received:
-const delayMs = 1000;
-await (async () => {
+// Helper: send command and wait for robot completion token
+async function sendAndWait(cmd, timeout, token) {
+  const __from = (typeof serialBuffer === 'string')
+    ? serialBuffer.length
+    : ((typeof window !== 'undefined' && typeof window.serialBuffer === 'string') ? window.serialBuffer.length : undefined);
+  await webRequest(cmd, timeout, true);
+  if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') {
+    await waitForSerialTokenLine(token, timeout, __from);
+  }
+  if (typeof window !== 'undefined') window.__lastTokenReceivedAt = Date.now();
+}
+
+// Helper: delay after token received (respects stop)
+async function delayAfterToken(ms) {
   const __tokenAt = (typeof window !== 'undefined' && typeof window.__lastTokenReceivedAt === 'number') ? window.__lastTokenReceivedAt : Date.now();
-  const __endAt = __tokenAt + delayMs;
-  const __checkInterval = 100;
+  const __endAt = __tokenAt + ms;
   while (Date.now() < __endAt) {
     checkStopExecution();
-    const __wait = Math.min(__checkInterval, __endAt - Date.now());
+    const __wait = Math.min(100, __endAt - Date.now());
     if (__wait > 0) await new Promise(r => setTimeout(r, __wait));
   }
-})();
+}
 
-// Joint control - sequential (lowercase m, uses encodeCommand):
-const command = encodeCommand("m", [0, 30, 1, -20]);
-await webRequest(command, 15000, true);
+CODE PATTERNS (ALWAYS use sendAndWait for motion/action commands):
+// Motion gait (token: 'k'):
+await sendAndWait("kwkF", 20000, 'k');
 
-// Joint control - simultaneous (lowercase i, uses encodeCommand):
-const command = encodeCommand("i", [0, 30, 1, -20]);
-await webRequest(command, 30000, true);
+// Motion posture (token: first char of command, e.g. 'k' for kup, 'd' for rest):
+await sendAndWait("kup", 10000, 'k');
+await sendAndWait("d", 10000, 'd');
 
-// Read analog input (UPPERCASE Ra, MUST use encodeCommand):
+// Motion with delay (delay starts AFTER robot completes):
+await sendAndWait("kup", 10000, 'k');
+await delayAfterToken(1000);
+
+// Acrobatic (token: 'k'):
+await sendAndWait("kbx", 20000, 'k');
+
+// Joint control - sequential (token: 'm'):
+await sendAndWait(encodeCommand("m", [0, 30, 1, -20]), 15000, 'm');
+
+// Joint control - simultaneous (token: 'i'):
+await sendAndWait(encodeCommand("i", [0, 30, 1, -20]), 30000, 'i');
+
+// Read sensor (token varies, use webRequest directly for queries):
 const cmd = encodeCommand("Ra", [34]);
 const result = await webRequest(cmd, 5000, true);
 const value = parseSingleResult(result);
-console.log("Analog value:", value);
 
-// Read digital input (UPPERCASE Rd, MUST use encodeCommand):
-const cmd = encodeCommand("Rd", [34]);
-const result = await webRequest(cmd, 5000, true);
-const value = parseSingleResult(result);
-console.log("Digital value:", value);
-
-// Write analog output (UPPERCASE Wa, MUST use encodeCommand):
-const cmd = encodeCommand("Wa", [2, 128]);
-await webRequest(cmd, 5000, true);
-
-// Write digital output (UPPERCASE Wd, MUST use encodeCommand):
-const cmd = encodeCommand("Wd", [34, 1]);
-await webRequest(cmd, 5000, true);
-
-// Query all joints (lowercase j, direct string):
+// Query all joints:
 const result = await webRequest("j", 5000, true);
 const angles = parseAllJointsResult(result);
-console.log(angles);
 
-// Play single note (lowercase b, direct string - max ~10 notes):
-await webRequest("b 20 4", 5000, true);  // note 20, duration 4
+// Play short melody (token: 'b'):
+await sendAndWait("b 20 4", 5000, 'b');
 
-// Play short melody by concatenating notes (lowercase b, ASCII format):
-// LIMITATION: ASCII format 'b' has ~200 byte limit, suitable for short melodies only
-await webRequest("b 14 4 16 4 18 2", 5000, true);  // 3 notes only
+// Play long melody (token: 'B'):
+const melody = encodeCommand("B", [14,4,16,4,18,2,14,4,16,4,18,2,21,4,19,4,18,4,16,4,14,2]);
+await sendAndWait(melody, 30000, 'B');
 
-// Play long melody (UPPERCASE B, BINARY format - REQUIRED for 10+ notes):
-// UPPERCASE 'B' uses binary encoding, supports 250+ notes on NyBoard, 1250+ on BiBoard
-// encodeCommand("B", [...]) returns "bytes:[66, tone, duration, ..., 126]"
-const melody = encodeCommand("B", [20, 4, 22, 4, 24, 4, 20, 4, 22, 4, 24, 4, 27, 4, 24, 4, 22, 4, 20, 2]);
-await webRequest(melody, 30000, true);  // Use longer timeout for long melodies (30+ notes)
-
-// Example: 30-note melody for "Twinkle Twinkle Little Star" (MUST use UPPERCASE B)
-const longMelody = encodeCommand("B", [
-  14, 4, 14, 4, 21, 4, 21, 4, 23, 4, 23, 4, 21, 2,  // Line 1
-  19, 4, 19, 4, 18, 4, 18, 4, 16, 4, 16, 4, 14, 2,  // Line 2
-  21, 4, 21, 4, 19, 4, 19, 4, 18, 4, 18, 4, 16, 2   // Line 3 (30+ notes total)
-]);
-await webRequest(longMelody, 60000, true);  // 60s timeout for very long melodies
-
-// Ultrasonic sensor (UPPERCASE XU, uses encodeCommand):
+// Ultrasonic sensor:
 const cmd = encodeCommand("XU", [9, 9]);
 const result = await webRequest(cmd, 5000, true);
 const distance = parseSingleResult(result);
 
-// Gesture sensor (UPPERCASE XG*, uses encodeCommand):
-await webRequest(encodeCommand("XGr", []), 5000, true);  // Enable
-const result = await webRequest(encodeCommand("XGp", []), 1000, true);  // Poll
-const gesture = parseSingleResult(result);  // 0=Up, 1=Down, 2=Left, 3=Right, -1=None
-await webRequest(encodeCommand("Xg", []), 5000, true);  // Exit
-
-// Gyro control (lowercase g but uses encodeCommand):
-await webRequest(encodeCommand("g", ["B"]), 5000, true);  // Enable
-await webRequest(encodeCommand("g", ["b"]), 5000, true);  // Disable
+// Gyro control:
+await sendAndWait(encodeCommand("g", ["B"]), 5000, 'G');
+await sendAndWait(encodeCommand("g", ["b"]), 5000, 'G');
 
 // Loop with stop checking:
 for (let i = 0; i < 5; i++) {
   await checkStopExecutionInLoop();
-  await webRequest("kvtF", 20000, true);
+  await sendAndWait("kwkF", 20000, 'k');
 }
+
+// Multiple sequential actions (each waits for token before next):
+await sendAndWait("kup", 10000, 'k');
+await delayAfterToken(500);
+await sendAndWait("khi", 10000, 'k');
+await delayAfterToken(1000);
+await sendAndWait("ksit", 10000, 'k');
 
 Respond with ONLY executable JavaScript code, nothing else.`;
 
