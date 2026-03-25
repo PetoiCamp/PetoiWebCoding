@@ -4274,8 +4274,9 @@ Generated at: ${now.toISOString()}
     // AI代码生成服务配置 - 使用免费的公共AI API
     const AI_SERVICE_CONFIG = {
       // 使用 Pollinations.ai 免费API (无需API Key)
-      endpoint: "https://text.pollinations.ai/openai",
-      model: "openai", // 可以是 openai, mistral, llama 等
+      // gen.pollinations.ai supports CORS preflight (OPTIONS 204), text.pollinations.ai does not (OPTIONS 301)
+      endpoint: "https://gen.pollinations.ai/v1/chat/completions",
+      model: "openai",
       maxTokens: 1500,
       temperature: 0.7
     };
