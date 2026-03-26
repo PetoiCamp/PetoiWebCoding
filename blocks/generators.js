@@ -1821,6 +1821,18 @@ await (async function() {
                         await waitForSerialTokenLine(token, timeout, __from);
                       }
                       if (typeof window !== 'undefined') window.__lastTokenReceivedAt = Date.now();
+                      // Default anti-sticking gap between consecutive motion commands: 0.01s
+                      const __postGapMs = (typeof window !== 'undefined' && typeof window.__actionCommandGapMs === 'number')
+                        ? Math.max(0, window.__actionCommandGapMs)
+                        : 10;
+                      if (__postGapMs > 0) {
+                        const __endAt = Date.now() + __postGapMs;
+                        while (Date.now() < __endAt) {
+                          checkStopExecution();
+                          const __wait = Math.min(10, __endAt - Date.now());
+                          if (__wait > 0) await new Promise(r => setTimeout(r, __wait));
+                        }
+                      }
                     }
                     // delayAfterToken: delay starting from when robot completed
                     async function __delayAfterToken(ms) {

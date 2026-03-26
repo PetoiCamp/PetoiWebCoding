@@ -4321,7 +4321,8 @@ Sensor: encodeCommand("XU",[9,9])=ultrasonic,encodeCommand("g",["B"])=gyroOn,"g"
 Gesture: encodeCommand("XGr",[])=enable,"XGp"=poll,"Xg"=exit
 
 PATTERN: await sendAndWait("khi",10000,'k'); await delayAfterToken(500); await sendAndWait("khsk",10000,'k');
-RULE: ALWAYS use built-in k* skill for named actions. NEVER compose joint movements for actions that have a skill command.`;
+RULE: ALWAYS use built-in k* skill for named actions. NEVER compose joint movements for actions that have a skill command.
+RULE: DO NOT insert rest command "d" between actions unless user explicitly asks for rest/sleep/lying down/final relax.`;
 
       const seed = Math.floor(Math.random() * 1000000);
       const userPrompt = `Generate JavaScript code for: "${description}"`;
