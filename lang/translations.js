@@ -366,8 +366,8 @@ const TRANSLATIONS = {
 
     // Gait options
     "gaitStep": "原地踏步",
-    "gaitRotateLeft": "左旋",
-    "gaitRotateRight": "右旋",
+    "gaitSpinLeft": "左旋",
+    "gaitSpinRight": "右旋",
     "gaitWalkForward": "向前走",
     "gaitWalkLeft": "向左走",
     "gaitWalkRight": "向右走",
@@ -380,9 +380,9 @@ const TRANSLATIONS = {
     "gaitCrawlForward": "向前爬",
     "gaitCrawlLeft": "向左爬",
     "gaitCrawlRight": "向右爬",
-    "gaitGapForward": "向前跨",
-    "gaitGapLeft": "向左跨",
-    "gaitGapRight": "向右跨",
+    "gaitStrideForward": "向前跨",
+    "gaitStrideLeft": "向左跨",
+    "gaitStrideRight": "向右跨",
     "gaitMoonwalk": "太空步",
 
     // Posture options
@@ -393,17 +393,10 @@ const TRANSLATIONS = {
     "postureStr": "伸展",
     "postureCalib": "校准姿势",
     "postureButtUp": "翘臀",
-    "postureLifted": "提起(颈部)",
-    "postureLanding": "着陆姿势",
-    "postureDropped": "后腿放下",
-    "postureZero": "零位(全关节0度)",
 
     // Gait options (new)
-    "gaitBoundForward": "向前跳跑",
     "gaitPushForward": "向前推",
     "gaitPushLeft": "向左推",
-    "gaitHalloween": "万圣节步态",
-    "gaitJumpForward": "向前跳",
 
     // Behavior options
     "behaviorLabel": "执行行为",
@@ -424,7 +417,6 @@ const TRANSLATIONS = {
     "behaviorScratch": "挠痒",
     "behaviorWaveHead": "摇头",
     "behaviorTable": "当桌子",
-    "behaviorSleep": "睡觉",
     "behaviorPlayDead": "装死",
     "behaviorRoll": "翻滚",
     "behaviorRecover": "恢复",
@@ -977,8 +969,8 @@ const TRANSLATIONS = {
 
     // Gait options
     "gaitStep": "step",
-    "gaitRotateLeft": "rotate left",
-    "gaitRotateRight": "rotate right",
+    "gaitSpinLeft": "spin left",
+    "gaitSpinRight": "spin right",
     "gaitWalkForward": "walk forward",
     "gaitWalkLeft": "walk left",
     "gaitWalkRight": "walk right",
@@ -991,9 +983,9 @@ const TRANSLATIONS = {
     "gaitCrawlForward": "crawl forward",
     "gaitCrawlLeft": "crawl left",
     "gaitCrawlRight": "crawl right",
-    "gaitGapForward": "gap forward",
-    "gaitGapLeft": "gap left",
-    "gaitGapRight": "gap right",
+    "gaitStrideForward": "stride forward",
+    "gaitStrideLeft": "stride left",
+    "gaitStrideRight": "stride right",
     "gaitMoonwalk": "moonwalk",
 
     // Posture options
@@ -1004,17 +996,10 @@ const TRANSLATIONS = {
     "postureStr": "stretch",
     "postureCalib": "calibration",
     "postureButtUp": "butt up",
-    "postureLifted": "lifted",
-    "postureLanding": "landing",
-    "postureDropped": "dropped",
-    "postureZero": "zero (all joints 0°)",
 
     // Gait options (new)
-    "gaitBoundForward": "bound forward",
     "gaitPushForward": "push forward",
     "gaitPushLeft": "push left",
-    "gaitHalloween": "halloween",
-    "gaitJumpForward": "jump forward",
 
     // Behavior options
     "behaviorLabel": "execute behavior",
@@ -1035,7 +1020,6 @@ const TRANSLATIONS = {
     "behaviorScratch": "scratch",
     "behaviorWaveHead": "wave head",
     "behaviorTable": "be table",
-    "behaviorSleep": "sleep",
     "behaviorPlayDead": "play dead",
     "behaviorRoll": "roll",
     "behaviorRecover": "recover",
@@ -1588,8 +1572,8 @@ const TRANSLATIONS = {
 
     // 歩行オプション
     "gaitStep": "足踏み",
-    "gaitRotateLeft": "左回転",
-    "gaitRotateRight": "右回転",
+    "gaitSpinLeft": "左スピン",
+    "gaitSpinRight": "右スピン",
     "gaitWalkForward": "前進",
     "gaitWalkLeft": "左歩き",
     "gaitWalkRight": "右歩き",
@@ -1602,9 +1586,9 @@ const TRANSLATIONS = {
     "gaitCrawlForward": "前方這い進み",
     "gaitCrawlLeft": "左這い進み",
     "gaitCrawlRight": "右這い進み",
-    "gaitGapForward": "前方跨ぎ",
-    "gaitGapLeft": "左跨ぎ",
-    "gaitGapRight": "右跨ぎ",
+    "gaitStrideForward": "前方ストライド",
+    "gaitStrideLeft": "左ストライド",
+    "gaitStrideRight": "右ストライド",
     "gaitMoonwalk": "ムーンウォーク",
 
     // 姿勢オプション
@@ -1615,17 +1599,10 @@ const TRANSLATIONS = {
     "postureStr": "ストレッチ",
     "postureCalib": "キャリブレーション",
     "postureButtUp": "お尻を上げる",
-    "postureLifted": "持ち上げ",
-    "postureLanding": "着陸",
-    "postureDropped": "後ろ足降ろし",
-    "postureZero": "ゼロ位置(全関節0度)",
 
     // 歩行オプション（新規）
-    "gaitBoundForward": "前方バウンド",
     "gaitPushForward": "前方プッシュ",
     "gaitPushLeft": "左プッシュ",
-    "gaitHalloween": "ハロウィン",
-    "gaitJumpForward": "前方ジャンプ",
 
     // 行動オプション
     "behaviorLabel": "行動を実行",
@@ -1646,7 +1623,6 @@ const TRANSLATIONS = {
     "behaviorScratch": "掻く",
     "behaviorWaveHead": "頭を振る",
     "behaviorTable": "テーブル",
-    "behaviorSleep": "睡眠",
     "behaviorPlayDead": "死んだふり",
     "behaviorRoll": "ロール",
     "behaviorRecover": "回復",

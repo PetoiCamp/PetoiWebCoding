@@ -1193,8 +1193,8 @@ function blocklyGlobalConfig() {
             var unitLabel = getText("secUnit");
             var options = [
                 [getText("gaitStep"), "kvtF"],
-                [getText("gaitRotateLeft"), "kvtL"],
-                [getText("gaitRotateRight"), "kvtR"],
+                [getText("gaitSpinLeft"), "kvtL"],
+                [getText("gaitSpinRight"), "kvtR"],
                 [getText("gaitWalkForward"), "kwkF"],
                 [getText("gaitWalkLeft"), "kwkL"],
                 [getText("gaitWalkRight"), "kwkR"],
@@ -1207,14 +1207,11 @@ function blocklyGlobalConfig() {
                 [getText("gaitCrawlForward"), "kcrF"],
                 [getText("gaitCrawlLeft"), "kcrL"],
                 [getText("gaitCrawlRight"), "kcrR"],
-                [getText("gaitGapForward"), "kgpF"],
-                [getText("gaitGapLeft"), "kgpL"],
-                [getText("gaitGapRight"), "kgpR"],
-                [getText("gaitBoundForward"), "kbdF"],
+                [getText("gaitStrideForward"), "kgpF"],
+                [getText("gaitStrideLeft"), "kgpL"],
+                [getText("gaitStrideRight"), "kgpR"],
                 [getText("gaitPushForward"), "kphF"],
                 [getText("gaitPushLeft"), "kphL"],
-                [getText("gaitJumpForward"), "kjpF"],
-                [getText("gaitHalloween"), "khlw"],
                 [getText("gaitMoonwalk"), "kmw"],
             ];
 
@@ -1245,11 +1242,7 @@ function blocklyGlobalConfig() {
                 [getText("postureRest"), "d"],
                 [getText("postureStr"), "kstr"],
                 [getText("postureButtUp"), "kbuttUp"],
-                [getText("postureLifted"), "klifted"],
-                [getText("postureLanding"), "klnd"],
-                [getText("postureDropped"), "kdropped"],
                 [getText("postureCalib"), "kcalib"],
-                [getText("postureZero"), "kzero"],
             ];
 
             this.appendDummyInput()
@@ -1318,7 +1311,6 @@ function blocklyGlobalConfig() {
                 [getText("behaviorScratch"), "kscrh"],
                 [getText("behaviorWaveHead"), "kwh"],
                 [getText("behaviorTable"), "ktbl"],
-                [getText("behaviorSleep"), "kzz"],
                 [getText("behaviorPlayDead"), "kpd"],
                 [getText("behaviorRoll"), "krl"],
                 [getText("behaviorRecover"), "krc"],
