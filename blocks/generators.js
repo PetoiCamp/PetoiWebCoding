@@ -1810,10 +1810,35 @@ await (async function() {
                 try {
                     // Use eval to safely execute generated code
                     // First create a context containing all necessary helper functions
+                    // sendAndWait: send command and wait for robot completion token
+                    async function __sendAndWait(cmd, timeout, token) {
+                      const _wr = (typeof window !== 'undefined' && window.webRequest) ? window.webRequest : webRequest;
+                      const __from = (typeof serialBuffer === 'string')
+                        ? serialBuffer.length
+                        : ((typeof window !== 'undefined' && typeof window.serialBuffer === 'string') ? window.serialBuffer.length : undefined);
+                      await _wr(cmd, timeout, true);
+                      if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') {
+                        await waitForSerialTokenLine(token, timeout, __from);
+                      }
+                      if (typeof window !== 'undefined') window.__lastTokenReceivedAt = Date.now();
+                    }
+                    // delayAfterToken: delay starting from when robot completed
+                    async function __delayAfterToken(ms) {
+                      const __tokenAt = (typeof window !== 'undefined' && typeof window.__lastTokenReceivedAt === 'number') ? window.__lastTokenReceivedAt : Date.now();
+                      const __endAt = __tokenAt + ms;
+                      while (Date.now() < __endAt) {
+                        checkStopExecution();
+                        const __wait = Math.min(100, __endAt - Date.now());
+                        if (__wait > 0) await new Promise(r => setTimeout(r, __wait));
+                      }
+                    }
                     const execContext = {
+                        sendAndWait: __sendAndWait,
+                        delayAfterToken: __delayAfterToken,
                         checkStopExecution: checkStopExecution,
                         checkStopExecutionInLoop: checkStopExecutionInLoop,
                         webRequest: (typeof window !== 'undefined' && window.webRequest) ? window.webRequest : webRequest,
+                        waitForSerialTokenLine: (typeof waitForSerialTokenLine === 'function') ? waitForSerialTokenLine : undefined,
                         delay: delay,
                         encodeCommand: encodeCommand,
                         parseSingleResult: parseSingleResult,
