@@ -186,7 +186,7 @@
 
     // Global version date variable (format: vYear.Month.Day)
     const GLOBAL_VERSION_DATE = "v2026.03.26";
-    const GLOBAL_VERSION_LAST_MODIFIED = "2026-03-26 01:10:36";
+    const GLOBAL_VERSION_LAST_MODIFIED = "2026-03-26 21:03:41";
 
     // Set version date
     function setVersionDate()
@@ -4336,13 +4336,14 @@ AVAILABLE COMMANDS (token-based):
 
       systemPrompt += `
 MOTION COMMANDS (lowercase k* or d, NO encodeCommand needed):
-- Gait: kvtF(Step), kvtL(RotateLeft), kvtR(RotateRight), kwkF(WalkForward), kwkL(WalkLeft), kwkR(WalkRight), kbkF(Back), kbkL(BackLeft), kbkR(BackRight), ktrF(TrotForward), ktrL(TrotLeft), ktrR(TrotRight), kcrF(CrawlForward), kcrL(CrawlLeft), kcrR(CrawlRight), kgpF(GapForward), kgpL(GapLeft), kgpR(GapRight), kmw(Moonwalk)
-- Posture: kup(Stand), ksit(Sit), d(Rest), kpee(Pee), khi(SayHi/wave)
-- Acrobatic: khds(Handstand), kbx(Boxing), kflipD(Backflip), kflipF(Frontflip), kjmp(Jump)
-- Arm: kpickD/F/L/R, kputD/F/L/R, klaunch(Shoot), ktossF/L/R(Throw), khunt(Hunt), kshowOff(ShowOff), kclap(Clap)
-- Other skills: khsk(Handshake/ShakeHand), kck(Check), ksnf(Sniff), kang(Angry), kcr(Crawl), kpd(PlayDead), kzz(Sleep), knod(Nod), kbf(Backflip), kts(TestServo), klu(LookUp), kfiv(HighFive), kgd(GoodDog)
+Posture: stand=kup, balance=kbalance, sit=ksit, rest=d, stretch=kstr, buttUp=kbuttUp, calibration=kcalib, lifted=klifted, landing=klnd, dropped=kdropped, zero=kzero
+Gait: step=kvtF, rotateL=kvtL, rotateR=kvtR, walkF=kwkF, walkL=kwkL, walkR=kwkR, backF=kbkF, backL=kbkL, backR=kbkR, trotF=ktrF, trotL=ktrL, trotR=ktrR, crawlF=kcrF, crawlL=kcrL, crawlR=kcrR, gapF=kgpF, gapL=kgpL, gapR=kgpR, boundF=kbdF, pushF=kphF, pushL=kphL, jumpF=kjpF, halloween=khlw, moonwalk=kmw
+Behavior: hi/wave=khi, handshake=khsk, highFive=kfiv, hug=khg, handsUp=khu, nod=knd, comeHere=kcmh, goodBoy=kgdb, cheers=kchr, pee=kpee, sniff=ksnf, check=kck, dig=kdg, angry=kang, scratch=kscrh, waveHead=kwh, beTable=ktbl, sleep=kzz, playDead=kpd, roll=krl, recover=krc, pushUp=kpu, pushUp1hand=kpu1, kick=kkc, leapOver=klpov, testServo=kts
+Acrobatic(⚠️high stress): handstand=khds, boxing=kbx, backflip=kflipD, frontflip=kflipF, jump=kjmp
+Arm: pickD/F/L/R=kpickD/F/L/R, putD/F/L/R=kputD/F/L/R, shoot=klaunch, throwF/L/R=ktossF/L/R, hunt=khunt, showOff=kshowOff, clap=kclap
+Direction suffix: append L=left, R=right, X=random to any skill for directional variants.
 
-IMPORTANT: The robot firmware has many more k* skill commands. If the user requests an action, the command is usually "k" + abbreviated action name. For example: handshake=khsk, shake hand=khsk, hi=khi, sit=ksit, stand=kup. When unsure, try the most logical abbreviation. ALWAYS use a single k* command for named actions - NEVER try to compose complex joint movements manually when a built-in skill likely exists.
+IMPORTANT: ALWAYS use a single k* command for named actions. NEVER compose complex joint movements when a built-in skill exists. Command pattern: k + abbreviated name (e.g. handshake=khsk, hi=khi).
 
 I/O COMMANDS (UPPERCASE, MUST use encodeCommand):
 - Digital input: encodeCommand("Rd", [34]) for "Rd 34"

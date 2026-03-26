@@ -215,6 +215,44 @@ await (async function() {
     return code;
 };
 
+// Code Generator: Behavior action command (same pattern as posture)
+Blockly.JavaScript.forBlock["behavior"] = function (block) {
+    const cmd = block.getFieldValue("COMMAND");
+    const delay = block.getFieldValue("DELAY");
+    const delayMs = Math.ceil(delay * 1000);
+
+    let code = `
+checkStopExecution();
+await (async function() {
+  const __from = (typeof serialBuffer === 'string')
+    ? serialBuffer.length
+    : ((typeof window !== 'undefined' && typeof window.serialBuffer === 'string') ? window.serialBuffer.length : undefined);
+  await webRequest("${cmd}", 10000, true);
+  if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') {
+    const _tok = '${cmd}'.charAt(0);
+    await waitForSerialTokenLine(_tok, 15000, __from);
+  }
+  if (typeof window !== 'undefined') window.__lastTokenReceivedAt = Date.now();
+  return true;
+})()
+`;
+
+    if (delayMs > 0) {
+        code += `await (async () => {
+  const __tokenAt = (typeof window !== 'undefined' && typeof window.__lastTokenReceivedAt === 'number') ? window.__lastTokenReceivedAt : Date.now();
+  const __endAt = __tokenAt + ${delayMs};
+  const __checkInterval = 100;
+  while (Date.now() < __endAt) {
+    checkStopExecution();
+    const __wait = Math.min(__checkInterval, __endAt - Date.now());
+    if (__wait > 0) await new Promise(r => setTimeout(r, __wait));
+  }
+})();
+`;
+    }
+    return code;
+};
+
 // Code Generator: Delay code generator
 Blockly.JavaScript.forBlock["delay_ms"] = function (block) {
     const delay = block.getFieldValue("DELAY");
