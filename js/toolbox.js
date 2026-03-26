@@ -242,6 +242,7 @@ function createToolbox() {
                 contents: [
                     { kind: "block", type: "gait" },
                     { kind: "block", type: "posture" },
+                    { kind: "block", type: "behavior" },
                     { kind: "block", type: "acrobatic_moves" },
                     { kind: "block", type: "arm_action" },
                     { kind: "block", type: "get_joint_angle" },
@@ -1192,8 +1193,8 @@ function blocklyGlobalConfig() {
             var unitLabel = getText("secUnit");
             var options = [
                 [getText("gaitStep"), "kvtF"],
-                [getText("gaitRotateLeft"), "kvtL"],
-                [getText("gaitRotateRight"), "kvtR"],
+                [getText("gaitSpinLeft"), "kvtL"],
+                [getText("gaitSpinRight"), "kvtR"],
                 [getText("gaitWalkForward"), "kwkF"],
                 [getText("gaitWalkLeft"), "kwkL"],
                 [getText("gaitWalkRight"), "kwkR"],
@@ -1206,9 +1207,11 @@ function blocklyGlobalConfig() {
                 [getText("gaitCrawlForward"), "kcrF"],
                 [getText("gaitCrawlLeft"), "kcrL"],
                 [getText("gaitCrawlRight"), "kcrR"],
-                [getText("gaitGapForward"), "kgpF"],
-                [getText("gaitGapLeft"), "kgpL"],
-                [getText("gaitGapRight"), "kgpR"],
+                [getText("gaitStrideForward"), "kgpF"],
+                [getText("gaitStrideLeft"), "kgpL"],
+                [getText("gaitStrideRight"), "kgpR"],
+                [getText("gaitPushForward"), "kphF"],
+                [getText("gaitPushLeft"), "kphL"],
                 [getText("gaitMoonwalk"), "kmw"],
             ];
 
@@ -1234,11 +1237,12 @@ function blocklyGlobalConfig() {
             var unitLabel = getText("secUnit");
             var options = [
                 [getText("postureStand"), "kup"],
+                [getText("postureBalance"), "kbalance"],
                 [getText("postureSit"), "ksit"],
                 [getText("postureRest"), "d"],
-                [getText("posturePee"), "kpee"],
-                // 添加新的选项
-                [getText("postureSayHi"), "khi"],  // 新增
+                [getText("postureStr"), "kstr"],
+                [getText("postureButtUp"), "kbuttUp"],
+                [getText("postureCalib"), "kcalib"],
             ];
 
             this.appendDummyInput()
@@ -1271,6 +1275,54 @@ function blocklyGlobalConfig() {
 
             this.appendDummyInput()
                 .appendField(moveLabel)
+                .appendField(new Blockly.FieldDropdown(options), "COMMAND");
+            this.appendDummyInput()
+                .appendField(delayLabel)
+                .appendField(new Blockly.FieldNumber(0.2, 0, 10, 0.01), "DELAY")
+                .appendField(unitLabel);
+            this.setInputsInline(true);
+            this.setPreviousStatement(true, null);
+            this.setNextStatement(true, null);
+            this.setColour(MOTION_COLOR);
+        },
+    };
+
+    // 行为动作积木
+    Blockly.Blocks["behavior"] = {
+        init: function () {
+            var behaviorLabel = getText("behaviorLabel");
+            var delayLabel = getText("thenDelay");
+            var unitLabel = getText("secUnit");
+            var options = [
+                [getText("behaviorHi"), "khi"],
+                [getText("behaviorHandshake"), "khsk"],
+                [getText("behaviorHighFive"), "kfiv"],
+                [getText("behaviorHug"), "khg"],
+                [getText("behaviorHandsUp"), "khu"],
+                [getText("behaviorNod"), "knd"],
+                [getText("behaviorComeHere"), "kcmh"],
+                [getText("behaviorGoodBoy"), "kgdb"],
+                [getText("behaviorCheers"), "kchr"],
+                [getText("behaviorPee"), "kpee"],
+                [getText("behaviorSniff"), "ksnf"],
+                [getText("behaviorCheck"), "kck"],
+                [getText("behaviorDig"), "kdg"],
+                [getText("behaviorAngry"), "kang"],
+                [getText("behaviorScratch"), "kscrh"],
+                [getText("behaviorWaveHead"), "kwh"],
+                [getText("behaviorTable"), "ktbl"],
+                [getText("behaviorPlayDead"), "kpd"],
+                [getText("behaviorRoll"), "krl"],
+                [getText("behaviorRecover"), "krc"],
+                [getText("behaviorPushUp"), "kpu"],
+                [getText("behaviorPushUp1"), "kpu1"],
+                [getText("behaviorKick"), "kkc"],
+                [getText("behaviorLeapOver"), "klpov"],
+                [getText("behaviorTest"), "kts"],
+            ];
+
+            this.appendDummyInput()
+                .appendField(behaviorLabel)
                 .appendField(new Blockly.FieldDropdown(options), "COMMAND");
             this.appendDummyInput()
                 .appendField(delayLabel)
