@@ -186,7 +186,7 @@
 
     // Global version date variable (format: vYear.Month.Day)
     const GLOBAL_VERSION_DATE = "v2026.03.26";
-    const GLOBAL_VERSION_LAST_MODIFIED = "2026-03-26 21:45:55";
+    const GLOBAL_VERSION_LAST_MODIFIED = "2026-03-26 22:00:43";
 
     // Set version date
     function setVersionDate()
@@ -4272,13 +4272,14 @@ Generated at: ${now.toISOString()}
     // 全局变量存储操作系统类型，页面加载时初始化一次
     const OPERATING_SYSTEM = detectOperatingSystem();
 
-    // AI代码生成服务 - 使用 Pollinations.ai 免费 GET API (无需API Key, CORS友好)
-    // text.pollinations.ai GET endpoint: OPTIONS 204, no auth required
-    // URL pattern: https://text.pollinations.ai/{prompt}?model={model}&system={system}&seed={seed}
+    // AI代码生成服务 - 使用 Pollinations.ai 免费 POST API (无需API Key)
+    // POST text.pollinations.ai/openai with Content-Type: text/plain 跳过CORS preflight
+    // (text/plain是"简单"Content-Type，浏览器不会发OPTIONS预检请求)
     const AI_SERVICE_CONFIG = {
-      baseUrl: "https://text.pollinations.ai",
+      endpoint: "https://text.pollinations.ai/openai",
       model: "openai",
-      maxPromptLength: 7000
+      maxTokens: 1500,
+      temperature: 0.7
     };
 
     // 加载积木块配置用于AI提示
@@ -4325,19 +4326,37 @@ PATTERN: await sendAndWait("khi",10000,'k'); await delayAfterToken(500); await s
 RULE: ALWAYS use built-in k* skill for named actions. NEVER compose joint movements for actions that have a skill command.`;
 
       const userPrompt = `Generate JavaScript code for: "${description}"`;
-      const fullPrompt = userPrompt;
-      const seed = Math.floor(Math.random() * 1000000);
 
       try {
-        const url = `${AI_SERVICE_CONFIG.baseUrl}/${encodeURIComponent(fullPrompt)}?model=${encodeURIComponent(AI_SERVICE_CONFIG.model)}&system=${encodeURIComponent(systemPrompt)}&seed=${seed}`;
-
-        const response = await fetch(url);
+        const response = await fetch(AI_SERVICE_CONFIG.endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            model: AI_SERVICE_CONFIG.model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            max_tokens: AI_SERVICE_CONFIG.maxTokens,
+            temperature: AI_SERVICE_CONFIG.temperature,
+            seed: Math.floor(Math.random() * 1000000)
+          })
+        });
 
         if (!response.ok) {
           throw new Error(`AI service error: ${response.status} ${response.statusText}`);
         }
 
-        let generatedCode = await response.text();
+        const data = await response.json();
+        let generatedCode = '';
+
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+          generatedCode = data.choices[0].message.content;
+        } else if (data.content) {
+          generatedCode = data.content;
+        } else if (typeof data === 'string') {
+          generatedCode = data;
+        }
 
         generatedCode = generatedCode
           .replace(/```javascript\s*/gi, '')
