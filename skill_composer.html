@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Petoi Skill Composer (Bittle)</title>
+  <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" sizes="any" />
+  <link rel="shortcut icon" href="./assets/logo.svg" type="image/svg+xml" />
+  <script src="./js/timeout_config.js"></script>
+  <script src="./js/petoi_async_client.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --line: #d8dfed;
+      --text: #1c2840;
+      --muted: #5f6b84;
+      --primary: #2563eb;
+      --primary-hover: #1e4fba;
+      --danger: #d73f3f;
+      --good: #229955;
+      --warn: #b5761f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1420px;
+      margin: 0 auto;
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+
+    .title-wrap h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.2;
+    }
+
+    .title-wrap p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .badge {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      color: var(--muted);
+      background: #f8faff;
+    }
+
+    .layout {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 330px 1fr 360px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .connection-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .row input[type="text"],
+    .row input[type="number"],
+    .row select {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px 8px;
+      width: 100%;
+      min-width: 0;
+      font-size: 13px;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 7px 11px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    button.primary:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    button.good {
+      color: var(--good);
+    }
+
+    button.warn {
+      color: var(--warn);
+    }
+
+    button.danger {
+      color: var(--danger);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .dial-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .dial {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fafcff;
+    }
+
+    .dial input {
+      margin: 0;
+    }
+
+    .joint-toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .joint-list {
+      display: grid;
+      gap: 8px;
+      max-height: 670px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .joint-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px 8px;
+      background: #fbfcff;
+      display: grid;
+      gap: 6px;
+    }
+
+    .joint-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .joint-name {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .joint-slider {
+      width: 100%;
+    }
+
+    .scheduler-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .scheduler-tools-right {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    .table-wrap {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: auto;
+      max-height: 570px;
+      background: #fff;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 700px;
+      font-size: 12px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 6px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #f4f8ff;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      font-weight: 600;
+    }
+
+    tr.active-row {
+      background: #ecf4ff;
+    }
+
+    .frame-name-cell input,
+    .frame-delay-cell input,
+    .frame-trig-angle-cell input,
+    .frame-note-cell input,
+    .frame-trig-cell select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 4px 6px;
+      font-size: 12px;
+      background: #fff;
+    }
+
+    .small-btn {
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      min-width: 48px;
+    }
+
+    .preview-box {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      background: #f8fbff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      max-height: 170px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .log-box {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      height: 180px;
+      overflow: auto;
+      padding: 7px;
+      background: #0f172a;
+      color: #d6e3ff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .log-line {
+      margin: 0 0 4px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .footer-hint {
+      font-size: 12px;
+      color: var(--muted);
+      background: #f0f5ff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+
+    @media (max-width: 1280px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .joint-list {
+        max-height: 420px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="title-wrap">
+        <h1 data-i18n="title">Skill Composer (Bittle)</h1>
+        <p data-i18n="subtitle">Web edition migrated from desktop SkillComposer. Model is fixed to Bittle in this phase.</p>
+      </div>
+      <div class="row">
+        <a class="badge" href="./index.html?lang=en" data-i18n="backToPortal">Back to Portal</a>
+        <span id="connectionBadge" class="badge">Disconnected</span>
+      </div>
+    </header>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2 data-i18n="connectionPanel">Connection & Transport</h2>
+        <div class="connection-grid">
+          <div class="row">
+            <button id="btnAutoSerial" class="primary" data-i18n="btnAutoConnectSerial">Auto Connect Serial (Wired First)</button>
+          </div>
+          <div class="row">
+            <button id="btnRefreshPorts" data-i18n="btnRefreshPorts">Refresh Authorized Ports</button>
+            <select id="portSelect"></select>
+            <button id="btnOpenSelectedPort" data-i18n="btnOpenSelected">Open</button>
+          </div>
+          <div class="row">
+            <input id="wifiIpInput" type="text" value="192.168.4.1" />
+            <button id="btnConnectWifi" data-i18n="btnConnectWifi">Connect WiFi</button>
+          </div>
+          <div class="row">
+            <button id="btnDisconnect" class="danger" data-i18n="btnDisconnect">Disconnect</button>
+            <button id="btnStopMotion" class="warn" data-i18n="btnStopMotion">Send Rest (d)</button>
+          </div>
+          <p class="muted" data-i18n="transportHint">
+            Serial priority: wired USB serial > Bluetooth SPP serial > WiFi.
+          </p>
+        </div>
+
+        <div class="dial-grid">
+          <label class="dial">
+            <span data-i18n="dialConnect">Connect Dial</span>
+            <input id="dialConnect" type="checkbox" disabled />
+          </label>
+          <label class="dial">
+            <span data-i18n="dialServo">Servo</span>
+            <input id="dialServo" type="checkbox" checked />
+          </label>
+          <label class="dial">
+            <span data-i18n="dialGyro">Gyro</span>
+            <input id="dialGyro" type="checkbox" />
+          </label>
+          <label class="dial">
+            <span data-i18n="dialRandom">Random</span>
+            <input id="dialRandom" type="checkbox" />
+          </label>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button id="btnSendPoseNow" class="good" data-i18n="btnSendPoseNow">Send Current Pose</button>
+          <button id="btnPlayFramesNow" class="good" data-i18n="btnPlayFramesNow">Play Frames</button>
+        </div>
+        <div id="transportLog" class="log-box" aria-live="polite"></div>
+      </aside>
+
+      <main class="panel">
+        <h2 data-i18n="jointController">Joint Controller (Bittle 16-DoF)</h2>
+        <div class="joint-toolbar">
+          <button id="btnResetPose" data-i18n="btnResetPose">Reset Pose</button>
+          <button id="btnCaptureToFrame" data-i18n="btnCaptureToFrame">Capture to Active Frame</button>
+          <button id="btnApplyFrameToPose" data-i18n="btnApplyFrameToPose">Apply Active Frame</button>
+          <button id="btnMirrorPose" data-i18n="btnMirrorPose">Mirror Active Frame</button>
+          <button id="btnMirrorToggle" data-i18n="btnMirrorToggleOff">Mirror Export: OFF</button>
+        </div>
+        <div id="jointList" class="joint-list"></div>
+      </main>
+
+      <aside class="panel">
+        <h2 data-i18n="schedulerTitle">Skill Frame Scheduler</h2>
+        <div class="scheduler-toolbar">
+          <label class="row">
+            <span data-i18n="repeatLabel">Repeat</span>
+            <input id="repeatInput" type="number" min="1" max="200" step="1" value="1" style="width:80px;" />
+          </label>
+          <button id="btnAddFrame" data-i18n="btnAddFrame">Add Frame</button>
+          <button id="btnDuplicateFrame" data-i18n="btnDuplicateFrame">Duplicate</button>
+          <button id="btnDeleteFrame" class="danger" data-i18n="btnDeleteFrame">Delete</button>
+          <button id="btnUndo" data-i18n="btnUndo">Undo</button>
+          <button id="btnRedo" data-i18n="btnRedo">Redo</button>
+          <div class="scheduler-tools-right">
+            <button id="btnExportJson" data-i18n="btnExportJson">Export JSON</button>
+            <button id="btnImportJson" data-i18n="btnImportJson">Import JSON</button>
+            <input id="importJsonInput" type="file" accept=".json" style="display:none;" />
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th data-i18n="colSet">Set</th>
+                <th data-i18n="colDelay">Delay(ms)</th>
+                <th data-i18n="colTrig">Trig</th>
+                <th data-i18n="colTrigAngle">Trig Angle</th>
+                <th data-i18n="colNote">Note</th>
+                <th data-i18n="colActions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="frameTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="preview-box" id="framePreviewBox"></div>
+      </aside>
+    </section>
+
+    <div class="footer-hint" data-i18n="footerHint">
+      Hardware-in-the-loop test is intentionally skipped on cloud. This page focuses on slider interaction, state management, and transport architecture.
+    </div>
+  </div>
+
+  <script>
+    const I18N = {
+      en: {
+        title: "Skill Composer (Bittle)",
+        subtitle: "Web edition migrated from desktop SkillComposer. Model is fixed to Bittle in this phase.",
+        backToPortal: "Back to Portal",
+        connectionPanel: "Connection & Transport",
+        btnAutoConnectSerial: "Auto Connect Serial (Wired First)",
+        btnRefreshPorts: "Refresh Authorized Ports",
+        btnOpenSelected: "Open",
+        btnConnectWifi: "Connect WiFi",
+        btnDisconnect: "Disconnect",
+        btnStopMotion: "Send Rest (d)",
+        transportHint: "Serial priority: wired USB serial > Bluetooth SPP serial > WiFi.",
+        dialConnect: "Connect Dial",
+        dialServo: "Servo",
+        dialGyro: "Gyro",
+        dialRandom: "Random",
+        btnSendPoseNow: "Send Current Pose",
+        btnPlayFramesNow: "Play Frames",
+        jointController: "Joint Controller (Bittle 16-DoF)",
+        btnResetPose: "Reset Pose",
+        btnCaptureToFrame: "Capture to Active Frame",
+        btnApplyFrameToPose: "Apply Active Frame",
+        btnMirrorPose: "Mirror Active Frame",
+        btnMirrorToggleOff: "Mirror Export: OFF",
+        btnMirrorToggleOn: "Mirror Export: ON",
+        schedulerTitle: "Skill Frame Scheduler",
+        btnAddFrame: "Add Frame",
+        btnDuplicateFrame: "Duplicate",
+        btnDeleteFrame: "Delete",
+        btnUndo: "Undo",
+        btnRedo: "Redo",
+        btnExportJson: "Export JSON",
+        btnImportJson: "Import JSON",
+        repeatLabel: "Repeat",
+        colSet: "Set",
+        colDelay: "Delay(ms)",
+        colTrig: "Trig",
+        colTrigAngle: "Trig Angle",
+        colNote: "Note",
+        colActions: "Actions",
+        footerHint: "Hardware-in-the-loop test is intentionally skipped on cloud. This page focuses on slider interaction, state management, and transport architecture.",
+        stateDisconnected: "Disconnected",
+        stateSerialConnected: "Connected (Serial)",
+        stateWifiConnected: "Connected (WiFi)",
+        stateConnecting: "Connecting...",
+        noPorts: "No Authorized Ports",
+        frameNamePrefix: "frame",
+        logConnectedSerial: "Serial connected",
+        logConnectedWifi: "WiFi connected",
+        logDisconnected: "Disconnected",
+        logConnectionFailed: "Connection failed",
+        logCannotConnect: "Cannot connect: browser serial API unsupported",
+        logNoFrame: "No frame selected",
+        logSent: "Sent:",
+        logPlayDone: "Play completed",
+        logPlayAborted: "Play aborted",
+        logImported: "Imported JSON",
+        logExported: "Exported JSON",
+        logStateSaved: "Draft auto-saved",
+        actionSelect: "Select",
+        actionApply: "Apply",
+        actionUp: "Up",
+        actionDown: "Down",
+        triggerNone: "None",
+        triggerPitch: "Pitch",
+        triggerNegPitch: "-Pitch",
+        triggerRoll: "Roll",
+        triggerNegRoll: "-Roll"
+      }
+    };
+
+    const APP_LANG = "en";
+    function t(key) {
+      if (I18N[APP_LANG] && I18N[APP_LANG][key]) return I18N[APP_LANG][key];
+      if (I18N.en[key]) return I18N.en[key];
+      return key;
+    }
+
+    function applyI18N() {
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (key && t(key)) el.textContent = t(key);
+      });
+    }
+
+    const JOINT_META = [
+      { id: 0, name: "Head Pan", min: -125, max: 125 },
+      { id: 1, name: "Head Tilt", min: -125, max: 125 },
+      { id: 2, name: "Tail", min: -125, max: 125 },
+      { id: 3, name: "Reserved", min: -125, max: 125 },
+      { id: 4, name: "Joint 4", min: -125, max: 125 },
+      { id: 5, name: "Joint 5", min: -125, max: 125 },
+      { id: 6, name: "Joint 6", min: -125, max: 125 },
+      { id: 7, name: "Joint 7", min: -125, max: 125 },
+      { id: 8, name: "LF Arm", min: -125, max: 125 },
+      { id: 9, name: "RF Arm", min: -125, max: 125 },
+      { id: 10, name: "RB Arm", min: -125, max: 125 },
+      { id: 11, name: "LB Arm", min: -125, max: 125 },
+      { id: 12, name: "LF Knee", min: -125, max: 125 },
+      { id: 13, name: "RF Knee", min: -125, max: 125 },
+      { id: 14, name: "RB Knee", min: -125, max: 125 },
+      { id: 15, name: "LB Knee", min: -125, max: 125 }
+    ];
+
+    const TRIGGER_AXIS_OPTIONS = [
+      { value: 0, label: t("triggerNone") },
+      { value: 1, label: t("triggerPitch") },
+      { value: -1, label: t("triggerNegPitch") },
+      { value: 2, label: t("triggerRoll") },
+      { value: -2, label: t("triggerNegRoll") }
+    ];
+
+    const MIRROR_JOINT_PAIRS = [
+      [8, 9],
+      [10, 11],
+      [12, 13],
+      [14, 15]
+    ];
+
+    const DRAFT_STORAGE_KEY = "petoi_skill_composer_bittle_draft_v1";
+
+    function deepCopy(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function createDefaultPose() {
+      return JOINT_META.map(() => 0);
+    }
+
+    function createFrame(pose, index) {
+      return {
+        id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        name: `${t("frameNamePrefix")}_${index + 1}`,
+        joints: pose.slice(0, JOINT_META.length),
+        delayMs: 500,
+        triggerAxis: 0,
+        triggerAngle: 0,
+        note: ""
+      };
+    }
+
+    const composerState = {
+      model: "Bittle",
+      pose: createDefaultPose(),
+      frames: [createFrame(createDefaultPose(), 0)],
+      activeFrameIndex: 0,
+      repeat: 1,
+      mirrorExportEnabled: false,
+      dials: {
+        connect: false,
+        servo: true,
+        gyro: false,
+        random: false
+      },
+      undoStack: [],
+      redoStack: []
+    };
+
+    function pushHistorySnapshot() {
+      composerState.undoStack.push({
+        pose: deepCopy(composerState.pose),
+        frames: deepCopy(composerState.frames),
+        activeFrameIndex: composerState.activeFrameIndex,
+        repeat: composerState.repeat,
+        mirrorExportEnabled: composerState.mirrorExportEnabled
+      });
+      if (composerState.undoStack.length > 100) {
+        composerState.undoStack.shift();
+      }
+      composerState.redoStack.length = 0;
+      refreshUndoRedoButtons();
+    }
+
+    function restoreSnapshot(snapshot) {
+      composerState.pose = deepCopy(snapshot.pose);
+      composerState.frames = deepCopy(snapshot.frames);
+      composerState.activeFrameIndex = snapshot.activeFrameIndex;
+      composerState.repeat = Math.max(1, parseInt(snapshot.repeat || 1, 10));
+      composerState.mirrorExportEnabled = !!snapshot.mirrorExportEnabled;
+      const repeatInput = document.getElementById("repeatInput");
+      if (repeatInput) repeatInput.value = String(composerState.repeat);
+      syncMirrorToggleLabel();
+      renderJointSliders();
+      renderFrameTable();
+      refreshFramePreview();
+      saveDraftSilently();
+    }
+
+    function undo() {
+      if (composerState.undoStack.length === 0) return;
+      const current = {
+        pose: deepCopy(composerState.pose),
+        frames: deepCopy(composerState.frames),
+        activeFrameIndex: composerState.activeFrameIndex,
+        repeat: composerState.repeat,
+        mirrorExportEnabled: composerState.mirrorExportEnabled
+      };
+      const snapshot = composerState.undoStack.pop();
+      composerState.redoStack.push(current);
+      restoreSnapshot(snapshot);
+      refreshUndoRedoButtons();
+    }
+
+    function redo() {
+      if (composerState.redoStack.length === 0) return;
+      const current = {
+        pose: deepCopy(composerState.pose),
+        frames: deepCopy(composerState.frames),
+        activeFrameIndex: composerState.activeFrameIndex,
+        repeat: composerState.repeat,
+        mirrorExportEnabled: composerState.mirrorExportEnabled
+      };
+      const snapshot = composerState.redoStack.pop();
+      composerState.undoStack.push(current);
+      restoreSnapshot(snapshot);
+      refreshUndoRedoButtons();
+    }
+
+    function refreshUndoRedoButtons() {
+      document.getElementById("btnUndo").disabled = composerState.undoStack.length === 0;
+      document.getElementById("btnRedo").disabled = composerState.redoStack.length === 0;
+    }
+
+    function logTransport(message, level = "info") {
+      const logBox = document.getElementById("transportLog");
+      const now = new Date();
+      const stamp = now.toLocaleTimeString("en-US", { hour12: false });
+      const line = document.createElement("p");
+      line.className = "log-line";
+      line.textContent = `[${stamp}] ${message}`;
+      if (level === "warn") line.style.color = "#ffd57a";
+      if (level === "error") line.style.color = "#ff8f8f";
+      if (level === "good") line.style.color = "#88f0b8";
+      logBox.appendChild(line);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function setConnectionBadge(text, status) {
+      const badge = document.getElementById("connectionBadge");
+      badge.textContent = text;
+      badge.style.color = "#5f6b84";
+      badge.style.borderColor = "#d8dfed";
+      badge.style.background = "#f8faff";
+      if (status === "good") {
+        badge.style.color = "#1f7a48";
+        badge.style.borderColor = "#7ed6a4";
+        badge.style.background = "#ecfbf3";
+      } else if (status === "warn") {
+        badge.style.color = "#9a6400";
+        badge.style.borderColor = "#f2cb7d";
+        badge.style.background = "#fff7e8";
+      } else if (status === "bad") {
+        badge.style.color = "#a22d2d";
+        badge.style.borderColor = "#f1a1a1";
+        badge.style.background = "#fff0f0";
+      }
+    }
+
+    function normalizeBluetoothServiceClassId(rawServiceClassId) {
+      const raw = String(rawServiceClassId || "").trim().toLowerCase();
+      if (!raw) return "";
+      return raw.replace(/[^0-9a-f]/g, "");
+    }
+
+    function isLikelyBluetoothSerialPortInfo(portInfo) {
+      if (!portInfo || typeof portInfo !== "object") return false;
+      if (typeof portInfo.bluetoothServiceClassId === "number" || typeof portInfo.bluetoothServiceClassId === "string") return true;
+      return portInfo.usbVendorId == null && portInfo.usbProductId == null;
+    }
+
+    function isBluetoothSPPPortInfo(portInfo) {
+      if (!isLikelyBluetoothSerialPortInfo(portInfo)) return false;
+      const normalized = normalizeBluetoothServiceClassId(portInfo.bluetoothServiceClassId);
+      if (!normalized) return false;
+      return normalized === "1101" || normalized === "0000110100001000800000805f9b34fb";
+    }
+
+    const ESP32_USB_CHIPS = [
+      { vendorId: 0x1a86 },
+      { vendorId: 0x10c4 },
+      { vendorId: 0x0403 },
+      { vendorId: 0x067b },
+      { vendorId: 0x2341 },
+      { vendorId: 0x2a03 },
+      { vendorId: 0x03eb },
+      { vendorId: 0x303a, productId: 0x1001 },
+      { vendorId: 0x303a, productId: 0x0002 }
+    ];
+
+    function buildWebSerialFilters() {
+      const filters = [];
+      ESP32_USB_CHIPS.forEach(chip => {
+        if (chip.productId != null) {
+          filters.push({ usbVendorId: chip.vendorId, usbProductId: chip.productId });
+        } else {
+          filters.push({ usbVendorId: chip.vendorId });
+        }
+      });
+      filters.push({ bluetoothServiceClassId: 0x1101 });
+      return filters;
+    }
+
+    async function requestSerialPortWithFallback() {
+      const filters = buildWebSerialFilters();
+      try {
+        return await navigator.serial.requestPort({ filters });
+      } catch (error) {
+        if (error && error.name === "TypeError" && /bluetoothServiceClassId/i.test(error.message || "")) {
+          const usbOnlyFilters = filters.filter(item => item.usbVendorId != null);
+          return await navigator.serial.requestPort({ filters: usbOnlyFilters });
+        }
+        if (error && error.name === "NotFoundError") {
+          return await navigator.serial.requestPort({});
+        }
+        throw error;
+      }
+    }
+
+    function getPortDisplayName(port) {
+      try {
+        const info = port.getInfo();
+        if (isLikelyBluetoothSerialPortInfo(info)) return "Bluetooth Serial";
+        const vid = info.usbVendorId != null ? `0x${info.usbVendorId.toString(16)}` : "vid?";
+        const pid = info.usbProductId != null ? `0x${info.usbProductId.toString(16)}` : "pid?";
+        return `USB Serial (${vid}:${pid})`;
+      } catch (error) {
+        return "Serial Port";
+      }
+    }
+
+    async function openSerialPortWithRetry(targetPort, baudRate) {
+      const baudCandidates = [baudRate, 115200, 57600, 38400, 9600].filter((value, index, arr) => arr.indexOf(value) === index);
+      let lastError = null;
+      for (const candidate of baudCandidates) {
+        try {
+          await targetPort.open({ baudRate: candidate });
+          return candidate;
+        } catch (error) {
+          lastError = error;
+          try {
+            await targetPort.close();
+          } catch (closeError) {
+            // Ignore close errors between retries.
+          }
+        }
+      }
+      throw lastError || new Error("Failed to open serial port");
+    }
+
+    function encodeCommand(token, params) {
+      if (token.charCodeAt(0) >= 65 && token.charCodeAt(0) <= 90) {
+        const byteArray = [];
+        for (let i = 0; i < token.length; i += 1) {
+          byteArray.push(token.charCodeAt(i));
+        }
+        for (let i = 0; i < params.length; i += 1) {
+          byteArray.push(params[i] & 0xff);
+        }
+        byteArray.push(126);
+        return `bytes:${JSON.stringify(byteArray)}`;
+      }
+      return params.length > 0 ? `${token}${params.join(" ")}` : token;
+    }
+
+    class ComposerTransport {
+      constructor() {
+        this.mode = "none";
+        this.serialPort = null;
+        this.serialReader = null;
+        this.serialWriter = null;
+        this.serialBuffer = "";
+        this.keepSerialReading = false;
+        this.petoiClient = null;
+        this.currentIp = "192.168.4.1";
+      }
+
+      async refreshAuthorizedPorts() {
+        if (!navigator.serial || typeof navigator.serial.getPorts !== "function") {
+          return [];
+        }
+        return await navigator.serial.getPorts();
+      }
+
+      async connectSerialAuto() {
+        if (!navigator.serial) {
+          throw new Error(t("logCannotConnect"));
+        }
+
+        const ports = await this.refreshAuthorizedPorts();
+        let target = null;
+
+        const wiredPorts = ports.filter(port => {
+          try {
+            return !isLikelyBluetoothSerialPortInfo(port.getInfo());
+          } catch (error) {
+            return false;
+          }
+        });
+        const btPorts = ports.filter(port => {
+          try {
+            return isBluetoothSPPPortInfo(port.getInfo());
+          } catch (error) {
+            return false;
+          }
+        });
+
+        if (wiredPorts.length > 0) {
+          target = wiredPorts[0];
+        } else if (btPorts.length > 0) {
+          target = btPorts[0];
+        } else {
+          target = await requestSerialPortWithFallback();
+        }
+
+        await this.connectSerialPort(target, 115200);
+      }
+
+      async connectSerialPort(port, baudRate = 115200) {
+        await this.disconnect();
+        const actualBaud = await openSerialPortWithRetry(port, baudRate);
+        this.serialPort = port;
+        this.serialWriter = port.writable.getWriter();
+        this.serialReader = port.readable.getReader();
+        this.keepSerialReading = true;
+        this.serialBuffer = "";
+        this.mode = "serial";
+        this.startSerialReadLoop();
+        logTransport(`${t("logConnectedSerial")} @ ${actualBaud}`, "good");
+      }
+
+      startSerialReadLoop() {
+        const decoder = new TextDecoder();
+        const loop = async () => {
+          while (this.keepSerialReading && this.serialReader) {
+            try {
+              const { value, done } = await this.serialReader.read();
+              if (done) break;
+              if (value) {
+                this.serialBuffer += decoder.decode(value, { stream: true });
+                if (this.serialBuffer.length > 16000) {
+                  this.serialBuffer = this.serialBuffer.slice(-8000);
+                }
+              }
+            } catch (error) {
+              break;
+            }
+          }
+        };
+        loop();
+      }
+
+      async connectWifi(ip) {
+        await this.disconnect();
+        this.currentIp = ip;
+        this.petoiClient = new PetoiAsyncClient(`ws://${ip}:81`);
+        await this.petoiClient.connect();
+        this.mode = "wifi";
+        logTransport(`${t("logConnectedWifi")} ${ip}`, "good");
+      }
+
+      async sendCommand(command, options = {}) {
+        const timeout = options.timeout || 10000;
+        const token = options.token || null;
+
+        if (this.mode === "serial") {
+          if (!this.serialWriter) throw new Error("Serial writer unavailable");
+          const fromIndex = this.serialBuffer.length;
+          let payload;
+          if (command.startsWith("bytes:")) {
+            const bytes = JSON.parse(command.substring(6));
+            payload = new Uint8Array(bytes);
+          } else {
+            payload = new TextEncoder().encode(command);
+          }
+          await this.serialWriter.write(payload);
+          logTransport(`${t("logSent")} ${command}`);
+          if (token) {
+            await this.waitForSerialTokenLine(token, timeout, fromIndex);
+          }
+          return true;
+        }
+
+        if (this.mode === "wifi") {
+          if (!this.petoiClient) throw new Error("WiFi client unavailable");
+          let finalCommand = command;
+          if (command.startsWith("bytes:")) {
+            const byteArrayStr = command.substring(6);
+            const byteArray = JSON.parse(byteArrayStr);
+            const uint8Array = new Uint8Array(byteArray);
+            const dataText = String.fromCharCode.apply(null, uint8Array);
+            finalCommand = `b64:${btoa(dataText)}`;
+          }
+          const result = await this.petoiClient.sendCommand(finalCommand, timeout);
+          logTransport(`${t("logSent")} ${finalCommand}`);
+          return result;
+        }
+
+        throw new Error("Not connected");
+      }
+
+      async waitForSerialTokenLine(expectedToken, timeoutMs, fromIndex) {
+        const start = Date.now();
+        let lastIndex = typeof fromIndex === "number" ? fromIndex : this.serialBuffer.length;
+        while (Date.now() - start < timeoutMs) {
+          const currentLen = this.serialBuffer.length;
+          if (currentLen > lastIndex) {
+            const fragment = this.serialBuffer.substring(lastIndex, currentLen);
+            lastIndex = currentLen;
+            const lines = fragment.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").map(s => s.trim()).filter(Boolean);
+            if (lines.includes(expectedToken)) return true;
+          }
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        throw new Error(`Token timeout: ${expectedToken}`);
+      }
+
+      async disconnect() {
+        if (this.serialReader) {
+          try {
+            await this.serialReader.cancel();
+          } catch (error) {
+            // Ignore cancellation error.
+          }
+          try {
+            this.serialReader.releaseLock();
+          } catch (error) {
+            // Ignore release error.
+          }
+          this.serialReader = null;
+        }
+        if (this.serialWriter) {
+          try {
+            this.serialWriter.releaseLock();
+          } catch (error) {
+            // Ignore release error.
+          }
+          this.serialWriter = null;
+        }
+        if (this.serialPort) {
+          try {
+            await this.serialPort.close();
+          } catch (error) {
+            // Ignore close errors.
+          }
+          this.serialPort = null;
+        }
+        this.keepSerialReading = false;
+
+        if (this.petoiClient) {
+          try {
+            this.petoiClient.disconnect();
+          } catch (error) {
+            // Ignore disconnect errors.
+          }
+          this.petoiClient = null;
+        }
+        this.mode = "none";
+      }
+    }
+
+    const transport = new ComposerTransport();
+
+    function updateDialUI() {
+      document.getElementById("dialConnect").checked = composerState.dials.connect;
+      document.getElementById("dialServo").checked = composerState.dials.servo;
+      document.getElementById("dialGyro").checked = composerState.dials.gyro;
+      document.getElementById("dialRandom").checked = composerState.dials.random;
+    }
+
+    function syncMirrorToggleLabel() {
+      const btn = document.getElementById("btnMirrorToggle");
+      btn.textContent = composerState.mirrorExportEnabled ? t("btnMirrorToggleOn") : t("btnMirrorToggleOff");
+    }
+
+    function renderJointSliders() {
+      const host = document.getElementById("jointList");
+      host.innerHTML = "";
+      JOINT_META.forEach((jointMeta, idx) => {
+        const wrap = document.createElement("div");
+        wrap.className = "joint-item";
+        const top = document.createElement("div");
+        top.className = "joint-top";
+        top.innerHTML = `<strong>J${jointMeta.id}</strong><span class="joint-name">${jointMeta.name}</span>`;
+        const val = document.createElement("span");
+        val.id = `jointValue_${idx}`;
+        val.textContent = String(composerState.pose[idx]);
+        top.appendChild(val);
+        const slider = document.createElement("input");
+        slider.className = "joint-slider";
+        slider.type = "range";
+        slider.min = String(jointMeta.min);
+        slider.max = String(jointMeta.max);
+        slider.step = "1";
+        slider.value = String(composerState.pose[idx]);
+        slider.dataset.jointIndex = String(idx);
+        slider.dataset.sliderWasInteracting = "0";
+        const captureStartSnapshot = () => {
+          if (slider.dataset.sliderWasInteracting !== "1") {
+            pushHistorySnapshot();
+            slider.dataset.sliderWasInteracting = "1";
+          }
+        };
+        slider.addEventListener("pointerdown", captureStartSnapshot);
+        slider.addEventListener("mousedown", captureStartSnapshot);
+        slider.addEventListener("touchstart", captureStartSnapshot, { passive: true });
+        slider.addEventListener("input", event => {
+          const index = parseInt(event.target.dataset.jointIndex, 10);
+          const value = parseInt(event.target.value, 10);
+          composerState.pose[index] = value;
+          document.getElementById(`jointValue_${index}`).textContent = String(value);
+          const activeFrame = composerState.frames[composerState.activeFrameIndex];
+          if (activeFrame) {
+            activeFrame.joints[index] = value;
+            refreshFramePreview();
+            saveDraftSilently();
+          }
+        });
+        slider.addEventListener("change", () => {
+          slider.dataset.sliderWasInteracting = "0";
+          saveDraftSilently();
+        });
+        wrap.appendChild(top);
+        wrap.appendChild(slider);
+        host.appendChild(wrap);
+      });
+    }
+
+    function selectFrame(index) {
+      if (index < 0 || index >= composerState.frames.length) return;
+      composerState.activeFrameIndex = index;
+      renderFrameTable();
+      refreshFramePreview();
+      saveDraftSilently();
+    }
+
+    function applyFrameToPose(index) {
+      if (index < 0 || index >= composerState.frames.length) return;
+      pushHistorySnapshot();
+      const frame = composerState.frames[index];
+      composerState.pose = frame.joints.slice(0, JOINT_META.length);
+      selectFrame(index);
+      renderJointSliders();
+      saveDraftSilently();
+    }
+
+    function capturePoseToActiveFrame() {
+      const activeFrame = composerState.frames[composerState.activeFrameIndex];
+      if (!activeFrame) {
+        logTransport(t("logNoFrame"), "warn");
+        return;
+      }
+      pushHistorySnapshot();
+      activeFrame.joints = composerState.pose.slice(0, JOINT_META.length);
+      renderFrameTable();
+      refreshFramePreview();
+      saveDraftSilently();
+    }
+
+    function moveFrame(index, targetIndex) {
+      if (targetIndex < 0 || targetIndex >= composerState.frames.length) return;
+      pushHistorySnapshot();
+      const frame = composerState.frames.splice(index, 1)[0];
+      composerState.frames.splice(targetIndex, 0, frame);
+      composerState.activeFrameIndex = targetIndex;
+      renderFrameTable();
+      refreshFramePreview();
+      saveDraftSilently();
+    }
+
+    function renderFrameTable() {
+      const body = document.getElementById("frameTableBody");
+      body.innerHTML = "";
+
+      composerState.frames.forEach((frame, index) => {
+        const row = document.createElement("tr");
+        if (index === composerState.activeFrameIndex) {
+          row.className = "active-row";
+        }
+
+        const tdIndex = document.createElement("td");
+        tdIndex.textContent = String(index + 1);
+
+        const tdName = document.createElement("td");
+        tdName.className = "frame-name-cell";
+        const nameInput = document.createElement("input");
+        nameInput.type = "text";
+        nameInput.value = frame.name;
+        nameInput.addEventListener("change", () => {
+          pushHistorySnapshot();
+          frame.name = nameInput.value.trim() || `${t("frameNamePrefix")}_${index + 1}`;
+          saveDraftSilently();
+        });
+        tdName.appendChild(nameInput);
+
+        const tdDelay = document.createElement("td");
+        tdDelay.className = "frame-delay-cell";
+        const delayInput = document.createElement("input");
+        delayInput.type = "number";
+        delayInput.min = "0";
+        delayInput.max = "60000";
+        delayInput.step = "10";
+        delayInput.value = String(frame.delayMs);
+        delayInput.addEventListener("change", () => {
+          pushHistorySnapshot();
+          frame.delayMs = Math.max(0, parseInt(delayInput.value || "0", 10));
+          saveDraftSilently();
+          refreshFramePreview();
+        });
+        tdDelay.appendChild(delayInput);
+
+        const tdTrig = document.createElement("td");
+        tdTrig.className = "frame-trig-cell";
+        const trigSelect = document.createElement("select");
+        TRIGGER_AXIS_OPTIONS.forEach(option => {
+          const op = document.createElement("option");
+          op.value = String(option.value);
+          op.textContent = option.label;
+          trigSelect.appendChild(op);
+        });
+        trigSelect.value = String(frame.triggerAxis);
+        trigSelect.addEventListener("change", () => {
+          pushHistorySnapshot();
+          frame.triggerAxis = parseInt(trigSelect.value, 10);
+          saveDraftSilently();
+          refreshFramePreview();
+        });
+        tdTrig.appendChild(trigSelect);
+
+        const tdTrigAngle = document.createElement("td");
+        tdTrigAngle.className = "frame-trig-angle-cell";
+        const trigAngleInput = document.createElement("input");
+        trigAngleInput.type = "number";
+        trigAngleInput.min = "-180";
+        trigAngleInput.max = "180";
+        trigAngleInput.step = "1";
+        trigAngleInput.value = String(frame.triggerAngle);
+        trigAngleInput.addEventListener("change", () => {
+          pushHistorySnapshot();
+          frame.triggerAngle = parseInt(trigAngleInput.value || "0", 10);
+          saveDraftSilently();
+          refreshFramePreview();
+        });
+        tdTrigAngle.appendChild(trigAngleInput);
+
+        const tdNote = document.createElement("td");
+        tdNote.className = "frame-note-cell";
+        const noteInput = document.createElement("input");
+        noteInput.type = "text";
+        noteInput.value = frame.note;
+        noteInput.addEventListener("change", () => {
+          pushHistorySnapshot();
+          frame.note = noteInput.value;
+          saveDraftSilently();
+          refreshFramePreview();
+        });
+        tdNote.appendChild(noteInput);
+
+        const tdActions = document.createElement("td");
+        const btnSelect = document.createElement("button");
+        btnSelect.className = "small-btn";
+        btnSelect.textContent = t("actionSelect");
+        btnSelect.addEventListener("click", () => selectFrame(index));
+
+        const btnApply = document.createElement("button");
+        btnApply.className = "small-btn";
+        btnApply.textContent = t("actionApply");
+        btnApply.addEventListener("click", () => applyFrameToPose(index));
+
+        const btnUp = document.createElement("button");
+        btnUp.className = "small-btn";
+        btnUp.textContent = t("actionUp");
+        btnUp.disabled = index === 0;
+        btnUp.addEventListener("click", () => moveFrame(index, index - 1));
+
+        const btnDown = document.createElement("button");
+        btnDown.className = "small-btn";
+        btnDown.textContent = t("actionDown");
+        btnDown.disabled = index === composerState.frames.length - 1;
+        btnDown.addEventListener("click", () => moveFrame(index, index + 1));
+
+        tdActions.appendChild(btnSelect);
+        tdActions.appendChild(btnApply);
+        tdActions.appendChild(btnUp);
+        tdActions.appendChild(btnDown);
+
+        row.addEventListener("click", event => {
+          if (event.target.tagName.toLowerCase() === "input" || event.target.tagName.toLowerCase() === "select" || event.target.tagName.toLowerCase() === "button") return;
+          selectFrame(index);
+        });
+
+        row.appendChild(tdIndex);
+        row.appendChild(tdName);
+        row.appendChild(tdDelay);
+        row.appendChild(tdTrig);
+        row.appendChild(tdTrigAngle);
+        row.appendChild(tdNote);
+        row.appendChild(tdActions);
+        body.appendChild(row);
+      });
+
+      refreshUndoRedoButtons();
+    }
+
+    function mirrorFrame(frame) {
+      const mirrored = frame.joints.slice(0, JOINT_META.length);
+      mirrored[0] = -mirrored[0];
+      MIRROR_JOINT_PAIRS.forEach(pair => {
+        const left = pair[0];
+        const right = pair[1];
+        const leftVal = frame.joints[left];
+        const rightVal = frame.joints[right];
+        mirrored[left] = -rightVal;
+        mirrored[right] = -leftVal;
+      });
+      return {
+        ...frame,
+        joints: mirrored
+      };
+    }
+
+    function refreshFramePreview() {
+      const preview = document.getElementById("framePreviewBox");
+      const active = composerState.frames[composerState.activeFrameIndex];
+      if (!active) {
+        preview.textContent = "No active frame";
+        return;
+      }
+      const targetFrame = composerState.mirrorExportEnabled ? mirrorFrame(active) : active;
+      const moveParams = [];
+      targetFrame.joints.forEach((angle, jointId) => {
+        moveParams.push(jointId, angle);
+      });
+      const command = encodeCommand("i", moveParams);
+      preview.textContent = [
+        `repeat: ${composerState.repeat}`,
+        `activeFrameIndex: ${composerState.activeFrameIndex}`,
+        `frameName: ${targetFrame.name}`,
+        `delayMs: ${targetFrame.delayMs}`,
+        `triggerAxis: ${targetFrame.triggerAxis}, triggerAngle: ${targetFrame.triggerAngle}`,
+        `joints: [${targetFrame.joints.join(", ")}]`,
+        `commandPreview: ${command}`
+      ].join("\n");
+    }
+
+    function saveDraftSilently() {
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
+          model: composerState.model,
+          pose: composerState.pose,
+          frames: composerState.frames,
+          activeFrameIndex: composerState.activeFrameIndex,
+          repeat: composerState.repeat,
+          mirrorExportEnabled: composerState.mirrorExportEnabled,
+          dials: composerState.dials
+        }));
+      } catch (error) {
+        // Ignore storage exceptions.
+      }
+    }
+
+    function loadDraft() {
+      try {
+        const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.pose) || !Array.isArray(parsed.frames)) return;
+        if (parsed.pose.length !== JOINT_META.length) return;
+        composerState.pose = parsed.pose.slice(0, JOINT_META.length).map(value => parseInt(value || 0, 10));
+        composerState.frames = parsed.frames.map((frame, index) => ({
+          id: frame.id || `${Date.now()}_${index}`,
+          name: frame.name || `${t("frameNamePrefix")}_${index + 1}`,
+          joints: Array.isArray(frame.joints) ? frame.joints.slice(0, JOINT_META.length).map(value => parseInt(value || 0, 10)) : createDefaultPose(),
+          delayMs: Math.max(0, parseInt(frame.delayMs || 0, 10)),
+          triggerAxis: parseInt(frame.triggerAxis || 0, 10),
+          triggerAngle: parseInt(frame.triggerAngle || 0, 10),
+          note: typeof frame.note === "string" ? frame.note : ""
+        }));
+        if (composerState.frames.length === 0) {
+          composerState.frames = [createFrame(createDefaultPose(), 0)];
+        }
+        composerState.activeFrameIndex = Math.min(Math.max(0, parseInt(parsed.activeFrameIndex || 0, 10)), composerState.frames.length - 1);
+        composerState.repeat = Math.max(1, parseInt(parsed.repeat || 1, 10));
+        composerState.mirrorExportEnabled = !!parsed.mirrorExportEnabled;
+        if (parsed.dials && typeof parsed.dials === "object") {
+          composerState.dials.servo = parsed.dials.servo !== false;
+          composerState.dials.gyro = !!parsed.dials.gyro;
+          composerState.dials.random = !!parsed.dials.random;
+        }
+        const repeatInput = document.getElementById("repeatInput");
+        if (repeatInput) repeatInput.value = String(composerState.repeat);
+        logTransport(t("logStateSaved"));
+      } catch (error) {
+        // Ignore invalid draft.
+      }
+    }
+
+    function exportComposerJson() {
+      const payload = {
+        type: "petoi_skill_composer",
+        version: 1,
+        model: composerState.model,
+        repeat: composerState.repeat,
+        mirrorExportEnabled: composerState.mirrorExportEnabled,
+        pose: composerState.pose,
+        frames: composerState.frames
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `skill_composer_bittle_${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      logTransport(t("logExported"), "good");
+    }
+
+    function importComposerJsonFile(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(String(reader.result || ""));
+          if (!parsed || !Array.isArray(parsed.frames)) throw new Error("Invalid JSON structure");
+          pushHistorySnapshot();
+          composerState.model = parsed.model || "Bittle";
+          composerState.repeat = Math.max(1, parseInt(parsed.repeat || 1, 10));
+          composerState.mirrorExportEnabled = !!parsed.mirrorExportEnabled;
+          composerState.pose = Array.isArray(parsed.pose) ? parsed.pose.slice(0, JOINT_META.length).map(value => parseInt(value || 0, 10)) : createDefaultPose();
+          composerState.frames = parsed.frames.map((frame, index) => ({
+            id: frame.id || `${Date.now()}_${index}`,
+            name: frame.name || `${t("frameNamePrefix")}_${index + 1}`,
+            joints: Array.isArray(frame.joints) ? frame.joints.slice(0, JOINT_META.length).map(value => parseInt(value || 0, 10)) : createDefaultPose(),
+            delayMs: Math.max(0, parseInt(frame.delayMs || 0, 10)),
+            triggerAxis: parseInt(frame.triggerAxis || 0, 10),
+            triggerAngle: parseInt(frame.triggerAngle || 0, 10),
+            note: typeof frame.note === "string" ? frame.note : ""
+          }));
+          if (composerState.frames.length === 0) {
+            composerState.frames = [createFrame(createDefaultPose(), 0)];
+          }
+          composerState.activeFrameIndex = 0;
+          const repeatInput = document.getElementById("repeatInput");
+          if (repeatInput) repeatInput.value = String(composerState.repeat);
+          syncMirrorToggleLabel();
+          renderJointSliders();
+          renderFrameTable();
+          refreshFramePreview();
+          saveDraftSilently();
+          logTransport(t("logImported"), "good");
+        } catch (error) {
+          logTransport(`${t("logConnectionFailed")}: ${error.message}`, "error");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    async function sendPoseNow() {
+      try {
+        const moveParams = [];
+        composerState.pose.forEach((angle, jointId) => {
+          moveParams.push(jointId, angle);
+        });
+        const cmd = encodeCommand("i", moveParams);
+        await transport.sendCommand(cmd, { timeout: 15000, token: "i" });
+      } catch (error) {
+        logTransport(`${t("logConnectionFailed")}: ${error.message}`, "error");
+      }
+    }
+
+    async function playFramesNow() {
+      if (composerState.frames.length === 0) {
+        logTransport(t("logNoFrame"), "warn");
+        return;
+      }
+      try {
+        const repeatCount = Math.max(1, parseInt(composerState.repeat || 1, 10));
+        for (let loopIndex = 0; loopIndex < repeatCount; loopIndex += 1) {
+          for (let i = 0; i < composerState.frames.length; i += 1) {
+            const sourceFrame = composerState.frames[i];
+            const frame = composerState.mirrorExportEnabled ? mirrorFrame(sourceFrame) : sourceFrame;
+            const moveParams = [];
+            frame.joints.forEach((angle, jointId) => {
+              moveParams.push(jointId, angle);
+            });
+            const cmd = encodeCommand("i", moveParams);
+            await transport.sendCommand(cmd, { timeout: 20000, token: "i" });
+            const waitMs = Math.max(0, frame.delayMs);
+            if (waitMs > 0) {
+              await new Promise(resolve => setTimeout(resolve, waitMs));
+            }
+          }
+        }
+        logTransport(t("logPlayDone"), "good");
+      } catch (error) {
+        logTransport(`${t("logPlayAborted")}: ${error.message}`, "error");
+      }
+    }
+
+    function addFrame() {
+      pushHistorySnapshot();
+      const frame = createFrame(composerState.pose, composerState.frames.length);
+      composerState.frames.push(frame);
+      composerState.activeFrameIndex = composerState.frames.length - 1;
+      renderFrameTable();
+      refreshFramePreview();
+      saveDraftSilently();
+    }
+
+    function duplicateFrame() {
+      const active = composerState.frames[composerState.activeFrameIndex];
+      if (!active) {
+        logTransport(t("logNoFrame"), "warn");
+        return;
+      }
+      pushHistorySnapshot();
+      const cloned = deepCopy(active);
+      cloned.id = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      cloned.name = `${active.name}_copy`;
+      composerState.frames.splice(composerState.activeFrameIndex + 1, 0, cloned);
+      composerState.activeFrameIndex += 1;
+      renderFrameTable();
+      refreshFramePreview();
+      saveDraftSilently();
+    }
+
+    function deleteFrame() {
+      if (composerState.frames.length <= 1) {
+        return;
+      }
+      pushHistorySnapshot();
+      composerState.frames.splice(composerState.activeFrameIndex, 1);
+      composerState.activeFrameIndex = Math.max(0, Math.min(composerState.activeFrameIndex, composerState.frames.length - 1));
+      renderFrameTable();
+      refreshFramePreview();
+      saveDraftSilently();
+    }
+
+    function mirrorActiveFrame() {
+      const active = composerState.frames[composerState.activeFrameIndex];
+      if (!active) {
+        logTransport(t("logNoFrame"), "warn");
+        return;
+      }
+      pushHistorySnapshot();
+      const mirrored = mirrorFrame(active);
+      active.joints = mirrored.joints.slice(0, JOINT_META.length);
+      composerState.pose = active.joints.slice(0, JOINT_META.length);
+      renderJointSliders();
+      renderFrameTable();
+      refreshFramePreview();
+      saveDraftSilently();
+    }
+
+    function resetPose() {
+      pushHistorySnapshot();
+      composerState.pose = createDefaultPose();
+      const active = composerState.frames[composerState.activeFrameIndex];
+      if (active) {
+        active.joints = composerState.pose.slice(0, JOINT_META.length);
+      }
+      renderJointSliders();
+      renderFrameTable();
+      refreshFramePreview();
+      saveDraftSilently();
+    }
+
+    async function refreshPortSelect() {
+      const select = document.getElementById("portSelect");
+      select.innerHTML = "";
+      if (!navigator.serial) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = t("logCannotConnect");
+        select.appendChild(option);
+        return;
+      }
+      const ports = await transport.refreshAuthorizedPorts();
+      if (!ports || ports.length === 0) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = t("noPorts");
+        select.appendChild(option);
+        return;
+      }
+      ports.forEach((port, idx) => {
+        const option = document.createElement("option");
+        option.value = String(idx);
+        option.textContent = getPortDisplayName(port);
+        select.appendChild(option);
+      });
+      select.dataset.portCount = String(ports.length);
+    }
+
+    async function openSelectedPortFromMenu() {
+      if (!navigator.serial) return;
+      const ports = await transport.refreshAuthorizedPorts();
+      const select = document.getElementById("portSelect");
+      const index = parseInt(select.value || "-1", 10);
+      if (index < 0 || index >= ports.length) {
+        return;
+      }
+      try {
+        setConnectionBadge(t("stateConnecting"), "warn");
+        await transport.connectSerialPort(ports[index], 115200);
+        composerState.dials.connect = true;
+        updateDialUI();
+        setConnectionBadge(t("stateSerialConnected"), "good");
+      } catch (error) {
+        composerState.dials.connect = false;
+        updateDialUI();
+        setConnectionBadge(t("stateDisconnected"), "bad");
+        logTransport(`${t("logConnectionFailed")}: ${error.message}`, "error");
+      }
+    }
+
+    function bindUiEvents() {
+      document.getElementById("btnAutoSerial").addEventListener("click", async () => {
+        try {
+          setConnectionBadge(t("stateConnecting"), "warn");
+          await transport.connectSerialAuto();
+          composerState.dials.connect = true;
+          updateDialUI();
+          setConnectionBadge(t("stateSerialConnected"), "good");
+          await refreshPortSelect();
+        } catch (error) {
+          composerState.dials.connect = false;
+          updateDialUI();
+          setConnectionBadge(t("stateDisconnected"), "bad");
+          logTransport(`${t("logConnectionFailed")}: ${error.message}`, "error");
+        }
+      });
+
+      document.getElementById("btnRefreshPorts").addEventListener("click", async () => {
+        try {
+          await refreshPortSelect();
+        } catch (error) {
+          logTransport(`${t("logConnectionFailed")}: ${error.message}`, "error");
+        }
+      });
+
+      document.getElementById("btnOpenSelectedPort").addEventListener("click", openSelectedPortFromMenu);
+
+      document.getElementById("btnConnectWifi").addEventListener("click", async () => {
+        const ip = document.getElementById("wifiIpInput").value.trim();
+        if (!ip) return;
+        try {
+          setConnectionBadge(t("stateConnecting"), "warn");
+          await transport.connectWifi(ip);
+          composerState.dials.connect = true;
+          updateDialUI();
+          setConnectionBadge(t("stateWifiConnected"), "good");
+        } catch (error) {
+          composerState.dials.connect = false;
+          updateDialUI();
+          setConnectionBadge(t("stateDisconnected"), "bad");
+          logTransport(`${t("logConnectionFailed")}: ${error.message}`, "error");
+        }
+      });
+
+      document.getElementById("btnDisconnect").addEventListener("click", async () => {
+        await transport.disconnect();
+        composerState.dials.connect = false;
+        updateDialUI();
+        setConnectionBadge(t("stateDisconnected"), "bad");
+        logTransport(t("logDisconnected"));
+      });
+
+      document.getElementById("btnStopMotion").addEventListener("click", async () => {
+        try {
+          await transport.sendCommand("d", { timeout: 5000, token: "d" });
+        } catch (error) {
+          logTransport(`${t("logConnectionFailed")}: ${error.message}`, "error");
+        }
+      });
+
+      document.getElementById("dialServo").addEventListener("change", event => {
+        composerState.dials.servo = !!event.target.checked;
+        saveDraftSilently();
+      });
+
+      document.getElementById("dialGyro").addEventListener("change", async event => {
+        composerState.dials.gyro = !!event.target.checked;
+        try {
+          const cmd = encodeCommand("g", [composerState.dials.gyro ? "B" : "b"]);
+          await transport.sendCommand(cmd, { timeout: 5000, token: "g" });
+        } catch (error) {
+          logTransport(`${t("logConnectionFailed")}: ${error.message}`, "error");
+        }
+        saveDraftSilently();
+      });
+
+      document.getElementById("dialRandom").addEventListener("change", event => {
+        composerState.dials.random = !!event.target.checked;
+        saveDraftSilently();
+      });
+
+      document.getElementById("btnSendPoseNow").addEventListener("click", sendPoseNow);
+      document.getElementById("btnPlayFramesNow").addEventListener("click", playFramesNow);
+      document.getElementById("btnResetPose").addEventListener("click", resetPose);
+      document.getElementById("btnCaptureToFrame").addEventListener("click", capturePoseToActiveFrame);
+      document.getElementById("btnApplyFrameToPose").addEventListener("click", () => applyFrameToPose(composerState.activeFrameIndex));
+      document.getElementById("btnMirrorPose").addEventListener("click", mirrorActiveFrame);
+      document.getElementById("btnMirrorToggle").addEventListener("click", () => {
+        composerState.mirrorExportEnabled = !composerState.mirrorExportEnabled;
+        syncMirrorToggleLabel();
+        refreshFramePreview();
+        saveDraftSilently();
+      });
+
+      document.getElementById("btnAddFrame").addEventListener("click", addFrame);
+      document.getElementById("btnDuplicateFrame").addEventListener("click", duplicateFrame);
+      document.getElementById("btnDeleteFrame").addEventListener("click", deleteFrame);
+      document.getElementById("btnUndo").addEventListener("click", undo);
+      document.getElementById("btnRedo").addEventListener("click", redo);
+      document.getElementById("repeatInput").addEventListener("change", event => {
+        pushHistorySnapshot();
+        composerState.repeat = Math.max(1, parseInt(event.target.value || "1", 10));
+        event.target.value = String(composerState.repeat);
+        refreshFramePreview();
+        saveDraftSilently();
+      });
+      document.getElementById("btnExportJson").addEventListener("click", exportComposerJson);
+      document.getElementById("btnImportJson").addEventListener("click", () => {
+        document.getElementById("importJsonInput").click();
+      });
+      document.getElementById("importJsonInput").addEventListener("change", event => {
+        const file = event.target.files && event.target.files[0];
+        if (file) importComposerJsonFile(file);
+        event.target.value = "";
+      });
+    }
+
+    function bootstrap() {
+      applyI18N();
+      loadDraft();
+      updateDialUI();
+      syncMirrorToggleLabel();
+      renderJointSliders();
+      renderFrameTable();
+      refreshFramePreview();
+      bindUiEvents();
+      refreshUndoRedoButtons();
+      setConnectionBadge(t("stateDisconnected"), "bad");
+      refreshPortSelect().catch(() => {
+        // Ignore startup refresh errors.
+      });
+    }
+
+    window.addEventListener("beforeunload", () => {
+      saveDraftSilently();
+      transport.disconnect().catch(() => {
+        // Ignore shutdown errors.
+      });
+    });
+
+    bootstrap();
+  </script>
+</body>
+
+</html>

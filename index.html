@@ -143,6 +143,7 @@
 
     <div class="links">
       <a id="enterMainLink" class="enter-link" href="./main.html?lang=en">Petoi Web Coding Blocks</a>
+      <a id="enterSkillComposerLink" class="enter-link" href="./skill_composer.html?lang=en">Petoi Skill Composer (Bittle)</a>
       <a id="enterRemoteLink" class="enter-link" href="./mobile_remote.html?lang=en">Petoi Web Controller (Under construction)</a>
     </div>
     <p class="footer-note" id="langHint">
@@ -158,6 +159,7 @@
       zh: {
         appTitle: "Petoi编程门户",
         enterButton: "Petoi陪拓网页编程积木",
+        skillComposerButton: "Petoi 技能编辑器（Bittle）",
         remoteButton: "Petoi Web Controller (Under construction)",
         portalDesc: "在浏览器中直接控制你的 Petoi 机器人。",
         langHint: "当前语言会自动传递给工作区，作为 main 页面默认语言。"
@@ -165,6 +167,7 @@
       en: {
         appTitle: "Petoi Coding Portal",
         enterButton: "Petoi Web Coding Blocks",
+        skillComposerButton: "Petoi Skill Composer (Bittle)",
         remoteButton: "Petoi Web Controller (Under construction)",
         portalDesc: "Open the Blockly workspace and control your Petoi robot directly in your browser.",
         langHint: "The selected language will be used as the default language in the workspace."
@@ -172,6 +175,7 @@
       ja: {
         appTitle: "Petoiコーディングポータル",
         enterButton: "Petoiウェブコーディングブロック",
+        skillComposerButton: "Petoi スキルコンポーザー（Bittle）",
         remoteButton: "Petoi Web Controller (Under construction)",
         portalDesc: "Blockly ワークスペースを開き、ブラウザから Petoi ロボットを直接操作できます。",
         langHint: "選択した言語は自動的に main ページへ引き継がれ、初期言語として適用されます。"
@@ -249,6 +253,10 @@
       const mainLink = document.getElementById("enterMainLink");
       mainLink.textContent = TEXTS[currentLang].enterButton || "Petoi Web Coding Blocks";
       mainLink.href = "./main.html?lang=" + encodeURIComponent(currentLang);
+
+      const skillComposerLink = document.getElementById("enterSkillComposerLink");
+      skillComposerLink.textContent = TEXTS[currentLang].skillComposerButton || "Petoi Skill Composer (Bittle)";
+      skillComposerLink.href = "./skill_composer.html?lang=" + encodeURIComponent(currentLang);
 
       const remoteLink = document.getElementById("enterRemoteLink");
       remoteLink.textContent = TEXTS[currentLang].remoteButton || "Petoi Web Controller (Under construction)";
