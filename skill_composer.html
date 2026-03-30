@@ -37,7 +37,7 @@
     }
 
     .page {
-      max-width: 1420px;
+      max-width: 1740px;
       margin: 0 auto;
       padding: 14px;
       display: grid;
@@ -79,7 +79,7 @@
     .layout {
       display: grid;
       gap: 12px;
-      grid-template-columns: 330px 1fr 360px;
+      grid-template-columns: 300px minmax(560px, 1fr) minmax(700px, 760px);
       align-items: start;
     }
 
@@ -190,21 +190,68 @@
       margin-bottom: 8px;
     }
 
-    .joint-list {
+    .joint-board {
+      display: grid;
+      gap: 10px;
+    }
+
+    .joint-section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      background: #fbfcff;
+    }
+
+    .joint-section h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .compact-grid {
       display: grid;
       gap: 8px;
-      max-height: 670px;
-      overflow: auto;
-      padding-right: 4px;
+    }
+
+    .head-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .aux-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .leg-grid {
+      grid-template-columns: 72px repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      align-items: center;
+    }
+
+    .leg-col-header {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .leg-row-label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .joint-slot {
+      min-height: 78px;
     }
 
     .joint-item {
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 7px 8px;
-      background: #fbfcff;
+      padding: 6px 8px;
+      background: #fff;
       display: grid;
-      gap: 6px;
+      gap: 4px;
     }
 
     .joint-top {
@@ -212,12 +259,12 @@
       justify-content: space-between;
       align-items: baseline;
       gap: 8px;
-      font-size: 12px;
+      font-size: 11px;
     }
 
     .joint-name {
       color: var(--muted);
-      font-size: 11px;
+      font-size: 10px;
     }
 
     .joint-slider {
@@ -241,14 +288,14 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       overflow: auto;
-      max-height: 570px;
+      max-height: 660px;
       background: #fff;
     }
 
     table {
       border-collapse: collapse;
       width: 100%;
-      min-width: 700px;
+      min-width: 1120px;
       font-size: 12px;
     }
 
@@ -258,6 +305,7 @@
       padding: 6px;
       text-align: left;
       vertical-align: middle;
+      white-space: nowrap;
     }
 
     th {
@@ -283,6 +331,16 @@
       padding: 4px 6px;
       font-size: 12px;
       background: #fff;
+    }
+
+    .frame-note-cell input {
+      min-width: 130px;
+    }
+
+    .row-action-group {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
     }
 
     .small-btn {
@@ -339,10 +397,6 @@
     @media (max-width: 1280px) {
       .layout {
         grid-template-columns: 1fr;
-      }
-
-      .joint-list {
-        max-height: 420px;
       }
     }
   </style>
@@ -421,7 +475,50 @@
           <button id="btnMirrorPose" data-i18n="btnMirrorPose">Mirror Active Frame</button>
           <button id="btnMirrorToggle" data-i18n="btnMirrorToggleOff">Mirror Export: OFF</button>
         </div>
-        <div id="jointList" class="joint-list"></div>
+        <div id="jointBoard" class="joint-board">
+          <section class="joint-section">
+            <h3 data-i18n="jointHeadSpine">Head & Spine</h3>
+            <div class="compact-grid head-grid">
+              <div id="slot_joint_0" class="joint-slot"></div>
+              <div id="slot_joint_1" class="joint-slot"></div>
+              <div id="slot_joint_2" class="joint-slot"></div>
+              <div id="slot_joint_3" class="joint-slot"></div>
+            </div>
+          </section>
+
+          <section class="joint-section">
+            <h3 data-i18n="jointLegsMapped">Legs (position mapped)</h3>
+            <div class="compact-grid leg-grid">
+              <div></div>
+              <div class="leg-col-header" data-i18n="legLF">LF</div>
+              <div class="leg-col-header" data-i18n="legRF">RF</div>
+              <div class="leg-col-header" data-i18n="legRB">RB</div>
+              <div class="leg-col-header" data-i18n="legLB">LB</div>
+
+              <div class="leg-row-label" data-i18n="jointUpperRow">Upper</div>
+              <div id="slot_joint_8" class="joint-slot"></div>
+              <div id="slot_joint_9" class="joint-slot"></div>
+              <div id="slot_joint_10" class="joint-slot"></div>
+              <div id="slot_joint_11" class="joint-slot"></div>
+
+              <div class="leg-row-label" data-i18n="jointLowerRow">Lower</div>
+              <div id="slot_joint_12" class="joint-slot"></div>
+              <div id="slot_joint_13" class="joint-slot"></div>
+              <div id="slot_joint_14" class="joint-slot"></div>
+              <div id="slot_joint_15" class="joint-slot"></div>
+            </div>
+          </section>
+
+          <section class="joint-section">
+            <h3 data-i18n="jointAux">Aux / Reserved</h3>
+            <div class="compact-grid aux-grid">
+              <div id="slot_joint_4" class="joint-slot"></div>
+              <div id="slot_joint_5" class="joint-slot"></div>
+              <div id="slot_joint_6" class="joint-slot"></div>
+              <div id="slot_joint_7" class="joint-slot"></div>
+            </div>
+          </section>
+        </div>
       </main>
 
       <aside class="panel">
@@ -453,7 +550,9 @@
                 <th data-i18n="colTrig">Trig</th>
                 <th data-i18n="colTrigAngle">Trig Angle</th>
                 <th data-i18n="colNote">Note</th>
-                <th data-i18n="colActions">Actions</th>
+                <th data-i18n="colDel">Del</th>
+                <th data-i18n="colAdd">Add</th>
+                <th data-i18n="colOps">Ops</th>
               </tr>
             </thead>
             <tbody id="frameTableBody"></tbody>
@@ -496,6 +595,15 @@
         btnMirrorPose: "Mirror Active Frame",
         btnMirrorToggleOff: "Mirror Export: OFF",
         btnMirrorToggleOn: "Mirror Export: ON",
+        jointHeadSpine: "Head & Spine",
+        jointLegsMapped: "Legs (position mapped)",
+        jointUpperRow: "Upper",
+        jointLowerRow: "Lower",
+        jointAux: "Aux / Reserved",
+        legLF: "LF",
+        legRF: "RF",
+        legRB: "RB",
+        legLB: "LB",
         schedulerTitle: "Skill Frame Scheduler",
         btnAddFrame: "Add Frame",
         btnDuplicateFrame: "Duplicate",
@@ -510,7 +618,9 @@
         colTrig: "Trig",
         colTrigAngle: "Trig Angle",
         colNote: "Note",
-        colActions: "Actions",
+        colDel: "Del",
+        colAdd: "Add",
+        colOps: "Ops",
         footerHint: "Hardware-in-the-loop test is intentionally skipped on cloud. This page focuses on slider interaction, state management, and transport architecture.",
         stateDisconnected: "Disconnected",
         stateSerialConnected: "Connected (Serial)",
@@ -534,6 +644,8 @@
         actionApply: "Apply",
         actionUp: "Up",
         actionDown: "Down",
+        actionDel: "Del",
+        actionAdd: "Add",
         triggerNone: "None",
         triggerPitch: "Pitch",
         triggerNegPitch: "-Pitch",
@@ -1046,9 +1158,12 @@
     }
 
     function renderJointSliders() {
-      const host = document.getElementById("jointList");
-      host.innerHTML = "";
+      document.querySelectorAll(".joint-slot").forEach(slot => {
+        slot.innerHTML = "";
+      });
       JOINT_META.forEach((jointMeta, idx) => {
+        const host = document.getElementById(`slot_joint_${idx}`);
+        if (!host) return;
         const wrap = document.createElement("div");
         wrap.className = "joint-item";
         const top = document.createElement("div");
@@ -1124,6 +1239,33 @@
       }
       pushHistorySnapshot();
       activeFrame.joints = composerState.pose.slice(0, JOINT_META.length);
+      renderFrameTable();
+      refreshFramePreview();
+      saveDraftSilently();
+    }
+
+    function insertFrameAfter(index) {
+      const safeIndex = Math.max(0, Math.min(index, composerState.frames.length - 1));
+      const source = composerState.frames[safeIndex] || createFrame(composerState.pose, composerState.frames.length);
+      pushHistorySnapshot();
+      const inserted = deepCopy(source);
+      inserted.id = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      inserted.name = `${t("frameNamePrefix")}_${composerState.frames.length + 1}`;
+      composerState.frames.splice(safeIndex + 1, 0, inserted);
+      composerState.activeFrameIndex = safeIndex + 1;
+      renderFrameTable();
+      refreshFramePreview();
+      saveDraftSilently();
+    }
+
+    function deleteFrameAt(index) {
+      if (composerState.frames.length <= 1) {
+        return;
+      }
+      const safeIndex = Math.max(0, Math.min(index, composerState.frames.length - 1));
+      pushHistorySnapshot();
+      composerState.frames.splice(safeIndex, 1);
+      composerState.activeFrameIndex = Math.max(0, Math.min(composerState.activeFrameIndex, composerState.frames.length - 1));
       renderFrameTable();
       refreshFramePreview();
       saveDraftSilently();
@@ -1228,7 +1370,30 @@
         });
         tdNote.appendChild(noteInput);
 
+        const tdDel = document.createElement("td");
+        const btnDel = document.createElement("button");
+        btnDel.className = "small-btn danger";
+        btnDel.textContent = t("actionDel");
+        btnDel.disabled = composerState.frames.length <= 1;
+        btnDel.addEventListener("click", event => {
+          event.stopPropagation();
+          deleteFrameAt(index);
+        });
+        tdDel.appendChild(btnDel);
+
+        const tdAdd = document.createElement("td");
+        const btnAdd = document.createElement("button");
+        btnAdd.className = "small-btn";
+        btnAdd.textContent = t("actionAdd");
+        btnAdd.addEventListener("click", event => {
+          event.stopPropagation();
+          insertFrameAfter(index);
+        });
+        tdAdd.appendChild(btnAdd);
+
         const tdActions = document.createElement("td");
+        const actionsWrap = document.createElement("div");
+        actionsWrap.className = "row-action-group";
         const btnSelect = document.createElement("button");
         btnSelect.className = "small-btn";
         btnSelect.textContent = t("actionSelect");
@@ -1251,10 +1416,11 @@
         btnDown.disabled = index === composerState.frames.length - 1;
         btnDown.addEventListener("click", () => moveFrame(index, index + 1));
 
-        tdActions.appendChild(btnSelect);
-        tdActions.appendChild(btnApply);
-        tdActions.appendChild(btnUp);
-        tdActions.appendChild(btnDown);
+        actionsWrap.appendChild(btnSelect);
+        actionsWrap.appendChild(btnApply);
+        actionsWrap.appendChild(btnUp);
+        actionsWrap.appendChild(btnDown);
+        tdActions.appendChild(actionsWrap);
 
         row.addEventListener("click", event => {
           if (event.target.tagName.toLowerCase() === "input" || event.target.tagName.toLowerCase() === "select" || event.target.tagName.toLowerCase() === "button") return;
@@ -1267,6 +1433,8 @@
         row.appendChild(tdTrig);
         row.appendChild(tdTrigAngle);
         row.appendChild(tdNote);
+        row.appendChild(tdDel);
+        row.appendChild(tdAdd);
         row.appendChild(tdActions);
         body.appendChild(row);
       });
@@ -1471,13 +1639,7 @@
     }
 
     function addFrame() {
-      pushHistorySnapshot();
-      const frame = createFrame(composerState.pose, composerState.frames.length);
-      composerState.frames.push(frame);
-      composerState.activeFrameIndex = composerState.frames.length - 1;
-      renderFrameTable();
-      refreshFramePreview();
-      saveDraftSilently();
+      insertFrameAfter(composerState.frames.length - 1);
     }
 
     function duplicateFrame() {
@@ -1498,15 +1660,7 @@
     }
 
     function deleteFrame() {
-      if (composerState.frames.length <= 1) {
-        return;
-      }
-      pushHistorySnapshot();
-      composerState.frames.splice(composerState.activeFrameIndex, 1);
-      composerState.activeFrameIndex = Math.max(0, Math.min(composerState.activeFrameIndex, composerState.frames.length - 1));
-      renderFrameTable();
-      refreshFramePreview();
-      saveDraftSilently();
+      deleteFrameAt(composerState.activeFrameIndex);
     }
 
     function mirrorActiveFrame() {
