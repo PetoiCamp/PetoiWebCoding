@@ -276,7 +276,7 @@
               <td style="width: 20%;"><strong id="manualPlatformTable">Platform</strong></td>
               <td style="width: 25%;"><strong id="manualUsbSupported">USB</strong></td>
               <td style="width: 30%;"><strong id="manualBluetoothSupported">Bluetooth</strong></td>
-              <td style="width: 25%;"><strong id="manualWiFiSupported">WiFi</strong></td>
+              <td style="width: 25%;"><strong id="manualWiFiSupported">WiFi 2.4G*</strong></td>
             </tr>
             <tr>
               <td id="manualWindows">Windows</td>
@@ -305,6 +305,9 @@
           </table>
           <p style="margin-top: 15px; font-size: 13px; color: #666; line-height: 1.5;">
             <strong id="manualChromebookNote">*Chromebook Bluetooth Limitation:</strong> <span id="manualChromebookDetail">Chrome OS does not provide virtual serial port support for BLE devices. While you can pair the robot in system settings, the Web Serial API cannot access it. Please use USB connection or download the local website version for full functionality.</span>
+          </p>
+          <p style="margin-top: 10px; font-size: 13px; color: #666; line-height: 1.5;">
+            <strong id="manualWiFi24Note">*WiFi 2.4 GHz note:</strong> <span id="manualWiFi24Detail">Many modern routers broadcast 2.4 GHz and 5 GHz at the same time. They may share one network name (SSID) and let each device connect on the appropriate band automatically. Petoi robots use 2.4 GHz WiFi. You can also connect both your computer and the robot to your phone's mobile hotspot.</span>
           </p>
         </div>
 
@@ -415,7 +418,7 @@
         manualPlatformTable: "Platform",
         manualUsbSupported: "USB",
         manualBluetoothSupported: "Bluetooth",
-        manualWiFiSupported: "WiFi",
+        manualWiFiSupported: "WiFi 2.4G*",
         manualWindows: "Windows",
         manualMacLinux: "Mac/Linux",
         manualChromebook: "Chromebook",
@@ -434,6 +437,8 @@
         manualMobileWiFi: "✗ Not supported",
         manualChromebookNote: "*Chromebook Bluetooth Limitation:",
         manualChromebookDetail: "Chrome OS does not provide virtual serial port support for BLE devices. While you can pair the robot in system settings, the Web Serial API cannot access it. Please use USB connection or download the local website version for full functionality.",
+        manualWiFi24Note: "*WiFi 2.4 GHz note:",
+        manualWiFi24Detail: "Many modern routers broadcast 2.4 GHz and 5 GHz at the same time. They may share one network name (SSID) and let each device connect on the appropriate band automatically. Petoi robots use 2.4 GHz WiFi. You can also connect both your computer and the robot to your phone's mobile hotspot.",
         manualUsbTitle: "1. USB Cable Connection (Most Stable)",
         manualUsbDesc: "Connect your robot to the computer using a USB cable. Click the \"Connect Serial Port\" button and select a port with \"wchusbserial\" or \"usbserial\" in its name.",
         manualBluetoothTitle: "2. Bluetooth Connection",
@@ -482,7 +487,7 @@
         manualPlatformTable: "平台",
         manualUsbSupported: "USB",
         manualBluetoothSupported: "蓝牙",
-        manualWiFiSupported: "WiFi",
+        manualWiFiSupported: "WiFi 2.4G*",
         manualWindows: "Windows",
         manualMacLinux: "Mac/Linux",
         manualChromebook: "Chromebook",
@@ -493,7 +498,7 @@
         manualMacBt: "✓ 支持",
         manualMacWiFi: "✓ 仅本地",
         manualChromeUsb: "✓ 支持",
-        manualChromeBt: "✗ 不支持",
+        manualChromeBt: "✗ 不支持*",
         manualChromeWiFi: "✓ 仅本地",
         manualMobile: "移动设备",
         manualMobileUsb: "✗ 不支持",
@@ -501,6 +506,8 @@
         manualMobileWiFi: "✗ 不支持",
         manualChromebookNote: "*Chromebook 蓝牙限制：",
         manualChromebookDetail: "Chrome OS 不为 BLE 设备提供虚拟串口支持。虽然可以在系统设置中配对机器狗，但 Web Serial API 无法访问它。请使用 USB 连接或下载本地网站版本以获得完整功能。",
+        manualWiFi24Note: "*WiFi 2.4G 说明：",
+        manualWiFi24Detail: "许多现代路由器会同时提供 2.4G 与 5G 网络，且可能使用相同的名称（SSID），由设备自动选择合适频段。Petoi 机器狗使用 2.4G WiFi。您也可以将电脑与机器狗一并连接到手机热点。",
         manualUsbTitle: "1. USB 数据线连接（最稳定）",
         manualUsbDesc: "使用 USB 数据线将机器狗连接到电脑。点击\"连接串口\"按钮，选择带有 \"wchusbserial\" 或 \"usbserial\" 字样的端口。",
         manualBluetoothTitle: "2. 蓝牙连接",
@@ -549,7 +556,7 @@
         manualPlatformTable: "プラットフォーム",
         manualUsbSupported: "USB",
         manualBluetoothSupported: "Bluetooth",
-        manualWiFiSupported: "WiFi",
+        manualWiFiSupported: "WiFi 2.4G*",
         manualWindows: "Windows",
         manualMacLinux: "Mac/Linux",
         manualChromebook: "Chromebook",
@@ -560,7 +567,7 @@
         manualMacBt: "✓ 対応",
         manualMacWiFi: "✓ ローカルのみ",
         manualChromeUsb: "✓ 対応",
-        manualChromeBt: "✗ 非対応",
+        manualChromeBt: "✗ 非対応*",
         manualChromeWiFi: "✓ ローカルのみ",
         manualMobile: "モバイルデバイス",
         manualMobileUsb: "✗ 非対応",
@@ -568,6 +575,8 @@
         manualMobileWiFi: "✗ 非対応",
         manualChromebookNote: "*Chromebook Bluetooth 制限：",
         manualChromebookDetail: "Chrome OS は BLE デバイス用の仮想シリアルポートを提供していません。システム設定でロボットをペアリングできますが、Web Serial API でアクセスできません。完全な機能を使用するには USB 接続またはローカル Web サイトバージョンをダウンロードしてください。",
+        manualWiFi24Note: "*WiFi 2.4GHz に関する注意：",
+        manualWiFi24Detail: "多くの最新ルーターは 2.4GHz と 5GHz を同時に提供し、同じネットワーク名（SSID）を共有して、各デバイスに適切な帯域を自動割り当てすることがあります。Petoi ロボットは 2.4GHz WiFi を使用します。コンピュータとロボットの両方をスマートフォンのテザリング（ホットスポット）に接続することもできます。",
         manualUsbTitle: "1. USB ケーブル接続（最も安定）",
         manualUsbDesc: "USB ケーブルを使用してロボットをコンピュータに接続します。「シリアルポートを接続」ボタンをクリックし、「wchusbserial」または「usbserial」という名前のポートを選択してください。",
         manualBluetoothTitle: "2. Bluetooth 接続",
