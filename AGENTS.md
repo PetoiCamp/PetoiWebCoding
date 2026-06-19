@@ -24,3 +24,4 @@ This serves the site at `http://localhost:8080`. The `npm run dev` variant adds 
 - There is **no build step, no linter, no test suite** configured in this repo. The only `package.json` scripts are `start` and `dev`.
 - The app communicates with Petoi robots via WebSocket or Web Serial API — both are browser-native APIs. No robot hardware is required for UI development; the app gracefully handles missing connections.
 - No `.env` files or secrets are needed.
+- For tasks that require physical robot serial hardware, Cloud Agent should not perform hardware-in-the-loop validation; provide code-level checks and request user-side device verification when needed.
