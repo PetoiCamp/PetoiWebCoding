@@ -42,26 +42,28 @@
     <div class="header-right">
       <div class="version-date" id="versionDate"></div>
       <div class="language-switch">
-        <button id="zhBtn" class="lang-btn" onclick="setLanguage('zh')">中文</button>
-        <button id="enBtn" class="lang-btn" onclick="setLanguage('en')">English</button>
-        <button id="jaBtn" class="lang-btn" onclick="setLanguage('ja')">日本語</button>
+        <select id="langSelect" class="lang-select" aria-label="Language" onchange="setLanguage(this.value)">
+          <option value="en">🇺🇸 En</option>
+          <option value="zh">🇨🇳 Zh</option>
+          <option value="ja">🇯🇵 Ja</option>
+        </select>
       </div>
       <button onclick="openHelpPage()" class="lang-btn" style="margin-left: 10px; background: #f0f0f0; border: 1px solid #ccc; color: #555;" title="Help">❓</button>
     </div>
   </div>
   <div class="container">
     <div class="button-group main-action-bar">
-      <button id="runCodeBtn" class="mobile-main-action" data-mobile-icon="▶️" data-mobile-i18n-key="runCode" onclick="runCode()" data-i18n="runCode">▶️ Run Code</button>
-      <button onclick="stopCode()" id="stopCodeBtn" class="mobile-main-action" data-mobile-icon="⏹️" data-mobile-i18n-key="stopCode" data-i18n="stopCode" style="display: none;">⏹️ Stop Code</button>
-      <button id="saveProgramBtn" class="mobile-main-action" data-mobile-icon="💾" data-mobile-i18n-key="saveProgram" onclick="saveWorkspace()" data-i18n="saveProgram">💾 Save Program</button>
-      <button id="loadProgramBtn" class="mobile-main-action" data-mobile-icon="📂" data-mobile-i18n-key="loadProgram" onclick="document.getElementById('loadInput').click()" data-i18n="loadProgram">📂 Load Program</button>
-      <button id="uploadSkillsBtn" class="mobile-main-action" data-mobile-icon="📤" data-mobile-i18n-key="uploadSkills" onclick="triggerSkillFileUpload()" data-i18n="uploadSkills">📤 Upload Skill Files</button>
+      <button id="runCodeBtn" class="mobile-main-action" data-mobile-icon="▶️" data-mobile-i18n-key="runCode" onclick="runCode()" data-i18n="runCode">▶️ Run</button>
+      <button onclick="stopCode()" id="stopCodeBtn" class="mobile-main-action" data-mobile-icon="⏹️" data-mobile-i18n-key="stopCode" data-i18n="stopCode" style="display: none;">⏹️ Stop</button>
+      <button id="saveProgramBtn" class="mobile-main-action" data-mobile-icon="💾" data-mobile-i18n-key="saveProgram" onclick="saveWorkspace()" data-i18n="saveProgram">💾 Save</button>
+      <button id="loadProgramBtn" class="mobile-main-action" data-mobile-icon="📂" data-mobile-i18n-key="loadProgram" onclick="document.getElementById('loadInput').click()" data-i18n="loadProgram">📂 Load</button>
+      <button id="uploadSkillsBtn" class="mobile-main-action" data-mobile-icon="📤" data-mobile-i18n-key="uploadSkills" onclick="triggerSkillFileUpload()" data-i18n="uploadSkills">📤 Upload Skills</button>
 
       <input type="file" id="skillFileInput" accept=".md" multiple onchange="handleSkillFilesUpload(this.files)"
         style="display: none;">
       <button id="showCodeBtn" class="mobile-main-action" data-mobile-icon="👁️" data-mobile-i18n-key="showCode" onclick="showCode()" data-i18n="showCode">👁️ Show Code</button>
       <button id="generateLogBtn" class="mobile-main-action" data-mobile-icon="📝" data-mobile-i18n-key="generateLog" onclick="generateLog()" data-i18n="generateLog">📝 Generate Log</button>
-      <button id="clearWorkspaceBtn" class="mobile-main-action" data-mobile-icon="🗑️" data-mobile-i18n-key="clearAll" onclick="clearWorkspace()" data-i18n="clearAll">🗑️ Clear All</button>
+      <button id="clearWorkspaceBtn" class="mobile-main-action" data-mobile-icon="🗑️" data-mobile-i18n-key="clearAll" onclick="clearWorkspace()" data-i18n="clearAll">🗑️ Clear</button>
       <input type="file" id="loadInput" accept=".json" onchange="loadWorkspace(this.files[0])">
       <span id="currentFileLabel" data-i18n="currentFileLabel" style="margin-left: 10px; color: #555;"></span>
       <span id="currentFileName" style="color: #555; font-style: italic;"></span>
@@ -80,15 +82,15 @@
         </div>
         <div id="consoleWindow">
           <div class="area-header">
-            <span class="area-title" data-i18n="consoleLog">Console Log</span>
+            <span class="area-title" data-i18n="consoleLog">Console</span>
             <div class="button-group">
-              <button id="showTimestampBtn" onclick="toggleShowTimestamp()" class="toggle-button active"
-                data-i18n="showTimestamp">Timestamp</button>
-              <button id="showSentCommandsBtn" onclick="toggleShowSentCommands()" class="toggle-button"
-                data-i18n="showSentCommands">Show Commands</button>
-              <button id="showDebugBtn" onclick="toggleShowDebug()" class="toggle-button"
-                data-i18n="showDebug">Debug</button>
-              <button onclick="clearConsole()" class="clear-button" data-i18n="clearLog">Clear Log</button>
+              <button id="showTimestampBtn" onclick="toggleShowTimestamp()" class="toggle-button timestamp-toggle-btn area-compact-btn active"
+                data-area-icon="🕐" data-area-i18n-key="showTimestampLabel">🕐 Time</button>
+              <button id="showSentCommandsBtn" onclick="toggleShowSentCommands()" class="toggle-button area-compact-btn"
+                data-area-icon="📋" data-area-i18n-key="showSentCommands">📋 Verbose</button>
+              <button id="showDebugBtn" onclick="toggleShowDebug()" class="toggle-button area-compact-btn"
+                data-area-icon="🐛" data-area-i18n-key="showDebug">🐛 Debug</button>
+              <button onclick="clearConsole()" class="clear-button area-compact-btn" data-area-icon="🗑️" data-area-i18n-key="clearLog">🗑️ Clear</button>
             </div>
           </div>
           <div id="consoleLog" class="dark-scrollbar"></div>
@@ -98,20 +100,20 @@
         <!-- 添加串口通信相关的HTML结构 -->
         <div id="serialContainer">
           <div class="area-header">
-            <div class="title-section" style="display: flex; flex-direction: column; flex: 1;">
+            <div class="title-section">
               <span class="area-title" id="serialOutputTitle" data-i18n="serialOutput">Serial Monitor</span>
               <div class="serial-port-info" id="serialPortInfo"
                 style="display: none; font-size: inherit; color: white; margin-top: 4px;"></div>
             </div>
             <div class="button-group">
-              <button onclick="openSerialPort()" class="serial-button" id="openSerialBtn"
-                data-i18n="serialConnect">Connect Serial Port</button>
-              <button id="showSerialTimestampBtn" onclick="toggleShowSerialTimestamp()" class="toggle-button active"
-                style="display: none;" data-i18n="showTimestamp">Timestamp</button>
-              <button onclick="closeSerialPort()" class="clear-button" id="closeSerialBtn" style="display: none;"
-                data-i18n="closeSerial">Close Connection</button>
-              <button onclick="clearSerialOutput()" class="clear-button" id="clearSerialBtn" style="display: none;"
-                data-i18n="clearLog">Clear Log</button>
+              <button onclick="openSerialPort()" class="serial-button area-compact-btn" id="openSerialBtn"
+                data-area-icon="🔌" data-area-i18n-key="serialConnect">🔌 Connect Serial Port</button>
+              <button id="showSerialTimestampBtn" onclick="toggleShowSerialTimestamp()" class="toggle-button timestamp-toggle-btn area-compact-btn active"
+                style="display: none;" data-area-icon="🕐" data-area-i18n-key="showTimestampLabel">🕐 Time</button>
+              <button onclick="closeSerialPort()" class="clear-button area-compact-btn" id="closeSerialBtn" style="display: none;"
+                data-area-icon="❌" data-area-i18n-key="closeSerial">❌ Close</button>
+              <button onclick="clearSerialOutput()" class="clear-button area-compact-btn" id="clearSerialBtn" style="display: none;"
+                data-area-icon="🗑️" data-area-i18n-key="clearLog">🗑️ Clear</button>
             </div>
           </div>
           <div id="serialInterface" style="display: none;">
@@ -185,8 +187,8 @@
     }
 
     // Global version date variable (format: vYear.Month.Day)
-    const GLOBAL_VERSION_DATE = "v2026.03.26";
-    const GLOBAL_VERSION_LAST_MODIFIED = "2026-03-26 22:13:27";
+    const GLOBAL_VERSION_DATE = "v2026.06.19";
+    const GLOBAL_VERSION_LAST_MODIFIED = "2026-06-19 14:48:47";
 
     // Set version date
     function setVersionDate()
@@ -331,35 +333,230 @@
       button.setAttribute('data-mobile-label', label);
       button.setAttribute('aria-label', label);
       button.title = label;
+    }
 
-      // Keep connected IP on desktop while still using icon-only mode on mobile.
+    function renderMainActionButtonContent(button, hideLabelAfterIcon)
+    {
       if (button.id === 'quickConnectBtn' && button.hasAttribute('data-connected') && !mobileLayoutState.isActive)
       {
+        const label = button.getAttribute('data-mobile-label') || '';
         const ipText = currentDeviceIP && currentDeviceIP !== '192.168.4.1' ? currentDeviceIP : label;
         button.textContent = ipText;
         button.classList.remove('mobile-icon-only');
         return;
       }
 
-      if (mobileLayoutState.isActive)
+      const icon = button.getAttribute('data-mobile-icon') || '';
+      const label = button.getAttribute('data-mobile-label') || '';
+
+      if (icon && label)
       {
-        button.textContent = icon || label;
-        button.classList.add('mobile-icon-only');
-      } else
-      {
-        button.textContent = icon ? `${icon} ${label}` : label;
-        button.classList.remove('mobile-icon-only');
+        button.innerHTML = '<span class="mobile-action-icon" aria-hidden="true">' + icon + '</span>'
+          + '<span class="mobile-action-text">' + label + '</span>';
+        button.classList.toggle('mobile-icon-only', !!hideLabelAfterIcon);
+        return;
       }
+
+      button.textContent = label || icon;
+      button.classList.toggle('mobile-icon-only', !!hideLabelAfterIcon && !!icon);
     }
 
-    function updateMainActionButtonLabels()
+    function isMainActionBarOverflowing(actionBar)
     {
-      const buttons = getMainActionButtons();
+      if (!actionBar)
+      {
+        return false;
+      }
+      return actionBar.scrollWidth > actionBar.clientWidth + 1;
+    }
+
+    function syncMainActionBarCompactLabels()
+    {
+      const actionBar = document.querySelector('.main-action-bar');
+      if (!actionBar)
+      {
+        return;
+      }
+
+      const buttons = getMainActionButtons().filter((button) =>
+      {
+        return button.style.display !== 'none';
+      });
+
       buttons.forEach((button) =>
       {
         formatMainActionButtonText(button);
       });
+
+      if (mobileLayoutState.isActive)
+      {
+        buttons.forEach((button) =>
+        {
+          renderMainActionButtonContent(button, true);
+        });
+        return;
+      }
+
+      buttons.forEach((button) =>
+      {
+        renderMainActionButtonContent(button, false);
+      });
+
+      if (!isMainActionBarOverflowing(actionBar))
+      {
+        return;
+      }
+
+      const iconButtons = buttons.filter((button) =>
+      {
+        if (!button.getAttribute('data-mobile-icon'))
+        {
+          return false;
+        }
+        if (button.id === 'quickConnectBtn' && button.hasAttribute('data-connected'))
+        {
+          return false;
+        }
+        return true;
+      });
+
+      iconButtons.forEach((button) =>
+      {
+        button.classList.add('mobile-icon-only');
+      });
     }
+
+    function updateMainActionButtonLabels()
+    {
+      syncMainActionBarCompactLabels();
+    }
+
+    function getAreaCompactButtons(root)
+    {
+      return Array.from(root.querySelectorAll('.area-compact-btn'));
+    }
+
+    function formatAreaCompactButtonMeta(button)
+    {
+      const i18nKey = button.getAttribute('data-area-i18n-key') || '';
+      const label = i18nKey ? getText(i18nKey) : (button.getAttribute('data-area-label') || button.textContent.trim());
+      button.setAttribute('data-area-label', label);
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+
+    function renderAreaCompactButtonContent(button, hideLabelAfterIcon)
+    {
+      const icon = button.getAttribute('data-area-icon') || '';
+      const label = button.getAttribute('data-area-label') || '';
+
+      if (icon && label)
+      {
+        button.innerHTML = '<span class="area-compact-icon" aria-hidden="true">' + icon + '</span>'
+          + '<span class="area-compact-text">' + label + '</span>';
+        button.classList.toggle('area-icon-only', !!hideLabelAfterIcon);
+        return;
+      }
+
+      button.textContent = label || icon;
+      button.classList.remove('area-icon-only');
+    }
+
+    function getAreaHeaderButtonsAvailableWidth(header)
+    {
+      const style = window.getComputedStyle(header);
+      const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+      const gap = 8;
+      const titleMinWidth = 72;
+      return header.clientWidth - padding - gap - titleMinWidth;
+    }
+
+    function isAreaHeaderButtonsCompactNeeded(header, group)
+    {
+      const available = getAreaHeaderButtonsAvailableWidth(header);
+      if (available <= 0)
+      {
+        return true;
+      }
+      return group.scrollWidth > available + 1;
+    }
+
+    function syncAreaHeaderCompactLabels()
+    {
+      const headers = document.querySelectorAll('#consoleWindow .area-header, #serialContainer .area-header');
+      headers.forEach((header) =>
+      {
+        const group = header.querySelector('.button-group');
+        if (!group)
+        {
+          return;
+        }
+
+        const buttons = getAreaCompactButtons(group).filter((button) =>
+        {
+          return button.style.display !== 'none';
+        });
+
+        buttons.forEach((button) =>
+        {
+          formatAreaCompactButtonMeta(button);
+        });
+
+        buttons.forEach((button) =>
+        {
+          renderAreaCompactButtonContent(button, false);
+        });
+
+        const needsCompact = isAreaHeaderButtonsCompactNeeded(header, group);
+        buttons.forEach((button) =>
+        {
+          if (button.getAttribute('data-area-icon'))
+          {
+            button.classList.toggle('area-icon-only', needsCompact);
+          }
+        });
+      });
+    }
+
+    let areaHeaderLabelRafToken = 0;
+
+    function queueAreaHeaderLabelUpdate()
+    {
+      if (areaHeaderLabelRafToken)
+      {
+        cancelAnimationFrame(areaHeaderLabelRafToken);
+      }
+      areaHeaderLabelRafToken = requestAnimationFrame(() =>
+      {
+        areaHeaderLabelRafToken = 0;
+        syncAreaHeaderCompactLabels();
+      });
+    }
+
+    function setupAreaHeaderResizeObserver()
+    {
+      const targets = document.querySelectorAll(
+        '#consoleWindow .area-header, #serialContainer .area-header, #consoleWindow, #serialContainer, .windows-container'
+      );
+      targets.forEach((target) =>
+      {
+        if (target.getAttribute('data-label-resize-bound') === '1')
+        {
+          return;
+        }
+        target.setAttribute('data-label-resize-bound', '1');
+        if (typeof ResizeObserver === 'function')
+        {
+          const observer = new ResizeObserver(() =>
+          {
+            queueAreaHeaderLabelUpdate();
+          });
+          observer.observe(target);
+        }
+      });
+    }
+
+    window.syncAreaHeaderCompactLabels = syncAreaHeaderCompactLabels;
 
     function getOrCreateMobileActionTooltip()
     {
@@ -483,6 +680,7 @@
 
       updateMobileOrientationHint();
       updateMainActionButtonLabels();
+      syncAreaHeaderCompactLabels();
       setupMainActionButtonLongPressHint();
 
       const divider = document.getElementById('divider');
@@ -512,6 +710,39 @@
       });
     }
 
+    let mainActionLabelRafToken = 0;
+
+    function queueMainActionLabelUpdate()
+    {
+      if (mainActionLabelRafToken)
+      {
+        cancelAnimationFrame(mainActionLabelRafToken);
+      }
+      mainActionLabelRafToken = requestAnimationFrame(() =>
+      {
+        mainActionLabelRafToken = 0;
+        updateMainActionButtonLabels();
+      });
+    }
+
+    function setupMainActionBarResizeObserver()
+    {
+      const actionBar = document.querySelector('.main-action-bar');
+      if (!actionBar || actionBar.getAttribute('data-label-resize-bound') === '1')
+      {
+        return;
+      }
+      actionBar.setAttribute('data-label-resize-bound', '1');
+      if (typeof ResizeObserver === 'function')
+      {
+        const observer = new ResizeObserver(() =>
+        {
+          queueMainActionLabelUpdate();
+        });
+        observer.observe(actionBar);
+      }
+    }
+
     function initializeAdaptiveMobileLayout()
     {
       if (mobileLayoutState.initialized)
@@ -521,6 +752,8 @@
       }
       mobileLayoutState.initialized = true;
       setupMainActionButtonLongPressHint();
+      setupMainActionBarResizeObserver();
+      setupAreaHeaderResizeObserver();
       applyAdaptiveMobileLayout();
       window.addEventListener('resize', queueAdaptiveMobileLayoutUpdate);
       window.addEventListener('orientationchange', queueAdaptiveMobileLayoutUpdate);
@@ -1286,9 +1519,11 @@
 
     function updateLanguageButtons(lang)
     {
-      document.getElementById('zhBtn').classList.toggle('active', lang === 'zh');
-      document.getElementById('enBtn').classList.toggle('active', lang === 'en');
-      document.getElementById('jaBtn').classList.toggle('active', lang === 'ja');
+      const langSelect = document.getElementById('langSelect');
+      if (langSelect && langSelect.value !== lang)
+      {
+        langSelect.value = lang;
+      }
     }
 
     function getInitialLanguage()
@@ -1596,17 +1831,7 @@
         }
       }
 
-      // 更新timestamp按钮的翻译文本
-      const timestampBtn = document.getElementById('showTimestampBtn');
-      const serialTimestampBtn = document.getElementById('showSerialTimestampBtn');
-      if (timestampBtn)
-      {
-        timestampBtn.textContent = getText("showTimestamp");
-      }
-      if (serialTimestampBtn)
-      {
-        serialTimestampBtn.textContent = getText("showTimestamp");
-      }
+      syncAreaHeaderCompactLabels();
     }
 
     // 窗口大小变化时调整Blockly工作区
@@ -5412,6 +5637,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         document.getElementById('showSerialTimestampBtn').style.display = 'inline-flex'; // 显示时间戳按钮
         document.getElementById('closeSerialBtn').style.display = 'inline-flex'; // 显示关闭按钮
         document.getElementById('clearSerialBtn').style.display = 'inline-flex'; // 显示清除按钮
+        queueAreaHeaderLabelUpdate();
 
         // 更新串口标题显示连接的设备信息
         const serialTitle = document.getElementById('serialOutputTitle');
@@ -5549,6 +5775,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
         const clearSerialBtn = document.getElementById('clearSerialBtn');
         if (clearSerialBtn) clearSerialBtn.style.display = 'none';
+        queueAreaHeaderLabelUpdate();
 
         // 重置串口监视器标题
         const serialTitle = document.getElementById('serialOutputTitle');
@@ -5650,6 +5877,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         document.getElementById('showSerialTimestampBtn').style.display = 'none'; // 隐藏时间戳按钮
         document.getElementById('closeSerialBtn').style.display = 'none'; // 隐藏关闭按钮
         document.getElementById('clearSerialBtn').style.display = 'none'; // 隐藏清除按钮
+        queueAreaHeaderLabelUpdate();
 
         // 重置串口监视器标题
         const serialTitle = document.getElementById('serialOutputTitle');
@@ -6522,6 +6750,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           if (showSerialTimestampBtn) showSerialTimestampBtn.style.display = 'none';
           if (closeSerialBtn) closeSerialBtn.style.display = 'none';
           if (clearSerialBtn) clearSerialBtn.style.display = 'none';
+        queueAreaHeaderLabelUpdate();
 
           // 重置串口监视器标题
           const serialTitle = document.getElementById('serialOutputTitle');
@@ -7155,6 +7384,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
         // 更新undo/redo按钮位置
         repositionUndoRedoButtons();
+        queueAreaHeaderLabelUpdate();
 
         // 阻止默认行为
         e.preventDefault();

@@ -76,24 +76,27 @@
 
     .lang-switch {
       display: inline-flex;
+    }
+
+    .lang-select {
       border: 1px solid var(--border);
       border-radius: 10px;
-      overflow: hidden;
       background: #f7faff;
-    }
-
-    .lang-btn {
-      border: 0;
-      background: transparent;
       color: var(--sub);
-      padding: 8px 12px;
+      padding: 8px 28px 8px 10px;
       font-size: 14px;
       cursor: pointer;
+      min-width: 96px;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235b6782' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
     }
 
-    .lang-btn.active {
-      background: var(--primary);
-      color: #fff;
+    .lang-select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(58, 99, 255, 0.15);
     }
 
     .muted {
@@ -292,9 +295,11 @@
       <div class="header">
         <h1 class="title" data-i18n="title">Petoi Web Controller</h1>
         <div class="lang-switch" aria-label="Language switcher">
-          <button class="lang-btn" id="zhBtn" type="button" onclick="setLanguage('zh')">中文</button>
-          <button class="lang-btn" id="enBtn" type="button" onclick="setLanguage('en')">English</button>
-          <button class="lang-btn" id="jaBtn" type="button" onclick="setLanguage('ja')">日本語</button>
+          <select id="langSelect" class="lang-select" aria-label="Language" onchange="setLanguage(this.value)">
+            <option value="en">🇺🇸 En</option>
+            <option value="zh">🇨🇳 Zh</option>
+            <option value="ja">🇯🇵 Ja</option>
+          </select>
         </div>
       </div>
       <p class="muted" data-i18n="subtitle">Control your robot in browser through Bluetooth serial or Wi-Fi.</p>
@@ -645,9 +650,11 @@
       }
       document.documentElement.lang = currentLang;
       document.title = getText("title");
-      document.getElementById("zhBtn").classList.toggle("active", currentLang === "zh");
-      document.getElementById("enBtn").classList.toggle("active", currentLang === "en");
-      document.getElementById("jaBtn").classList.toggle("active", currentLang === "ja");
+      const langSelect = document.getElementById("langSelect");
+      if (langSelect)
+      {
+        langSelect.value = currentLang;
+      }
 
       document.querySelectorAll("[data-i18n]").forEach((el) =>
       {

@@ -37,6 +37,27 @@ body {
     gap: 10px;
 }
 
+.lang-select {
+    padding: 5px 28px 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    min-width: 96px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+.lang-select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+}
+
 .lang-btn {
     padding: 5px 15px;
     border: 1px solid #ddd;
@@ -97,6 +118,39 @@ body {
 #quickConnectBtn[data-connected="true"]:hover {
     background-color: #45a049 !important;
     /* 深绿色 */
+}
+
+.main-action-bar {
+    flex-wrap: nowrap;
+    gap: 6px;
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.main-action-bar .mobile-main-action {
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+}
+
+.main-action-bar .mobile-main-action.mobile-icon-only .mobile-action-text {
+    display: none;
+}
+
+.main-action-bar .mobile-main-action.mobile-icon-only {
+    min-width: 36px;
+    padding-left: 10px;
+    padding-right: 10px;
+    line-height: 1;
+    gap: 0;
+    justify-content: center;
+}
+
+.main-action-bar .mobile-main-action.mobile-icon-only .mobile-action-icon {
+    font-size: 16px;
+    line-height: 1;
 }
 
 .workspace-container {
@@ -472,10 +526,10 @@ body {
 /* 区域标题栏样式 */
 .area-header {
     margin: 0;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(72px, 1fr) auto;
     align-items: center;
-    /* 改为center对齐确保垂直居中 */
+    gap: 8px;
     background-color: #2d2d2d;
     padding: 8px 10px;
     border-radius: 0;
@@ -483,7 +537,19 @@ body {
     top: 0;
     z-index: 10;
     min-height: 36px;
-    /* 确保高度一致 */
+    overflow: hidden;
+}
+
+.area-header .title-section,
+.area-header > .area-title {
+    grid-column: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.area-header .title-section {
+    display: flex;
+    flex-direction: column;
 }
 
 .area-title {
@@ -492,14 +558,18 @@ body {
     font-size: 14px;
     letter-spacing: 0.5px;
     line-height: 1.5;
-    /* 保持与按钮文字一致的行高 */
     margin: 0;
     padding: 4px 0;
-    /* 添加垂直内边距，使高度与按钮一致 */
     white-space: nowrap;
-    /* 防止文字换行 */
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-family: Arial, sans-serif;
-    /* 确保字体一致 */
+}
+
+.area-header .serial-port-info {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* 控制台按钮组 */
@@ -564,6 +634,28 @@ body {
     background-color: #45a049;
 }
 
+.area-header .button-group button.timestamp-toggle-btn .area-compact-icon {
+    font-size: calc(13px * 1.5);
+    line-height: 1;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+.area-header .button-group .area-compact-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    flex-shrink: 0;
+}
+
+.area-header .button-group .area-compact-btn.area-icon-only .area-compact-text {
+    display: none;
+}
+
+.area-header .button-group .area-compact-btn.area-icon-only {
+    gap: 0;
+    justify-content: center;
+}
+
 /* 串口通信相关样式 */
 #serialContainer {
     background-color: #f5f5f5;
@@ -591,22 +683,13 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 12px;
     background: #007bff;
     color: #fff;
     border: none;
     border-radius: 4px;
-    margin: 2px;
-    font-size: 14px;
     cursor: pointer;
     transition: background-color 0.2s;
     font-family: Arial, sans-serif;
-    white-space: normal;
-    /* 允许文本自然换行 */
-    max-width: none;
-    /* 移除最大宽度限制 */
-    width: auto;
-    /* 宽度自适应内容 */
 }
 
 /* 水平分隔线样式 */
@@ -631,41 +714,33 @@ body {
 /* 强制按钮右对齐 */
 #consoleWindow .area-header .button-group,
 #serialContainer .area-header .button-group {
+    grid-column: 2;
     display: flex;
     justify-content: flex-end;
-    margin-left: auto;
     align-items: center;
-    /* 确保按钮在同一行中垂直对齐 */
     flex-wrap: nowrap;
-    /* 防止按钮换行，保持并排 */
-    max-width: 70%;
-    /* 适当增加宽度，容纳多个按钮 */
+    min-width: 0;
+    justify-self: end;
+    width: max-content;
+    max-width: 100%;
 }
 
 /* 按钮标题栏通用设置 */
 .area-header .button-group button {
     margin: 2px;
-    /* 统一间距 */
     max-width: none;
-    /* 不限制最大宽度 */
-    white-space: normal;
-    /* 允许文本换行 */
-    word-wrap: break-word;
-    /* 允许长单词换行 */
+    white-space: nowrap;
     line-height: 1.2;
-    /* 紧凑的行高 */
     font-size: 13px;
-    /* 稍微小一点的字体 */
-    padding: 4px 6px;
-    /* 紧凑的内边距 */
+    padding: 0 8px;
     text-align: center;
-    /* 文本居中 */
-    height: auto;
-    /* 自适应高度 */
-    min-height: 40px;
-    /* 确保足够高度容纳两行文字 */
+    height: 32px;
+    min-height: 32px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: auto;
-    /* 宽度自适应内容 */
 }
 
 /* 超小屏幕时进一步调整 */
@@ -677,6 +752,17 @@ body {
         font-size: 12px;
         max-width: none;
         /* 移除最大宽度限制 */
+    }
+
+    .area-header .button-group button.timestamp-toggle-btn .area-compact-icon {
+        font-size: calc(12px * 1.5);
+    }
+
+    .area-header .button-group button {
+        height: 30px;
+        min-height: 30px;
+        font-size: 12px;
+        padding: 0 6px;
     }
 }
 
@@ -1334,6 +1420,12 @@ body.mobile-layout .header-right {
 
 body.mobile-layout .language-switch {
     gap: 6px;
+}
+
+body.mobile-layout .lang-select {
+    padding: 6px 26px 6px 8px;
+    font-size: 12px;
+    min-width: 88px;
 }
 
 body.mobile-layout .lang-btn {
