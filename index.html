@@ -102,9 +102,15 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      margin-top: 24px;
+    }
+
+    .enter-link.is-hidden {
+      display: none;
     }
 
     .enter-link {
+      position: relative;
       display: inline-block;
       text-decoration: none;
       padding: 12px 18px;
@@ -115,6 +121,39 @@
       text-align: center;
       line-height: 1.25;
       width: 100%;
+    }
+
+    .enter-link[data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 10px);
+      transform: translateX(-50%) translateY(6px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s ease;
+      background: #1f2a44;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.45;
+      padding: 10px 14px;
+      border-radius: 8px;
+      width: max-content;
+      max-width: min(380px, 92vw);
+      text-align: left;
+      white-space: normal;
+      z-index: 10;
+      box-shadow: 0 8px 20px rgba(20, 40, 80, 0.2);
+    }
+
+    .enter-link[data-tooltip]:hover::after,
+    .enter-link[data-tooltip]:focus-visible::after {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+      transition-delay: 0s;
     }
 
     .enter-link:hover {
@@ -142,14 +181,14 @@
       </div>
     </div>
 
-    <p class="desc" id="portalDesc">
-      Open the Blockly workspace and control your Petoi robot directly in your browser.
-    </p>
-
     <div class="links">
-      <a id="enterMainLink" class="enter-link" href="./main.html?lang=en">Petoi Web Coding Blocks</a>
-      <a id="enterSkillComposerLink" class="enter-link" href="./skill_composer.html?lang=en">Petoi Skill Composer (Bittle)</a>
-      <a id="enterRemoteLink" class="enter-link" href="./mobile_remote.html?lang=en">Petoi Web Controller (Under construction)</a>
+      <a id="enterMainLink" class="enter-link" href="./main.html?lang=en"
+        data-tooltip="Open the Blockly workspace and program your Petoi robot directly in your browser."
+        aria-label="Petoi Web Coding Blocks">Petoi Web Coding Blocks</a>
+      <a id="enterSkillComposerLink" class="enter-link is-hidden" href="./skill_composer.html?lang=en" hidden>Petoi Skill Composer (Bittle)</a>
+      <a id="enterRemoteLink" class="enter-link" href="./mobile_remote.html?lang=en"
+        data-tooltip="Control your Petoi robot directly in your web browser."
+        aria-label="Petoi Web Controller (Under construction)">Petoi Web Controller (Under construction)</a>
     </div>
     <p class="footer-note" id="langHint">
       The selected language will be used as the default language in the workspace.
@@ -166,7 +205,8 @@
         enterButton: "Petoi陪拓网页编程积木",
         skillComposerButton: "Petoi 技能编辑器（Bittle）",
         remoteButton: "Petoi Web Controller (Under construction)",
-        portalDesc: "在浏览器中直接控制你的 Petoi 机器人。",
+        mainLinkTooltip: "打开 Blockly 工作区，在浏览器中直接为你的 Petoi 机器人编程。",
+        remoteLinkTooltip: "在网页浏览器中直接控制你的 Petoi 机器人。",
         langHint: "当前语言会自动传递给工作区，作为 main 页面默认语言。"
       },
       en: {
@@ -174,7 +214,8 @@
         enterButton: "Petoi Web Coding Blocks",
         skillComposerButton: "Petoi Skill Composer (Bittle)",
         remoteButton: "Petoi Web Controller (Under construction)",
-        portalDesc: "Open the Blockly workspace and control your Petoi robot directly in your browser.",
+        mainLinkTooltip: "Open the Blockly workspace and program your Petoi robot directly in your browser.",
+        remoteLinkTooltip: "Control your Petoi robot directly in your web browser.",
         langHint: "The selected language will be used as the default language in the workspace."
       },
       ja: {
@@ -182,7 +223,8 @@
         enterButton: "Petoiウェブコーディングブロック",
         skillComposerButton: "Petoi スキルコンポーザー（Bittle）",
         remoteButton: "Petoi Web Controller (Under construction)",
-        portalDesc: "Blockly ワークスペースを開き、ブラウザから Petoi ロボットを直接操作できます。",
+        mainLinkTooltip: "Blockly ワークスペースを開き、ブラウザから Petoi ロボットを直接プログラムできます。",
+        remoteLinkTooltip: "ウェブブラウザから Petoi ロボットを直接操作できます。",
         langHint: "選択した言語は自動的に main ページへ引き継がれ、初期言語として適用されます。"
       }
     };
@@ -254,19 +296,20 @@
       const appTitle = TEXTS[currentLang].appTitle || "Petoi Coding Portal";
       document.title = appTitle;
       document.getElementById("portalTitle").textContent = appTitle;
-      document.getElementById("portalDesc").textContent = TEXTS[currentLang].portalDesc;
       document.getElementById("langHint").textContent = TEXTS[currentLang].langHint;
 
       const mainLink = document.getElementById("enterMainLink");
+      const mainTooltip = TEXTS[currentLang].mainLinkTooltip || "";
       mainLink.textContent = TEXTS[currentLang].enterButton || "Petoi Web Coding Blocks";
+      mainLink.setAttribute("data-tooltip", mainTooltip);
+      mainLink.setAttribute("aria-label", (TEXTS[currentLang].enterButton || "Petoi Web Coding Blocks") + ". " + mainTooltip);
       mainLink.href = "./main.html?lang=" + encodeURIComponent(currentLang);
 
-      const skillComposerLink = document.getElementById("enterSkillComposerLink");
-      skillComposerLink.textContent = TEXTS[currentLang].skillComposerButton || "Petoi Skill Composer (Bittle)";
-      skillComposerLink.href = "./skill_composer.html?lang=" + encodeURIComponent(currentLang);
-
       const remoteLink = document.getElementById("enterRemoteLink");
+      const remoteTooltip = TEXTS[currentLang].remoteLinkTooltip || "";
       remoteLink.textContent = TEXTS[currentLang].remoteButton || "Petoi Web Controller (Under construction)";
+      remoteLink.setAttribute("data-tooltip", remoteTooltip);
+      remoteLink.setAttribute("aria-label", (TEXTS[currentLang].remoteButton || "Petoi Web Controller") + ". " + remoteTooltip);
       remoteLink.href = "./mobile_remote.html?lang=" + encodeURIComponent(currentLang);
     }
 
