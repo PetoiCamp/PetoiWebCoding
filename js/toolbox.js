@@ -27,6 +27,35 @@ const customTheme = Blockly.Theme.defineTheme("myCustomTheme", {
     },
 });
 // 动态创建工具箱配置
+function currentProductType() {
+    if (typeof PetoiProducts === "undefined") {
+        return "bittle";
+    }
+    return PetoiProducts.fromUrl() || PetoiProducts.defaultType;
+}
+
+function motionDropdownOptions(group) {
+    const options = PetoiMotion.optionsFor(group, currentProductType(), getText);
+    return options.length ? options : [["-", ""]];
+}
+
+function motionSkillToolboxBlocks() {
+    const productType = currentProductType();
+    const blocks = [];
+    [
+        ["walking", "gait"],
+        ["posture", "posture"],
+        ["behavior", "behavior"],
+        ["acrobatic", "acrobatic_moves"],
+        ["modelSpecial", "arm_action"],
+    ].forEach(function (entry) {
+        if (PetoiMotion.hasGroup(entry[0], productType)) {
+            blocks.push({ kind: "block", type: entry[1] });
+        }
+    });
+    return blocks;
+}
+
 function createToolbox() {
     return {
         kind: "categoryToolbox",
@@ -239,12 +268,7 @@ function createToolbox() {
                 kind: "category",
                 name: getText("categoryMotion"),
                 categorystyle: "motion_category",
-                contents: [
-                    { kind: "block", type: "gait" },
-                    { kind: "block", type: "posture" },
-                    { kind: "block", type: "behavior" },
-                    { kind: "block", type: "acrobatic_moves" },
-                    { kind: "block", type: "arm_action" },
+                contents: motionSkillToolboxBlocks().concat([
                     { kind: "block", type: "get_joint_angle" },
                     { kind: "block", type: "get_all_joint_angles" },
                     { kind: "block", type: "set_joint_angle", inputs: {
@@ -322,7 +346,7 @@ function createToolbox() {
                         VARIABLE: "0, 0, 0, 0, 0, 0, 0, 0, 30, 30, 30, 30, 30, 30, 30, 30",
                     } },
                     { kind: "block", type: "action_skill_file" },
-                ],
+                ]),
             },
         ],
     };
@@ -1183,29 +1207,7 @@ function blocklyGlobalConfig() {
             var gaitLabel = getText("gaitLabel");
             var delayLabel = getText("thenDelay");
             var unitLabel = getText("secUnit");
-            var options = [
-                [getText("gaitStep"), "kvtF"],
-                [getText("gaitSpinLeft"), "kvtL"],
-                [getText("gaitSpinRight"), "kvtR"],
-                [getText("gaitWalkForward"), "kwkF"],
-                [getText("gaitWalkLeft"), "kwkL"],
-                [getText("gaitWalkRight"), "kwkR"],
-                [getText("gaitWalkBackward"), "kbkF"],
-                [getText("gaitBackLeft"), "kbkL"],
-                [getText("gaitBackRight"), "kbkR"],
-                [getText("gaitTrotForward"), "ktrF"],
-                [getText("gaitTrotLeft"), "ktrL"],
-                [getText("gaitTrotRight"), "ktrR"],
-                [getText("gaitCrawlForward"), "kcrF"],
-                [getText("gaitCrawlLeft"), "kcrL"],
-                [getText("gaitCrawlRight"), "kcrR"],
-                [getText("gaitStrideForward"), "kgpF"],
-                [getText("gaitStrideLeft"), "kgpL"],
-                [getText("gaitStrideRight"), "kgpR"],
-                [getText("gaitPushForward"), "kphF"],
-                [getText("gaitPushLeft"), "kphL"],
-                [getText("gaitMoonwalk"), "kmw"],
-            ];
+            var options = motionDropdownOptions("walking");
 
             this.appendDummyInput()
                 .appendField(gaitLabel)
@@ -1227,15 +1229,7 @@ function blocklyGlobalConfig() {
             var postureLabel = getText("postureLabel");
             var delayLabel = getText("thenDelay");
             var unitLabel = getText("secUnit");
-            var options = [
-                [getText("postureStand"), "kup"],
-                [getText("postureBalance"), "kbalance"],
-                [getText("postureSit"), "ksit"],
-                [getText("postureRest"), "d"],
-                [getText("postureStr"), "kstr"],
-                [getText("postureButtUp"), "kbuttUp"],
-                [getText("postureCalib"), "kcalib"],
-            ];
+            var options = motionDropdownOptions("posture");
 
             this.appendDummyInput()
                 .appendField(postureLabel)
@@ -1257,13 +1251,7 @@ function blocklyGlobalConfig() {
             var moveLabel = getText("acrobaticMovesLabel");
             var delayLabel = getText("thenDelay");
             var unitLabel = getText("secUnit");
-            var options = [
-                [getText("acrobaticHandstand"), "khds"],
-                [getText("acrobaticBoxing"), "kbx"],
-                [getText("acrobaticBackflip"), "kflipD"],
-                [getText("acrobaticFrontflip"), "kflipF"],
-                [getText("acrobaticJump"), "kjmp"],
-            ];
+            var options = motionDropdownOptions("acrobatic");
 
             this.appendDummyInput()
                 .appendField(moveLabel)
@@ -1285,33 +1273,7 @@ function blocklyGlobalConfig() {
             var behaviorLabel = getText("behaviorLabel");
             var delayLabel = getText("thenDelay");
             var unitLabel = getText("secUnit");
-            var options = [
-                [getText("behaviorHi"), "khi"],
-                [getText("behaviorHandshake"), "khsk"],
-                [getText("behaviorHighFive"), "kfiv"],
-                [getText("behaviorHug"), "khg"],
-                [getText("behaviorHandsUp"), "khu"],
-                [getText("behaviorNod"), "knd"],
-                [getText("behaviorComeHere"), "kcmh"],
-                [getText("behaviorGoodBoy"), "kgdb"],
-                [getText("behaviorCheers"), "kchr"],
-                [getText("behaviorPee"), "kpee"],
-                [getText("behaviorSniff"), "ksnf"],
-                [getText("behaviorCheck"), "kck"],
-                [getText("behaviorDig"), "kdg"],
-                [getText("behaviorAngry"), "kang"],
-                [getText("behaviorScratch"), "kscrh"],
-                [getText("behaviorWaveHead"), "kwh"],
-                [getText("behaviorTable"), "ktbl"],
-                [getText("behaviorPlayDead"), "kpd"],
-                [getText("behaviorRoll"), "krl"],
-                [getText("behaviorRecover"), "krc"],
-                [getText("behaviorPushUp"), "kpu"],
-                [getText("behaviorPushUp1"), "kpu1"],
-                [getText("behaviorKick"), "kkc"],
-                [getText("behaviorLeapOver"), "klpov"],
-                [getText("behaviorTest"), "kts"],
-            ];
+            var options = motionDropdownOptions("behavior");
 
             this.appendDummyInput()
                 .appendField(behaviorLabel)
@@ -1337,23 +1299,7 @@ function blocklyGlobalConfig() {
                     {
                         type: "field_dropdown",
                         name: "COMMAND",
-                        options: [
-                            [getText("armPickDown"), "kpickD"],
-                            [getText("armPickFront"), "kpickF"],
-                            [getText("armPickLeft"), "kpickL"],
-                            [getText("armPickRight"), "kpickR"],
-                            [getText("armPutDown"), "kputD"],
-                            [getText("armPutFront"), "kputF"],
-                            [getText("armPutLeft"), "kputL"],
-                            [getText("armPutRight"), "kputR"],
-                            [getText("armShoot"), "klaunch"],
-                            [getText("armThrowFront"), "ktossF"],
-                            [getText("armThrowLeft"), "ktossL"],
-                            [getText("armThrowRight"), "ktossR"],
-                            [getText("armHunt"), "khunt"],
-                            [getText("armShowOff"), "kshowOff"],
-                            [getText("armClap"), "kclap"]
-                        ],
+                        options: motionDropdownOptions("modelSpecial"),
                     },
                     {
                         type: "field_number",
