@@ -1,0 +1,123 @@
+﻿group,show,skill,command,label,Bittle,BittleX+Arm,Nybble,Quaddle,note
+walking,显示,vtF,kvtF,原地踏步,Y,Y,Y,,现有菜单
+walking,显示,vtL,kvtL,左旋,Y,Y,Y,Y,现有菜单
+walking,显示,vtL,kvtR,右旋,Y,Y,Y,Y,镜像 vtL
+walking,显示,wkF,kwkF,向前走,Y,Y,Y,Y,现有菜单
+walking,显示,wkL,kwkL,向左走,Y,Y,Y,Y,现有菜单
+walking,显示,wkL,kwkR,向右走,Y,Y,Y,Y,镜像 wkL
+walking,显示,bkF,kbkF,向后走,Y,Y,Y,Y,现有菜单
+walking,显示,bkL,kbkL,向左后走,Y,Y,Y,Y,现有菜单
+walking,显示,bkL,kbkR,向右后走,Y,Y,Y,Y,镜像 bkL
+walking,显示,trF,ktrF,向前跑,Y,Y,Y,Y,现有菜单
+walking,显示,trL,ktrL,向左跑,Y,Y,Y,Y,现有菜单
+walking,显示,trL,ktrR,向右跑,Y,Y,Y,Y,镜像 trL
+walking,显示,crF,kcrF,向前爬,Y,Y,Y,Y,现有菜单
+walking,显示,crL,kcrL,向左爬,Y,Y,Y,Y,现有菜单
+walking,显示,crL,kcrR,向右爬,Y,Y,Y,Y,镜像 crL
+walking,显示,gpF,kgpF,向前跨,Y,Y,,,现有菜单
+walking,显示,gpL,kgpL,向左跨,Y,Y,,,现有菜单
+walking,显示,gpL,kgpR,向右跨,Y,Y,,,镜像 gpL
+walking,显示,phF,kphF,向前推,Y,Y,,,现有菜单
+walking,显示,phL,kphL,向左推,Y,Y,,,现有菜单
+walking,显示,phL,kphR,向右推,Y,Y,,,镜像 phL；现有菜单没有这一项，建议补上
+walking,显示,mw,kmw,太空步,Y,Y,,,现有菜单放在 walking。固件 period 实际是 behavior
+walking,显示,bdF,kbdF,向前蹦,Y,Y,,Y,
+walking,显示,carpetF,kcarpetF,地毯向前,Y,Y,,,
+walking,显示,carpetL,kcarpetL,地毯向左,Y,Y,,,
+walking,显示,carpetL,kcarpetR,地毯向右,Y,Y,,,镜像 carpetL
+walking,显示,hlw,khlw,小步（服装步态）,Y,Y,,,
+walking,显示,jpF,kjpF,向前跳（步态）,Y,Y,,,与 behavior 的 jmp 不是同一个技能
+walking,显示,lftF,klftF,抬腿向前,Y,Y,,,
+walking,显示,lftL,klftL,抬腿向左,Y,Y,,,
+walking,显示,lftL,klftR,抬腿向右,Y,Y,,,镜像 lftL
+model special moves,显示,backScoot,kbackScoot,后蹭,,,,Y,仅 Quaddle
+model special moves,显示,bbbk,kbbbk,变体后退,,,,Y,仅 Quaddle
+model special moves,显示,dragWkF,kdragWkF,拖步向前,,,,Y,仅 Quaddle
+model special moves,显示,gallop,kgallop,奔跑,,,,Y,仅 Quaddle
+model special moves,显示,marchF,kmarchF,正步向前,,,,Y,仅 Quaddle
+model special moves,显示,tiptoeF,ktiptoeF,踮脚向前,,,,Y,仅 Quaddle
+model special moves,显示,trB,ktrB,向后跑,,,,Y,仅 Quaddle
+model special moves,显示,vt90L,kvt90L,90度左转,,,,Y,仅 Quaddle
+model special moves,显示,vt90L,kvt90R,90度右转,,,,Y,镜像 vt90L
+model special moves,显示,wkB,kwkB,向后走（wkB）,,,,Y,仅 Quaddle。与 bkF 不是同一个技能
+不显示,不显示,bk,kbk,后退（基础名）,Y,Y,Y,,已有 bkF/bkL/bkR，不单列
+不显示,不显示,bkArmF,kbkArmF,bkArmF,Y,Y,,,名字含 Arm。Bittle 不适用。Bittle X+Arm 收到 wkF/bkF 等指令时固件自动换成对应 Arm 步态，菜单不单列
+不显示,不显示,bkArmL,kbkArmL,bkArmL,Y,Y,,,名字含 Arm。Bittle 不适用。Bittle X+Arm 收到 wkF/bkF 等指令时固件自动换成对应 Arm 步态，菜单不单列
+不显示,不显示,crArmF,kcrArmF,crArmF,Y,Y,,,名字含 Arm。Bittle 不适用。Bittle X+Arm 收到 wkF/bkF 等指令时固件自动换成对应 Arm 步态，菜单不单列
+不显示,不显示,crArmL,kcrArmL,crArmL,Y,Y,,,名字含 Arm。Bittle 不适用。Bittle X+Arm 收到 wkF/bkF 等指令时固件自动换成对应 Arm 步态，菜单不单列
+不显示,不显示,trArmF,ktrArmF,trArmF,Y,Y,,,名字含 Arm。Bittle 不适用。Bittle X+Arm 收到 wkF/bkF 等指令时固件自动换成对应 Arm 步态，菜单不单列
+不显示,不显示,trArmL,ktrArmL,trArmL,Y,Y,,,名字含 Arm。Bittle 不适用。Bittle X+Arm 收到 wkF/bkF 等指令时固件自动换成对应 Arm 步态，菜单不单列
+不显示,不显示,vtArmF,kvtArmF,vtArmF,Y,Y,,,名字含 Arm。Bittle 不适用。Bittle X+Arm 收到 wkF/bkF 等指令时固件自动换成对应 Arm 步态，菜单不单列
+不显示,不显示,wkArmF,kwkArmF,wkArmF,Y,Y,,,名字含 Arm。Bittle 不适用。Bittle X+Arm 收到 wkF/bkF 等指令时固件自动换成对应 Arm 步态，菜单不单列
+不显示,不显示,wkArmL,kwkArmL,wkArmL,Y,Y,,,名字含 Arm。Bittle 不适用。Bittle X+Arm 收到 wkF/bkF 等指令时固件自动换成对应 Arm 步态，菜单不单列
+posture,显示,up,kup,站立,Y,Y,Y,Y,现有菜单
+posture,显示,balance,kbalance,站立(平衡),Y,Y,Y,Y,现有菜单
+posture,显示,sit,ksit,坐下,Y,Y,Y,Y,现有菜单
+posture,显示,rest,d,休息,Y,Y,Y,Y,现有菜单。指令是 d，不是 krest
+posture,显示,str,kstr,伸展,Y,Y,Y,Y,现有菜单
+posture,显示,buttUp,kbuttUp,翘臀,Y,Y,Y,Y,现有菜单
+posture,显示,calib,kcalib,校准姿势,Y,Y,Y,Y,现有菜单
+posture,显示,lu,klu,抬头,,,Y,,仅 Nybble
+posture,显示,zero,kzero,归零,Y,Y,Y,Y,校准用零位。现有菜单没有。若不显示请删本行
+behavior,显示,hi,khi,打招呼,Y,Y,Y,Y,现有菜单
+behavior,显示,hsk,khsk,握手,Y,Y,Y,Y,现有菜单
+behavior,显示,fiv,kfiv,击掌,Y,Y,Y,,现有菜单
+behavior,显示,hg,khg,拥抱,Y,Y,Y,,现有菜单
+behavior,显示,hu,khu,举手,Y,Y,Y,,现有菜单
+behavior,显示,nd,knd,点头,Y,Y,Y,,现有菜单
+behavior,显示,cmh,kcmh,过来,Y,Y,Y,,现有菜单
+behavior,显示,gdb,kgdb,乖狗狗,Y,Y,Y,,现有菜单
+behavior,显示,chr,kchr,欢呼,Y,Y,Y,,现有菜单
+behavior,显示,pee,kpee,尿尿,Y,Y,Y,Y,现有菜单
+behavior,显示,snf,ksnf,嗅闻,Y,Y,Y,,现有菜单
+behavior,显示,ck,kck,检查,Y,Y,Y,,现有菜单
+behavior,显示,dg,kdg,挖掘,Y,Y,Y,,现有菜单
+behavior,显示,ang,kang,生气,Y,Y,Y,,现有菜单
+behavior,显示,scrh,kscrh,挠痒,Y,Y,Y,,现有菜单
+behavior,显示,wh,kwh,摇头,Y,Y,Y,,现有菜单
+behavior,显示,tbl,ktbl,当桌子,Y,Y,Y,,现有菜单
+behavior,显示,pd,kpd,装死,Y,Y,Y,Y,现有菜单
+behavior,显示,pd2,kpd2,装死2,,,,Y,表格新增，仅 Quaddle
+behavior,显示,rl,krl,翻滚,Y,,,,现有菜单。表格里只有 Bittle 有
+behavior,显示,rc,krc,恢复,Y,Y,Y,Y,现有菜单
+behavior,显示,rc2,krc2,恢复2,,,,Y,表格新增，仅 Quaddle
+behavior,显示,rcL,krcL,向左恢复,,,,Y,表格新增，仅 Quaddle
+behavior,显示,rcL,krcR,向右恢复,,,,Y,镜像 rcL
+behavior,显示,pu,kpu,俯卧撑,Y,Y,Y,,现有菜单
+behavior,显示,pu1,kpu1,单手俯卧撑,Y,Y,,,现有菜单。不放进机械臂动作集
+behavior,显示,kc,kkc,踢,Y,Y,Y,,现有菜单
+behavior,显示,lpov,klpov,跨越,Y,Y,,,现有菜单
+behavior,显示,ts,kts,测试舵机,Y,Y,Y,,现有菜单
+behavior,显示,hunt,khunt,捕猎,,,Y,,Nybble 的猫动作，放在 behavior。Bittle / Bittle X+Arm 放在 model special
+special moves (high stress),显示,hds,khds,倒立,Y,Y,Y,Y,现有菜单
+special moves (high stress),显示,bx,kbx,打拳,Y,Y,Y,,现有菜单
+special moves (high stress),显示,flipD,kflipD,后空翻,Y,,,,现有菜单
+special moves (high stress),显示,flipF,kflipF,前空翻,Y,,,,现有菜单
+special moves (high stress),显示,jmp,kjmp,跳跃,Y,Y,,,现有菜单
+special moves (high stress),显示,bf,kbf,后空翻（bf）,Y,,,Y,表格新增。请确认是否与 flipD 重复
+special moves (high stress),显示,ff,kff,前空翻（ff）,Y,,,Y,表格新增。请确认是否与 flipF 重复
+special moves (high stress),显示,flip,kflip,翻转,Y,,,,表格新增，仅 Bittle。请确认是否与 flipF/flipD 重复
+special moves (high stress),显示,jumpSlide,kjumpSlide,跳滑,,,,Y,表格新增，仅 Quaddle
+special moves (high stress),显示,highbar,khighbar,高杠,,,,Y,表格新增，仅 Quaddle
+model special moves,显示,pickD,kpickD,向下捡,,Y,,,现有机械臂菜单。表格里 Bittle 和 Bittle X+Arm 都有。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,pickF,kpickF,向前捡,,Y,,,现有机械臂菜单。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,pick,kpickL,向左捡,,Y,,,现有机械臂菜单。没有独立技能 pickL，固件别名到 pick。不用表格删掉。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,pick,kpickR,向右捡,,Y,,,现有机械臂菜单。别名到 pick 后镜像。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,putD,kputD,向下放,,Y,,,现有机械臂菜单。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,putF,kputF,向前放,,Y,,,现有机械臂菜单。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,put,kputL,向左放,,Y,,,现有机械臂菜单。别名到 put。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,put,kputR,向右放,,Y,,,现有机械臂菜单。别名到 put 后镜像。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,launch,klaunch,发射,,Y,,,现有机械臂菜单。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,tossF,ktossF,向前抛,,Y,,,现有机械臂菜单。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,toss,ktossL,向左抛,,Y,,,现有机械臂菜单。别名到 toss。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,toss,ktossR,向右抛,,Y,,,现有机械臂菜单。别名到 toss 后镜像。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,hunt,khunt,捕猎,,Y,,,现有机械臂菜单。Nybble 的同名技能放在 behavior，不放这里。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,showOff,kshowOff,展示,,Y,,,现有机械臂菜单。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,clap,kclap,鼓掌,,Y,,,现有机械臂菜单。仅 Bittle X+Arm，沿用现有菜单，不用表格改这一列
+model special moves,显示,tossD,ktossD,向下抛,,Y,,,表格有，现有机械臂菜单没有。按你的要求不把它加进 Bittle X+Arm
+model special moves,显示,headToss,kheadToss,甩头,,,Y,,仅 Nybble
+model special moves,显示,knock,kknock,敲,,,Y,,仅 Nybble
+model special moves,显示,lkPaws,klkPaws,舔爪子,,,Y,,仅 Nybble
+model special moves,显示,lucky,klucky,招财猫,,,Y,,仅 Nybble
+model special moves,显示,stand,kstand,站起（行为）,,,Y,,仅 Nybble
+model special moves,显示,wsf,kwsf,洗脸,,,Y,,仅 Nybble
