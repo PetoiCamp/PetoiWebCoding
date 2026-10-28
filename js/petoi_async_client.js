@@ -34,6 +34,31 @@ class PetoiAsyncClient
         // 连接状态监控
         this.lastActivityTime = 0; // 最后活动时间
         this.connectionStartTime = 0; // 连接开始时间
+
+        if (!PetoiAsyncClient.liveClients)
+        {
+            PetoiAsyncClient.liveClients = new Set();
+        }
+        PetoiAsyncClient.liveClients.add(this);
+    }
+
+    // Close every socket this page opened, including ones that were never stored on window.
+    static disconnectAll()
+    {
+        const clients = Array.from(PetoiAsyncClient.liveClients || []);
+        clients.forEach((client) =>
+        {
+            try
+            {
+                client.disconnect();
+            } catch (error)
+            {
+                if (typeof showDebug !== 'undefined' && showDebug)
+                {
+                    console.warn('Failed to close a Wi-Fi client:', error);
+                }
+            }
+        });
     }
 
     /**
@@ -170,6 +195,11 @@ class PetoiAsyncClient
      */
     async connect()
     {
+        if (typeof hasActiveBleConnection === 'function' && hasActiveBleConnection())
+        {
+            return Promise.reject(new Error('BLE link is active'));
+        }
+
         return new Promise((resolve, reject) => {
             // 如果已有连接，先断开
             if (this.ws) {
@@ -647,6 +677,11 @@ class PetoiAsyncClient
         this.autoReconnect = false; // 禁用自动重连
         this.stopHeartbeat(); // 停止心跳
         this.stopHealthCheck(); // 停止健康检查
+
+        if (PetoiAsyncClient.liveClients)
+        {
+            PetoiAsyncClient.liveClients.delete(this);
+        }
         
         if (this.ws)
         {

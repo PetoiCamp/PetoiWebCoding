@@ -380,6 +380,31 @@ body {
     color: white;
 }
 
+.quick-connect-dialog {
+    width: min(420px, calc(100vw - 32px));
+    max-width: calc(100vw - 32px);
+    box-sizing: border-box;
+}
+
+.quick-connect-hint {
+    color: #666;
+    margin: 0 0 12px;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.quick-connect-choices {
+    flex-direction: column;
+}
+
+.quick-connect-choices button {
+    width: 100%;
+}
+
+.wifi-dialog button.quick-connect-ble {
+    background-color: #1b9e5a;
+}
+
 .overlay {
     position: fixed;
     top: 0;

@@ -29,6 +29,10 @@ function getDeviceModel()
 // 连接机器人函数实现 - WebSocket版本
 async function makeConnection(ip, timeout = TIMEOUT_CONFIG.WEB_REQUEST.CONNECTION_TIMEOUT) {
   try {
+    // An open BLE link is the transport. Do not dial the block IP.
+    if (typeof hasActiveBleConnection === 'function' && hasActiveBleConnection()) {
+      return true;
+    }
     if (window.client) {
       // 如果已经有连接，先断开
       window.client.disconnect();

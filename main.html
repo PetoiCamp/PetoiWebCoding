@@ -45,7 +45,7 @@
   <script src="./blocks/communication.js"></script>
   <script src="./blocks/generators.js"></script>
   <!-- 6. 加载 WebSocket 客户端 -->
-  <script src="./js/petoi_async_client.js?v=20260227-2"></script>
+  <script src="./js/petoi_async_client.js?v=20261028-1"></script>
   <script src="./js/toolbox.js"></script>
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -214,8 +214,8 @@
     }
 
     // Global version date variable (format: vYear.Month.Day)
-    const GLOBAL_VERSION_DATE = "v2026.10.21";
-    const GLOBAL_VERSION_LAST_MODIFIED = "2026-10-21 11:33:30";
+    const GLOBAL_VERSION_DATE = "v2026.10.28";
+    const GLOBAL_VERSION_LAST_MODIFIED = "2026-10-28 12:30:00";
 
     // Set version date
     function setVersionDate()
@@ -367,8 +367,9 @@
       if (button.id === 'quickConnectBtn' && button.hasAttribute('data-connected') && !mobileLayoutState.isActive)
       {
         const label = button.getAttribute('data-mobile-label') || '';
-        const ipText = currentDeviceIP && currentDeviceIP !== '192.168.4.1' ? currentDeviceIP : label;
-        button.textContent = ipText;
+        const bleText = (bleLink && writer && writer.isBle && bleLink.name) ? bleLink.name : '';
+        const ipText = currentDeviceIP && currentDeviceIP !== '192.168.4.1' ? currentDeviceIP : '';
+        button.textContent = bleText || ipText || label;
         button.classList.remove('mobile-icon-only');
         return;
       }
@@ -1215,6 +1216,11 @@
     // 尝试使用配置的IP地址连接
     async function tryConnectWithConfigIP()
     {
+      if (typeof hasActiveBleConnection === 'function' && hasActiveBleConnection())
+      {
+        return false;
+      }
+
       if (!config.lastKnownIP)
       {
         if (typeof showDebug !== 'undefined' && showDebug)
@@ -1254,6 +1260,7 @@
       {
         // 尝试使用配置的IP地址创建WebSocket连接
         const testClient = new PetoiAsyncClient(`ws://${config.lastKnownIP}:81`);
+        window.petoiClient = testClient;
         await testClient.connect();
 
         // 如果连接成功，更新当前IP地址
@@ -1989,6 +1996,10 @@
         const connectionBlock = workspace.newBlock('make_connection');
         // 设置IP地址为当前设备IP
         connectionBlock.setFieldValue(currentDeviceIP, 'IP_ADDRESS');
+        if (typeof showBleNameOnConnectionBlock === 'function')
+        {
+          showBleNameOnConnectionBlock();
+        }
         // 初始化积木块(确保所有连接点正确设置)
         connectionBlock.initSvg();
         // 渲染积木块
@@ -2247,8 +2258,8 @@
         return;
       }
 
-      // 检查是否有有效的串口连接
-      const hasValidSerial = hasActiveSerialConnection();
+      // USB 串口或已连接的 BLE 都算可运行的链路。BLE 没有 Web Serial 端口。
+      const hasValidSerial = hasActiveSerialConnection() || hasActiveBleConnection();
 
       // 检查WebSocket连接状态（通过window.client和currentDeviceIP判断）
       const hasValidWebSocket = (typeof window.client !== 'undefined' && window.client && 
@@ -2408,10 +2419,14 @@
 
       if (showDebug) console.log(getText("programExecutionStarted"));
 
-      // 检查是否有有效的串口连接
-      const hasValidSerial = writer && port && port.readable && port.writable;
+      // 检查是否有有效的串口连接。BLE 只有 writer，没有 Web Serial port。
+      const hasValidSerial = hasActiveSerialConnection() || hasActiveBleConnection();
       if (hasValidSerial)
       {
+        if (hasActiveBleConnection())
+        {
+          releaseWifiClientsForBle();
+        }
         if (showDebug) console.log(getText("usingSerialConnectionExecute"));
       } else
       {
@@ -2459,8 +2474,12 @@ async function serialRequest(command, timeout = 5000, isRest = false, expectedRe
     checkStopExecution();
   }
   
-  // 检查串口连接是否仍然有效
-  if (!writer || !port || !port.readable || !port.writable) {
+  // USB 要有可读写的 port。BLE 只有 writer，GATT 仍连接即可发送。
+  const bleReady = !!(writer && writer.isBle && bleLink && bleLink.device && bleLink.device.gatt && bleLink.device.gatt.connected);
+  if (!bleReady && (!writer || !port || !port.readable || !port.writable)) {
+    if (typeof hasActiveBleConnection === 'function' && hasActiveBleConnection()) {
+      throw new Error(getText("serialUnavailableNoValidIP"));
+    }
     console.warn(getText("serialDisconnectedTryWiFi"));
     
     // 如果有保存的IP地址，尝试使用WiFi连接
@@ -2542,8 +2561,13 @@ async function serialRequest(command, timeout = 5000, isRest = false, expectedRe
         }
       }).join(",") + "]";
     } else {
-      // 普通字符串命令
-      dataToSend = new TextEncoder().encode(command);
+      // Text commands on BLE are one GATT payload ending in a newline.
+      // USB serial keeps the original bytes.
+      let textCommand = command;
+      if (writer && writer.isBle && typeof textCommand === 'string' && !textCommand.endsWith('\\n') && !textCommand.endsWith('~')) {
+        textCommand = textCommand + '\\n';
+      }
+      dataToSend = new TextEncoder().encode(textCommand);
       // 检查是否为读取命令
       if (command.toLowerCase().startsWith('r')) {
         isReadCommand = true;
@@ -2603,6 +2627,9 @@ async function serialRequest(command, timeout = 5000, isRest = false, expectedRe
     }
   } catch (error) {
     console.error(getText("serialSendError") + ":", error);
+    if (typeof hasActiveBleConnection === 'function' && hasActiveBleConnection()) {
+      throw error;
+    }
     
     // 串口发送失败，尝试使用WiFi
     if (currentDeviceIP && currentDeviceIP !== '192.168.4.1') {
@@ -2658,6 +2685,9 @@ async function serialRequest(command, timeout = 5000, isRest = false, expectedRe
 // 串口连接函数（处理IP获取）
 async function makeConnection(ip) {
   if (showDebug) console.log(getText("serialConnectedSkipWebSocket"));
+  if (typeof hasActiveBleConnection === 'function' && hasActiveBleConnection()) {
+    return true;
+  }
   
   // 如果需要获取IP地址，通过串口获取
   if (!currentDeviceIP || currentDeviceIP === '192.168.4.1') {
@@ -3042,6 +3072,10 @@ async function webRequest(command, timeout = 5000, isRest = false, expectedRespo
 
 // WebSocket连接函数
 async function makeConnection(ip) {
+  if (typeof hasActiveBleConnection === 'function' && hasActiveBleConnection()) {
+    if (showDebug) console.log(getText("serialConnectedSkipWebSocket"));
+    return true;
+  }
   if (window.petoiClient) {
     await window.petoiClient.disconnect();
   }
@@ -3563,6 +3597,10 @@ async function closeConnection() {
               // 更新第一个make_connection积木块的IP_ADDRESS字段
               makeConnectionBlocks[0].setFieldValue(currentDeviceIP, 'IP_ADDRESS');
             }
+          }
+          if (typeof showBleNameOnConnectionBlock === 'function')
+          {
+            showBleNameOnConnectionBlock();
           }
 
           // 不使用alert，而是在控制台显示加载成功信息
@@ -4222,6 +4260,7 @@ Generated at: ${now.toISOString()}
     let port = null;
     let reader = null;
     let writer = null;
+    let bleLink = null;
     let wifiMonitorSending = false;
 
     // 添加文件相关变量
@@ -5516,6 +5555,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         throw pendingError;
       }
       isOpeningSerialPort = true;
+      let droppedBleForUsb = false;
       try
       {
         let selectedPort = null;
@@ -5628,6 +5668,13 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         } catch (selectionError)
         {
           throw selectionError;
+        }
+
+        // USB 串口即将打开时再断开 BLE，取消选择框不会拆掉已有的蓝牙连接。
+        if (hasActiveBleConnection())
+        {
+          dropBleLinkSync();
+          droppedBleForUsb = true;
         }
 
         // 连接串口
@@ -5796,10 +5843,14 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       } catch (error)
       {
         console.error(getText("serialConnectionError"), error);
-        // 连接失败时重置所有串口相关变量
+        // 选 USB 端口失败时不要拆掉已经在用的 BLE writer。
+        const preserveBle = !!(writer && writer.isBle && bleLink && !droppedBleForUsb);
         port = null;
-        writer = null;
         reader = null;
+        if (!preserveBle)
+        {
+          writer = null;
+        }
 
         // 清理可能存在的对话框
         const existingOverlay = document.querySelector('.esp32-port-selector');
@@ -5837,6 +5888,10 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
             console.log(`Kept Quick Connect button showing IP: ${currentDeviceIP}`);
           }
         }
+        if (droppedBleForUsb)
+        {
+          quickCloseSerialPort();
+        }
         isOpeningSerialPort = false;
         // 抛出异常，让调用者知道连接失败
         throw error;
@@ -5848,6 +5903,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
     {
       try
       {
+        dropBleLinkSync();
         if (reader)
         {
           reader.cancel().catch(() => { }); // 忽略错误
@@ -5910,6 +5966,11 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
     {
       try
       {
+        if (bleLink)
+        {
+          await disconnectBleLink();
+        }
+
         // 添加超时处理，防止硬件断开时卡住
         const timeout = TIMEOUT_CONFIG.SERIAL.PORT_CLOSE_TIMEOUT; // 使用配置的端口关闭超时
 
@@ -6030,6 +6091,12 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
     // WiFi连接处理函数（内部使用）
     async function handleWifiConnection(forceShowDialog = false)
     {
+      // BLE 已经在传指令。不要再弹 Web Serial 选择框，那个列表里没有 BLE 设备。
+      if (hasActiveBleConnection())
+      {
+        return;
+      }
+
       // 检查串口是否已连接（不要仅依据port对象，必须是可读写的活动连接）
       if (!hasActiveSerialConnection())
       {
@@ -6107,6 +6174,27 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         return quickConnectPromise;
       }
 
+      if (hasActiveSerialConnection())
+      {
+        return startUsbQuickConnect();
+      }
+
+      if (hasActiveBleConnection())
+      {
+        showBleSerialMonitor(bleLink.name);
+        return;
+      }
+
+      showQuickConnectChooser();
+    }
+
+    async function startUsbQuickConnect()
+    {
+      if (quickConnectPromise)
+      {
+        return quickConnectPromise;
+      }
+
       const quickConnectBtn = document.getElementById('quickConnectBtn');
       if (quickConnectBtn) quickConnectBtn.disabled = true;
 
@@ -6118,6 +6206,312 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       } finally
       {
         quickConnectPromise = null;
+        if (quickConnectBtn) quickConnectBtn.disabled = false;
+      }
+    }
+
+    function showQuickConnectChooser()
+    {
+      if (document.querySelector('.quick-connect-dialog'))
+      {
+        return;
+      }
+
+      const overlay = document.createElement('div');
+      overlay.className = 'overlay';
+      const dialog = document.createElement('div');
+      dialog.className = 'wifi-dialog quick-connect-dialog';
+      dialog.innerHTML = `
+        <h3>${getText("quickConnectChoose")}</h3>
+        <p class="quick-connect-hint">${getText("quickConnectBleHint")}</p>
+        <div class="button-container quick-connect-choices">
+          <button type="button" class="confirm" id="quickConnectUsbBtn">${getText("quickConnectUsb")}</button>
+          <button type="button" class="confirm quick-connect-ble" id="quickConnectBleBtn">${getText("quickConnectBluetooth")}</button>
+          <button type="button" class="cancel" id="quickConnectCancelBtn">${getText("cancel")}</button>
+        </div>
+      `;
+
+      function closeChooser()
+      {
+        if (dialog.parentNode) dialog.remove();
+        if (overlay.parentNode) overlay.remove();
+      }
+
+      overlay.addEventListener('click', closeChooser);
+      dialog.querySelector('#quickConnectCancelBtn').addEventListener('click', closeChooser);
+      dialog.querySelector('#quickConnectUsbBtn').addEventListener('click', () =>
+      {
+        closeChooser();
+        startUsbQuickConnect();
+      });
+      // requestDevice() must run in this click, before any other await.
+      dialog.querySelector('#quickConnectBleBtn').addEventListener('click', () =>
+      {
+        closeChooser();
+        connectBleSerial();
+      });
+      document.body.appendChild(overlay);
+      document.body.appendChild(dialog);
+    }
+
+    function releaseWifiClientsForBle()
+    {
+      if (typeof PetoiAsyncClient !== 'undefined' && typeof PetoiAsyncClient.disconnectAll === 'function')
+      {
+        PetoiAsyncClient.disconnectAll();
+      }
+      const clients = [window.petoiClient, window.client];
+      window.petoiClient = null;
+      window.client = null;
+      clients.forEach((client) =>
+      {
+        if (!client || typeof client.disconnect !== 'function') return;
+        try
+        {
+          client.disconnect();
+        } catch (error)
+        {
+          if (typeof showDebug !== 'undefined' && showDebug)
+          {
+            console.warn('Failed to close Wi-Fi client while BLE is active:', error);
+          }
+        }
+      });
+    }
+
+    function hasActiveBleConnection()
+    {
+      if (!bleLink || bleLink.closing || !bleLink.rx || !bleLink.device || !bleLink.device.gatt || !bleLink.device.gatt.connected)
+      {
+        return false;
+      }
+      // 打开 USB 选择框失败时会把 writer 清空，GATT 可能还在。这里把写通道补回来。
+      if (!writer || !writer.isBle)
+      {
+        writer = createBleWriter(bleLink.rx);
+      }
+      return true;
+    }
+
+    function dropBleLinkSync()
+    {
+      const link = bleLink;
+      if (!link) return;
+      link.closing = true;
+      restoreConnectionBlockAddress();
+      bleLink = null;
+      if (writer && writer.isBle)
+      {
+        writer = null;
+      }
+      try
+      {
+        if (link.tx && link.onNotify)
+        {
+          link.tx.removeEventListener('characteristicvaluechanged', link.onNotify);
+        }
+      } catch (error) { /* ignore */ }
+      try
+      {
+        if (link.device && link.device.gatt && link.device.gatt.connected)
+        {
+          link.device.gatt.disconnect();
+        }
+      } catch (error) { /* ignore */ }
+    }
+
+    async function disconnectBleLink()
+    {
+      dropBleLinkSync();
+    }
+
+    function onBleGattDisconnected()
+    {
+      if (!bleLink || bleLink.closing) return;
+      restoreConnectionBlockAddress();
+      bleLink = null;
+      if (writer && writer.isBle)
+      {
+        writer = null;
+      }
+      if (!port)
+      {
+        closeSerialPort();
+      }
+    }
+
+    function showBleSerialMonitor(deviceName)
+    {
+      const serialInterface = document.getElementById('serialInterface');
+      serialInterface.style.display = 'flex';
+
+      const serialContainer = document.getElementById('serialContainer');
+      serialContainer.classList.add('connected');
+
+      document.getElementById('console-serial-divider').style.display = 'block';
+      document.getElementById('consoleWindow').style.flex = '50';
+      serialContainer.style.flex = '49';
+
+      document.getElementById('openSerialBtn').style.display = 'none';
+      document.getElementById('showSerialTimestampBtn').style.display = 'inline-flex';
+      document.getElementById('closeSerialBtn').style.display = 'inline-flex';
+      document.getElementById('clearSerialBtn').style.display = 'inline-flex';
+      updateWifiMonitorButton();
+      queueAreaHeaderLabelUpdate();
+
+      const serialTitle = document.getElementById('serialOutputTitle');
+      const serialPortInfo = document.getElementById('serialPortInfo');
+      if (serialTitle)
+      {
+        serialTitle.textContent = getText("serialOutput");
+      }
+      if (serialPortInfo)
+      {
+        serialPortInfo.textContent = deviceName || 'Bluetooth';
+        serialPortInfo.style.display = 'block';
+      }
+
+      const quickConnectBtn = document.getElementById('quickConnectBtn');
+      if (quickConnectBtn)
+      {
+        quickConnectBtn.textContent = deviceName || getText("quickConnectBluetooth");
+        quickConnectBtn.style.backgroundColor = '#4CAF50';
+        quickConnectBtn.setAttribute('data-connected', 'true');
+      }
+      if (typeof window.applyMobileMainActionLabels === 'function')
+      {
+        window.applyMobileMainActionLabels();
+      }
+
+      setTimeout(function ()
+      {
+        resizeBlocklyWorkspace();
+        repositionUndoRedoButtons();
+      }, 100);
+
+      const input = document.getElementById('serialInput');
+      if (input) input.focus();
+    }
+
+    function createBleWriter(rx)
+    {
+      let queue = Promise.resolve();
+      return {
+        isBle: true,
+        write(data)
+        {
+          const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
+          const run = queue.catch(() => {}).then(async () =>
+          {
+            const chunkSize = 20;
+            for (let offset = 0; offset < bytes.length; offset += chunkSize)
+            {
+              const chunk = bytes.slice(offset, offset + chunkSize);
+              if (rx.properties.writeWithoutResponse && typeof rx.writeValueWithoutResponse === 'function')
+              {
+                await rx.writeValueWithoutResponse(chunk);
+              } else
+              {
+                await rx.writeValue(chunk);
+              }
+            }
+          });
+          queue = run;
+          return run;
+        },
+        close()
+        {
+          return disconnectBleLink();
+        }
+      };
+    }
+
+    async function connectBleSerial()
+    {
+      if (!navigator.bluetooth || typeof navigator.bluetooth.requestDevice !== 'function')
+      {
+        alert(getText("bleUnsupported"));
+        return;
+      }
+
+      const serviceId = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+      const rxId = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+      const txId = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+      const prefixes = ["bittle", "nybble", "quaddle", "petoi", "mini"];
+      const names = [...new Set(prefixes.flatMap((prefix) => [prefix, prefix[0].toUpperCase() + prefix.slice(1)]))];
+
+      let device;
+      try
+      {
+        device = await navigator.bluetooth.requestDevice({
+          filters: names.map((namePrefix) => ({ namePrefix })),
+          optionalServices: [serviceId],
+        });
+      } catch (error)
+      {
+        if (error && (error.name === 'NotFoundError' || error.name === 'AbortError'))
+        {
+          return;
+        }
+        alert(getText("bleConnectFailed").replace("{error}", (error && error.message) ? error.message : String(error)));
+        return;
+      }
+
+      const quickConnectBtn = document.getElementById('quickConnectBtn');
+      if (quickConnectBtn) quickConnectBtn.disabled = true;
+      try
+      {
+        if (port || reader || (writer && !writer.isBle))
+        {
+          await closeSerialPort();
+        } else
+        {
+          dropBleLinkSync();
+        }
+
+        device.addEventListener('gattserverdisconnected', onBleGattDisconnected);
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(serviceId);
+        const rx = await service.getCharacteristic(rxId);
+        const tx = await service.getCharacteristic(txId);
+        const onNotify = (event) =>
+        {
+          const value = event && event.target ? event.target.value : null;
+          if (!value) return;
+          const bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+          ingestSerialChunk(new TextDecoder().decode(bytes));
+        };
+
+        writer = createBleWriter(rx);
+        bleLink = { device, rx, tx, onNotify, name: device.name || 'Bluetooth', closing: false };
+        showBleSerialMonitor(bleLink.name);
+
+        tx.addEventListener('characteristicvaluechanged', onNotify);
+        await tx.startNotifications();
+        releaseWifiClientsForBle();
+        applyBleQuickConnectLabel(quickConnectBtn);
+
+        try
+        {
+          await validateSerialConnection();
+        } catch (error)
+        {
+          if (typeof showDebug !== 'undefined' && showDebug)
+          {
+            console.log('BLE identity query failed:', error);
+          }
+        }
+      } catch (error)
+      {
+        dropBleLinkSync();
+        console.error(getText("bleConnectFailed").replace("{error}", (error && error.message) ? error.message : String(error)));
+        alert(getText("bleConnectFailed").replace("{error}", (error && error.message) ? error.message : String(error)));
+        if (!port)
+        {
+          await closeSerialPort();
+        }
+      } finally
+      {
         if (quickConnectBtn) quickConnectBtn.disabled = false;
       }
     }
@@ -6345,11 +6739,68 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         quickConnectBtn.style.backgroundColor = ''; // 恢复默认颜色
         quickConnectBtn.removeAttribute('data-connected'); // 移除连接状态标记
       }
+      if (!applyBleQuickConnectLabel(quickConnectBtn))
+      {
+        if (typeof window.applyMobileMainActionLabels === 'function')
+        {
+          window.applyMobileMainActionLabels();
+        }
+      }
+      updateWifiMonitorButton();
+    }
+
+    function connectionBlocks()
+    {
+      if (!workspace || typeof workspace.getBlocksByType !== 'function') return [];
+      return workspace.getBlocksByType('make_connection') || [];
+    }
+
+    // Show the BLE device name in the Connect Device field while that link is up.
+    // The previous address is kept on the block so it can be restored on disconnect.
+    function showBleNameOnConnectionBlock()
+    {
+      if (!hasActiveBleConnection() || !bleLink.name) return;
+      const name = bleLink.name;
+      connectionBlocks().forEach((block) =>
+      {
+        const current = block.getFieldValue('IP_ADDRESS');
+        if (current === name) return;
+        if (current !== block.shownBleName)
+        {
+          block.savedConnectAddress = current;
+        }
+        block.shownBleName = name;
+        block.setFieldValue(name, 'IP_ADDRESS');
+      });
+    }
+
+    function restoreConnectionBlockAddress()
+    {
+      connectionBlocks().forEach((block) =>
+      {
+        if (!block.savedConnectAddress) return;
+        const current = block.getFieldValue('IP_ADDRESS');
+        if (!block.shownBleName || current === block.shownBleName)
+        {
+          block.setFieldValue(block.savedConnectAddress, 'IP_ADDRESS');
+        }
+        block.savedConnectAddress = '';
+        block.shownBleName = '';
+      });
+    }
+
+    function applyBleQuickConnectLabel(button)
+    {
+      if (!button || !hasActiveBleConnection()) return false;
+      showBleNameOnConnectionBlock();
+      button.textContent = bleLink.name || getText("quickConnectBluetooth");
+      button.style.backgroundColor = '#4CAF50';
+      button.setAttribute('data-connected', 'true');
       if (typeof window.applyMobileMainActionLabels === 'function')
       {
         window.applyMobileMainActionLabels();
       }
-      updateWifiMonitorButton();
+      return true;
     }
 
     // 更新快速连接按钮状态（统一管理函数）
@@ -6358,18 +6809,28 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       const quickConnectBtn = document.getElementById('quickConnectBtn');
       if (!quickConnectBtn) return;
 
+      if (hasActiveBleConnection())
+      {
+        applyBleQuickConnectLabel(quickConnectBtn);
+        updateWifiMonitorButton();
+        return;
+      }
+
       if (ip)
       {
         // 显示IP地址（已连接状态）
         quickConnectBtn.textContent = ip;
         quickConnectBtn.style.backgroundColor = '#4CAF50';
         quickConnectBtn.setAttribute('data-connected', 'true');
-      } else
+      } else if (!hasActiveBleConnection())
       {
         // 显示默认文本（未连接状态）
         quickConnectBtn.textContent = getText("quickConnect");
         quickConnectBtn.style.backgroundColor = '';
         quickConnectBtn.removeAttribute('data-connected');
+      } else
+      {
+        applyBleQuickConnectLabel(quickConnectBtn);
       }
       if (typeof window.applyMobileMainActionLabels === 'function')
       {
@@ -6390,12 +6851,16 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
       if (quickConnectBtn.hasAttribute('data-connected'))
       {
+        if (applyBleQuickConnectLabel(quickConnectBtn))
+        {
+          return;
+        }
         // 如果按钮标记为已连接，检查是否有有效的IP地址
         if (currentDeviceIP && currentDeviceIP !== '192.168.4.1')
         {
           // 有有效的IP地址，保持显示IP地址
           quickConnectBtn.textContent = currentDeviceIP;
-        } else
+        } else if (!applyBleQuickConnectLabel(quickConnectBtn))
         {
           // 没有有效的IP地址，重置为未连接状态
           quickConnectBtn.textContent = getText("quickConnect");
@@ -6715,20 +7180,10 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       }
     }
 
-    async function readSerialData()
+    // Shared by the USB read loop and the BLE notification path.
+    function ingestSerialChunk(text)
     {
-      try
-      {
-        while (true)
-        {
-          const { value, done } = await reader.read();
-          if (done)
-          {
-            reader.releaseLock();
-            break;
-          }
-          const text = new TextDecoder().decode(value);
-          if (!text) continue; // 如果没有数据，跳过
+      if (!text) return;
           serialBufferText += text;
           // 统一换行并按最后一个换行边界切片，避免丢行（兼容 \r\n / \n / \r）
           let normalizedBuffer = serialBufferText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -6896,6 +7351,23 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
               processSerialOutputBuffer();
             }, TIMEOUT_CONFIG.UI.SERIAL_OUTPUT_BUFFER_DELAY);
           }
+    }
+
+    async function readSerialData()
+    {
+      try
+      {
+        while (true)
+        {
+          const { value, done } = await reader.read();
+          if (done)
+          {
+            reader.releaseLock();
+            break;
+          }
+          const text = new TextDecoder().decode(value);
+          if (!text) continue; // 如果没有数据，跳过
+          ingestSerialChunk(text);
         }
       } catch (error)
       {
@@ -7226,13 +7698,20 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           await saveConfig();
         }
 
-        // 每次收到有效IP都同步UI，即使IP本身没有变化，
-        // 也要防止按钮或积木保留旧状态。
-        updateQuickConnectButtonState(ip);
-        const makeConnectionBlocks = workspace.getBlocksByType('make_connection');
-        if (makeConnectionBlocks && makeConnectionBlocks.length > 0)
+        // BLE is the transport. Remember the address, but do not rewrite the
+        // Connect Device block or open a Wi-Fi socket from it.
+        const bleActive = hasActiveBleConnection();
+        if (!bleActive)
         {
-          makeConnectionBlocks[0].setFieldValue(ip, 'IP_ADDRESS');
+          updateQuickConnectButtonState(ip);
+          const makeConnectionBlocks = workspace.getBlocksByType('make_connection');
+          if (makeConnectionBlocks && makeConnectionBlocks.length > 0)
+          {
+            makeConnectionBlocks[0].setFieldValue(ip, 'IP_ADDRESS');
+          }
+        } else
+        {
+          applyBleQuickConnectLabel(document.getElementById('quickConnectBtn'));
         }
         closeWifiDialog();
 
@@ -7491,24 +7970,75 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       const input = document.getElementById('serialInput');
       if (!input || input.value.trim() === '') return;
 
-      if (!writer)
+      if (!hasActiveSerialConnection() && !hasActiveBleConnection())
       {
         if (!hasEstablishedWifiConnection()) return;
         await sendSerialInputOverWifi(input);
         return;
       }
 
-      const data = input.value + '\n';
+      let data;
+      try
+      {
+        data = encodeMonitorCommand(input.value);
+      } catch (error)
+      {
+        console.error(getText("serialSendError"), error);
+        return;
+      }
+      if (!data) return;
 
       try
       {
-        await writer.write(new TextEncoder().encode(data));
+        await writer.write(data);
         rememberSerialCommand(input.value);
         input.value = '';
       } catch (error)
       {
         console.error(getText("serialSendError"), error);
       }
+    }
+
+    // ASCII commands (ksit, m 0 30, ?) end with a newline.
+    // Uppercase tokens (Rd 16, B 14 4, XU 9 9) are the binary form: token bytes, int8 args, then '~'.
+    // An explicit bytes:[...] payload is sent unchanged.
+    function encodeMonitorCommand(raw)
+    {
+      const text = String(raw).replace(/\s+$/g, '');
+      if (!text) return null;
+      if (text.startsWith('bytes:'))
+      {
+        return new Uint8Array(JSON.parse(text.slice(6)));
+      }
+      if (text.endsWith('~'))
+      {
+        return new TextEncoder().encode(text);
+      }
+      const tokenMatch = text.match(/^[A-Za-z]+/);
+      const token = tokenMatch ? tokenMatch[0] : '';
+      // Uppercase tokens in the firmware are short (B, Rd, XU, XGr) and carry int8 arguments.
+      const isBinary = token.length > 0 && token.length <= 4 && token.charCodeAt(0) >= 65 && token.charCodeAt(0) <= 90;
+      if (isBinary)
+      {
+        const rest = text.slice(token.length).trim();
+        const parts = rest ? rest.split(/[\s,]+/) : [];
+        const bytes = [];
+        for (let i = 0; i < token.length; i++)
+        {
+          bytes.push(token.charCodeAt(i));
+        }
+        for (const part of parts)
+        {
+          if (!/^-?\d+$/.test(part))
+          {
+            return new TextEncoder().encode(text + '\n');
+          }
+          bytes.push(parseInt(part, 10) & 0xff);
+        }
+        bytes.push(126);
+        return new Uint8Array(bytes);
+      }
+      return new TextEncoder().encode(text + '\n');
     }
 
     function clearSerialOutput()

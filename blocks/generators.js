@@ -754,8 +754,11 @@ javascript.javascriptGenerator.forBlock["make_connection"] = function (block) {
 try {
   const connectionResult = await makeConnection("${ip}");
   if(connectionResult) {
-    deviceIP = "${ip}";
-    console.log(getText("connectedToDevice") + deviceIP);
+    const bleName = (typeof hasActiveBleConnection === "function" && hasActiveBleConnection() && typeof bleLink !== "undefined" && bleLink && bleLink.name) ? bleLink.name : "";
+    if (!bleName) {
+      deviceIP = "${ip}";
+    }
+    console.log(getText("connectedToDevice").replace("{ip}", bleName || deviceIP || "${ip}"));
     window.__gesturePollIntervalMs = 600;
   } else {
     console.log(getText("debugConnectionFailed"));
