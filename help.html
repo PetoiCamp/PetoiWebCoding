@@ -301,7 +301,7 @@
             <tr>
               <td id="manualChromebook">Chromebook</td>
               <td id="manualChromeUsb" style="color: #28a745;">✓ Supported</td>
-              <td id="manualChromeBt" style="color: #dc3545;">✗ Not supported*</td>
+              <td id="manualChromeBt" style="color: #28a745;">✓ Chrome Bluetooth</td>
               <td id="manualChromeWiFi" style="color: #28a745;">✓ Local only</td>
             </tr>
             <tr>
@@ -312,7 +312,7 @@
             </tr>
           </table>
           <p style="margin-top: 15px; font-size: 13px; color: #666; line-height: 1.5;">
-            <strong id="manualChromebookNote">*Chromebook Bluetooth Limitation:</strong> <span id="manualChromebookDetail">Chrome OS does not provide virtual serial port support for BLE devices. While you can pair the robot in system settings, the Web Serial API cannot access it. Please use USB connection or download the local website version for full functionality.</span>
+            <strong id="manualChromebookNote">*Chromebook Bluetooth:</strong> <span id="manualChromebookDetail">Connect in Chrome with Quick Connect → Bluetooth. The browser shows the device list. Do not pair the robot in the system Bluetooth settings.</span>
           </p>
           <p style="margin-top: 10px; font-size: 13px; color: #666; line-height: 1.5;">
             <strong id="manualWiFi24Note">*WiFi 2.4 GHz note:</strong> <span id="manualWiFi24Detail">Many modern routers broadcast 2.4 GHz and 5 GHz at the same time. They may share one network name (SSID) and let each device connect on the appropriate band automatically. Petoi robots use 2.4 GHz WiFi. You can also connect both your computer and the robot to your phone's mobile hotspot.</span>
@@ -326,23 +326,23 @@
 
         <div class="connection-method">
           <h4 id="manualBluetoothTitle">2. Bluetooth Connection</h4>
-          <p id="manualBluetoothDesc">Your computer needs Bluetooth support. Pair the robot in system Bluetooth settings (name usually contains petoi, bittle, nybble, or mini), then click "Connect Serial Port" and select the Bluetooth port.</p>
+          <p id="manualBluetoothDesc">On Windows, Mac, and Chromebook, connect Bluetooth in Chrome. Click Quick Connect and choose Bluetooth. Chrome shows the device list in the browser. Names usually start with Bittle, Nybble, Quaddle, Petoi, or Mini. Do not pair the robot in the system Bluetooth settings. After it connects, the serial monitor opens, and the Quick Connect button shows the Bluetooth name. While that link is connected, Run sends commands over Bluetooth and does not connect to the IP in the Connect Device block.</p>
           <table>
             <tr>
               <td>Windows</td>
-              <td id="manualBluetoothTableWindows">Pair in system settings, then connect via "Connect Serial Port"</td>
+              <td id="manualBluetoothTableWindows">Quick Connect → Bluetooth in Chrome. The browser shows the device list. Do not use the system Bluetooth settings.</td>
             </tr>
             <tr>
               <td>Mac/Linux</td>
-              <td id="manualBluetoothTableMac">Pair in system settings, then connect via "Connect Serial Port"</td>
+              <td id="manualBluetoothTableMac">Quick Connect → Bluetooth in Chrome. The browser shows the device list. Do not use the system Bluetooth settings.</td>
             </tr>
             <tr>
               <td>Chromebook</td>
-              <td id="manualBluetoothTableChromebook">Bluetooth serial is not supported on Chrome OS. Please use USB connection or download the local website version.</td>
+              <td id="manualBluetoothTableChromebook">Quick Connect → Bluetooth in Chrome. The browser shows the device list. Do not use the system Bluetooth settings.</td>
             </tr>
           </table>
-          <div style="margin-top: 15px; padding: 15px; background: #e8f4f8; border-radius: 6px; font-size: 13px;">
-            <strong>Connection Priority:</strong> USB → Bluetooth → WiFi. USB is always the most stable option.
+          <div id="manualConnectionPriority" style="margin-top: 15px; padding: 15px; background: #e8f4f8; border-radius: 6px; font-size: 13px;">
+            <strong>Connection priority:</strong> While Quick Connect Bluetooth is connected, programs use Bluetooth and do not open Wi-Fi. Otherwise the order is USB, then Bluetooth, then Wi-Fi.
           </div>
         </div>
 
@@ -364,7 +364,7 @@
 
         <div class="connection-method">
           <h4 id="manualQuickConnect">Quick Connect Button</h4>
-          <p id="manualQuickConnectDesc">Click to automatically attempt WiFi connection. If it fails, you'll be prompted to choose another connection method. When connected, the button displays the current IP address.</p>
+          <p id="manualQuickConnectDesc">Click to choose USB / Wi-Fi or Bluetooth. Bluetooth opens Chrome's device list and does not need pairing in the system settings. When Bluetooth is connected, the button shows the device name. USB / Wi-Fi uses the serial port or Wi-Fi, and the button shows the IP address.</p>
         </div>
       </div>
 
@@ -373,14 +373,14 @@
         <ul>
           <li id="manualWorkspace">Block Workspace: Drag blocks from the left panel here to build your program</li>
           <li id="manualConsole">Console Log: Displays program status and debug information</li>
-          <li id="manualSerial">Serial Monitor: Directly communicate with the robot, send commands or view responses</li>
+          <li id="manualSerial">Serial Monitor: Send commands and view replies. A Chrome Bluetooth connection uses this same monitor.</li>
         </ul>
       </div>
 
       <div class="section">
         <h2 id="manualBlocks">Common Blocks</h2>
         <ul>
-          <li id="manualConnectBlock">Connect Device: The first block of every program. With serial connection, IP auto-updates after WiFi connects; or manually enter the device IP</li>
+          <li id="manualConnectBlock">Connect Device: The first block of every program. While Bluetooth is connected, the field shows the Bluetooth name and returns to the previous address after disconnect. Otherwise it shows the device IP, which you can also type in.</li>
           <li id="manualMotionBlocks">Motion Blocks: Control robot walking, turning, and actions (stand, sit, backflip)</li>
           <li id="manualJointBlocks">Joint Blocks: Precisely control each joint's angle</li>
           <li id="manualPinBlocks">Pin Blocks: Control digital/analog input and output pins</li>
@@ -393,10 +393,10 @@
         <h2 id="manualImportantNotes">Important Notes</h2>
         <ul class="important-notes">
           <li id="manualNote1">Every program must start with the "Connect Device" block</li>
-          <li id="manualNote2">Ensure serial port or WiFi is connected before running code</li>
+          <li id="manualNote2">Before running code, connect with USB, Bluetooth, or Wi-Fi</li>
           <li id="manualNote3">Acrobatic moves (front/back flips) put high stress on robot joints - use with caution</li>
           <li id="manualNote4">When using USB, if no port is found, try unplugging and reconnecting the cable</li>
-          <li id="manualNote5">Bluetooth connection may require pairing in system settings first</li>
+          <li id="manualNote5">On Windows, Mac, and Chromebook, connect Bluetooth in Chrome with Quick Connect. Do not pair the robot in the system Bluetooth settings.</li>
         </ul>
       </div>
 
@@ -463,23 +463,24 @@
         manualMacBt: "✓ Supported",
         manualMacWiFi: "✓ Local only",
         manualChromeUsb: "✓ Supported",
-        manualChromeBt: "✗ Not supported*",
+        manualChromeBt: "✓ Chrome Bluetooth",
         manualChromeWiFi: "✓ Local only",
         manualMobile: "Mobile Device",
         manualMobileUsb: "✗ Not supported",
         manualMobileBt: "✗ Not supported",
         manualMobileWiFi: "✗ Not supported",
-        manualChromebookNote: "*Chromebook Bluetooth Limitation:",
-        manualChromebookDetail: "Chrome OS does not provide virtual serial port support for BLE devices. While you can pair the robot in system settings, the Web Serial API cannot access it. Please use USB connection or download the local website version for full functionality.",
+        manualChromebookNote: "*Chromebook Bluetooth:",
+        manualChromebookDetail: "Connect in Chrome with Quick Connect → Bluetooth. The browser shows the device list. Do not pair the robot in the system Bluetooth settings.",
         manualWiFi24Note: "*WiFi 2.4 GHz note:",
         manualWiFi24Detail: "Many modern routers broadcast 2.4 GHz and 5 GHz at the same time. They may share one network name (SSID) and let each device connect on the appropriate band automatically. Petoi robots use 2.4 GHz WiFi. You can also connect both your computer and the robot to your phone's mobile hotspot.",
         manualUsbTitle: "1. USB Cable Connection (Most Stable)",
         manualUsbDesc: "Connect your robot to the computer using a USB cable. Click the \"Connect Serial Port\" button and select a port with \"wchusbserial\" or \"usbserial\" in its name.",
         manualBluetoothTitle: "2. Bluetooth Connection",
-        manualBluetoothDesc: "Your computer needs Bluetooth support. Pair the robot in system Bluetooth settings (name usually contains petoi, bittle, nybble, or mini), then click \"Connect Serial Port\" and select the Bluetooth port.",
-        manualBluetoothTableWindows: "Pair in system settings, then connect via \"Connect Serial Port\"",
-        manualBluetoothTableMac: "Pair in system settings, then connect via \"Connect Serial Port\"",
-        manualBluetoothTableChromebook: "Bluetooth serial is not supported on Chrome OS. Please use USB connection or download the local website version.",
+        manualBluetoothDesc: "On Windows, Mac, and Chromebook, connect Bluetooth in Chrome. Click Quick Connect and choose Bluetooth. Chrome shows the device list in the browser. Names usually start with Bittle, Nybble, Quaddle, Petoi, or Mini. Do not pair the robot in the system Bluetooth settings. After it connects, the serial monitor opens, and the Quick Connect button shows the Bluetooth name. While that link is connected, Run sends commands over Bluetooth and does not connect to the IP in the Connect Device block.",
+        manualBluetoothTableWindows: "Quick Connect → Bluetooth in Chrome. The browser shows the device list. Do not use the system Bluetooth settings.",
+        manualBluetoothTableMac: "Quick Connect → Bluetooth in Chrome. The browser shows the device list. Do not use the system Bluetooth settings.",
+        manualBluetoothTableChromebook: "Quick Connect → Bluetooth in Chrome. The browser shows the device list. Do not use the system Bluetooth settings.",
+        manualConnectionPriority: "<strong>Connection priority:</strong> While Quick Connect Bluetooth is connected, programs use Bluetooth and do not open Wi-Fi. Otherwise the order is USB, then Bluetooth, then Wi-Fi.",
         manualWiFiTitle: "3. WiFi / Local Website Connection",
         manualWiFiNote: "Important:",
         manualWiFiDesc: "WiFi connection requires running the website locally due to browser security restrictions.",
@@ -489,13 +490,13 @@
         manualWiFiStep4: "Now WiFi and all connection methods work!",
         manualNyBoardWiFiNote: "<strong>For NyBoard,</strong> you will need an extra step to configure its <a href='https://docs.petoi.com/web-block-base-programming/petoi-web-coding-blocks/setup-on-nyboard' target='_blank' rel='noopener noreferrer'>WiFi module</a>.",
         manualQuickConnect: "Quick Connect Button",
-        manualQuickConnectDesc: "Click to automatically attempt WiFi connection. If it fails, you'll be prompted to choose another connection method. When connected, the button displays the current IP address.",
+        manualQuickConnectDesc: "Click to choose USB / Wi-Fi or Bluetooth. Bluetooth opens Chrome's device list and does not need pairing in the system settings. When Bluetooth is connected, the button shows the device name. USB / Wi-Fi uses the serial port or Wi-Fi, and the button shows the IP address.",
         manualInterfaceTitle: "Interface Guide",
         manualWorkspace: "Block Workspace: Drag blocks from the left panel here to build your program",
         manualConsole: "Console Log: Displays program status and debug information",
-        manualSerial: "Serial Monitor: Directly communicate with the robot, send commands or view responses",
+        manualSerial: "Serial Monitor: Send commands and view replies. A Chrome Bluetooth connection uses this same monitor.",
         manualBlocks: "Common Blocks",
-        manualConnectBlock: "Connect Device: The first block of every program. With serial connection, IP auto-updates after WiFi connects; or manually enter the device IP",
+        manualConnectBlock: "Connect Device: The first block of every program. While Bluetooth is connected, the field shows the Bluetooth name and returns to the previous address after disconnect. Otherwise it shows the device IP, which you can also type in.",
         manualMotionBlocks: "Motion Blocks: Control robot walking, turning, and actions (stand, sit, backflip)",
         manualJointBlocks: "Joint Blocks: Precisely control each joint's angle",
         manualPinBlocks: "Pin Blocks: Control digital/analog input and output pins",
@@ -503,10 +504,10 @@
         manualMusicBlocks: "Music Blocks: Play notes and melodies",
         manualImportantNotes: "Important Notes",
         manualNote1: "Every program must start with the \"Connect Device\" block",
-        manualNote2: "Ensure serial port or WiFi is connected before running code",
+        manualNote2: "Before running code, connect with USB, Bluetooth, or Wi-Fi",
         manualNote3: "Acrobatic moves (front/back flips) put high stress on robot joints - use with caution",
         manualNote4: "When using USB, if no port is found, try unplugging and reconnecting the cable",
-        manualNote5: "Bluetooth connection may require pairing in system settings first",
+        manualNote5: "On Windows, Mac, and Chromebook, connect Bluetooth in Chrome with Quick Connect. Do not pair the robot in the system Bluetooth settings.",
         manualMoreDetails: "More Details",
         manualMoreDetailsDesc: "For more detailed interface introduction and advanced usage, please refer to the",
         manualDocCenter: "Documentation Center",
@@ -548,23 +549,24 @@
         manualMacBt: "✓ 支持",
         manualMacWiFi: "✓ 仅本地",
         manualChromeUsb: "✓ 支持",
-        manualChromeBt: "✗ 不支持*",
+        manualChromeBt: "✓ Chrome 蓝牙",
         manualChromeWiFi: "✓ 仅本地",
         manualMobile: "移动设备",
         manualMobileUsb: "✗ 不支持",
         manualMobileBt: "✗ 不支持",
         manualMobileWiFi: "✗ 不支持",
-        manualChromebookNote: "*Chromebook 蓝牙限制：",
-        manualChromebookDetail: "Chrome OS 不为 BLE 设备提供虚拟串口支持。虽然可以在系统设置中配对机器狗，但 Web Serial API 无法访问它。请使用 USB 连接或下载本地网站版本以获得完整功能。",
+        manualChromebookNote: "*Chromebook 蓝牙：",
+        manualChromebookDetail: "在 Chrome 里点「快速连接」并选择蓝牙。设备列表由浏览器弹出。不要在系统蓝牙设置里配对。",
         manualWiFi24Note: "*WiFi 2.4G 说明：",
         manualWiFi24Detail: "许多现代路由器会同时提供 2.4G 与 5G 网络，且可能使用相同的名称（SSID），由设备自动选择合适频段。Petoi 机器狗使用 2.4G WiFi。您也可以将电脑与机器狗一并连接到手机热点。",
         manualUsbTitle: "1. USB 数据线连接（最稳定）",
         manualUsbDesc: "使用 USB 数据线将机器狗连接到电脑。点击\"连接串口\"按钮，选择带有 \"wchusbserial\" 或 \"usbserial\" 字样的端口。",
         manualBluetoothTitle: "2. 蓝牙连接",
-        manualBluetoothDesc: "电脑需支持蓝牙功能。在系统蓝牙设置中配对机器狗（名称通常包含 petoi、bittle、nybble 或 mini），然后点击\"连接串口\"选择蓝牙端口。",
-        manualBluetoothTableWindows: "在系统设置中配对后，通过\"连接串口\"连接",
-        manualBluetoothTableMac: "在系统设置中配对后，通过\"连接串口\"连接",
-        manualBluetoothTableChromebook: "Chrome OS 不支持蓝牙串口。请使用 USB 连接或下载本地网站版本。",
+        manualBluetoothDesc: "Windows、Mac 和 Chromebook 都在 Chrome 里连接蓝牙。点击「快速连接」，选择蓝牙。设备列表由浏览器弹出。名称通常以 Bittle、Nybble、Quaddle、Petoi 或 Mini 开头。不要在系统蓝牙设置里配对。连上后会打开串口监视器，快速连接按钮显示蓝牙名称。蓝牙连着时，运行走蓝牙，不会去连接「连接设备」积木里的 IP。",
+        manualBluetoothTableWindows: "在 Chrome 里点快速连接 → 蓝牙。设备列表由浏览器弹出。不要使用系统蓝牙设置。",
+        manualBluetoothTableMac: "在 Chrome 里点快速连接 → 蓝牙。设备列表由浏览器弹出。不要使用系统蓝牙设置。",
+        manualBluetoothTableChromebook: "在 Chrome 里点快速连接 → 蓝牙。设备列表由浏览器弹出。不要使用系统蓝牙设置。",
+        manualConnectionPriority: "<strong>连接优先级：</strong>快速连接的蓝牙已连上时，程序走蓝牙，不会打开 Wi-Fi。否则顺序是 USB、蓝牙、Wi-Fi。",
         manualWiFiTitle: "3. WiFi / 本地网站连接",
         manualWiFiNote: "重要提示：",
         manualWiFiDesc: "由于浏览器安全限制，WiFi 连接需要以本地方式运行网站。",
@@ -574,13 +576,13 @@
         manualWiFiStep4: "现在 WiFi 和所有连接方式都可以使用了！",
         manualNyBoardWiFiNote: "<strong>对于 NyBoard，</strong>您还需要执行一个额外步骤来配置其 <a href='https://docs.petoi.com/web-block-base-programming/petoi-web-coding-blocks/setup-on-nyboard' target='_blank' rel='noopener noreferrer'>WiFi 模块</a>。",
         manualQuickConnect: "快速连接按钮",
-        manualQuickConnectDesc: "点击后自动尝试 WiFi 连接。如果失败，会提示您选择其他连接方式。连接成功后按钮会显示当前 IP 地址。",
+        manualQuickConnectDesc: "点击后选择 USB / Wi-Fi 或蓝牙。蓝牙会打开 Chrome 的设备列表，不需要在系统设置里配对。连上蓝牙后，按钮显示设备名称。USB / Wi-Fi 走串口或 Wi-Fi，按钮显示 IP 地址。",
         manualInterfaceTitle: "界面说明",
         manualWorkspace: "积木工作区：拖拽左侧积木到这里组合成程序",
         manualConsole: "控制台日志：显示程序运行状态和调试信息",
-        manualSerial: "串口监视器：直接与机器狗通信，发送命令或查看返回数据",
+        manualSerial: "串口监视器：发送命令并查看回复。Chrome 蓝牙连接使用同一个监视器。",
         manualBlocks: "常用积木说明",
-        manualConnectBlock: "连接设备：程序的第一个积木。有串口连接时，WiFi 连接成功后 IP 自动更新；也可以手动输入设备 IP",
+        manualConnectBlock: "连接设备：程序的第一个积木。蓝牙连着时，输入框显示蓝牙名称，断开后恢复原来的地址。否则显示设备 IP，也可以手动输入。",
         manualMotionBlocks: "动作积木：控制机器狗行走、转身、做动作（如站立、坐下、后空翻）",
         manualJointBlocks: "关节积木：精确控制每个关节的角度",
         manualPinBlocks: "引脚积木：控制数字/模拟输入输出引脚",
@@ -588,10 +590,10 @@
         manualMusicBlocks: "音乐积木：播放音符和旋律",
         manualImportantNotes: "重要提示",
         manualNote1: "每个程序必须以\"连接设备\"积木开头",
-        manualNote2: "运行代码前确保已连接串口或 WiFi",
+        manualNote2: "运行代码前，请先连上 USB、蓝牙或 Wi-Fi",
         manualNote3: "特技动作（如前/后空翻）对机器狗关节压力较大，请谨慎使用",
         manualNote4: "使用 USB 时，如果找不到端口，尝试重新插拔数据线",
-        manualNote5: "蓝牙连接可能需要在系统设置中先完成配对",
+        manualNote5: "Windows、Mac 和 Chromebook 都在 Chrome 里用快速连接连蓝牙。不要在系统蓝牙设置里配对。",
         manualMoreDetails: "更多详情",
         manualMoreDetailsDesc: "如需更详细的界面介绍和高级用法，请参考",
         manualDocCenter: "文档中心",
@@ -633,23 +635,24 @@
         manualMacBt: "✓ 対応",
         manualMacWiFi: "✓ ローカルのみ",
         manualChromeUsb: "✓ 対応",
-        manualChromeBt: "✗ 非対応*",
+        manualChromeBt: "✓ Chrome Bluetooth",
         manualChromeWiFi: "✓ ローカルのみ",
         manualMobile: "モバイルデバイス",
         manualMobileUsb: "✗ 非対応",
         manualMobileBt: "✗ 非対応",
         manualMobileWiFi: "✗ 非対応",
-        manualChromebookNote: "*Chromebook Bluetooth 制限：",
-        manualChromebookDetail: "Chrome OS は BLE デバイス用の仮想シリアルポートを提供していません。システム設定でロボットをペアリングできますが、Web Serial API でアクセスできません。完全な機能を使用するには USB 接続またはローカル Web サイトバージョンをダウンロードしてください。",
+        manualChromebookNote: "*Chromebook Bluetooth：",
+        manualChromebookDetail: "Chrome でクイック接続 → Bluetooth を選びます。デバイス一覧はブラウザに表示されます。システムの Bluetooth 設定ではペアリングしないでください。",
         manualWiFi24Note: "*WiFi 2.4GHz に関する注意：",
         manualWiFi24Detail: "多くの最新ルーターは 2.4GHz と 5GHz を同時に提供し、同じネットワーク名（SSID）を共有して、各デバイスに適切な帯域を自動割り当てすることがあります。Petoi ロボットは 2.4GHz WiFi を使用します。コンピュータとロボットの両方をスマートフォンのテザリング（ホットスポット）に接続することもできます。",
         manualUsbTitle: "1. USB ケーブル接続（最も安定）",
         manualUsbDesc: "USB ケーブルを使用してロボットをコンピュータに接続します。「シリアルポートを接続」ボタンをクリックし、「wchusbserial」または「usbserial」という名前のポートを選択してください。",
         manualBluetoothTitle: "2. Bluetooth 接続",
-        manualBluetoothDesc: "コンピュータが Bluetooth に対応している必要があります。システムの Bluetooth 設定でロボットをペアリング（名前は通常 petoi、bittle、nybble、mini のいずれかを含む）し、「シリアルポートを接続」をクリックして Bluetooth ポートを選択してください。",
-        manualBluetoothTableWindows: "システム設定でペアリングし、「シリアルポートを接続」経由で接続",
-        manualBluetoothTableMac: "システム設定でペアリングし、「シリアルポートを接続」経由で接続",
-        manualBluetoothTableChromebook: "Chrome OS は Bluetooth シリアルをサポートしていません。USB 接続またはローカル Web サイトバージョンをご利用ください。",
+        manualBluetoothDesc: "Windows、Mac、Chromebook のいずれも、Bluetooth は Chrome の中で接続します。クイック接続を押し、Bluetooth を選びます。デバイス一覧はブラウザに表示されます。名前は通常 Bittle、Nybble、Quaddle、Petoi、Mini で始まります。システムの Bluetooth 設定ではペアリングしないでください。接続後にシリアルモニターが開き、クイック接続ボタンには Bluetooth 名が表示されます。Bluetooth 接続中は、実行コマンドは Bluetooth で送られ、接続ブロック内の IP には接続しません。",
+        manualBluetoothTableWindows: "Chrome でクイック接続 → Bluetooth。デバイス一覧はブラウザに表示されます。システムの Bluetooth 設定は使わないでください。",
+        manualBluetoothTableMac: "Chrome でクイック接続 → Bluetooth。デバイス一覧はブラウザに表示されます。システムの Bluetooth 設定は使わないでください。",
+        manualBluetoothTableChromebook: "Chrome でクイック接続 → Bluetooth。デバイス一覧はブラウザに表示されます。システムの Bluetooth 設定は使わないでください。",
+        manualConnectionPriority: "<strong>接続の優先順位：</strong>クイック接続の Bluetooth が接続中は Bluetooth を使い、Wi-Fi は開きません。それ以外は USB、Bluetooth、Wi-Fi の順です。",
         manualWiFiTitle: "3. WiFi / ローカル Web サイト接続",
         manualWiFiNote: "重要：",
         manualWiFiDesc: "ブラウザのセキュリティ制限により、WiFi 接続には Web サイトをローカルで実行する必要があります。",
@@ -659,13 +662,13 @@
         manualWiFiStep4: "これで WiFi とすべての接続方法が使用可能になります！",
         manualNyBoardWiFiNote: "<strong>NyBoard の場合、</strong><a href='https://docs.petoi.com/web-block-base-programming/petoi-web-coding-blocks/setup-on-nyboard' target='_blank' rel='noopener noreferrer'>WiFi モジュール</a>を設定する追加手順が必要です。",
         manualQuickConnect: "クイック接続ボタン",
-        manualQuickConnectDesc: "クリックすると WiFi 接続を自動的に試行します。失敗した場合は、他の接続方法を選択するよう求められます。接続に成功すると、ボタンに現在の IP アドレスが表示されます。",
+        manualQuickConnectDesc: "クリックして USB / Wi-Fi または Bluetooth を選びます。Bluetooth は Chrome のデバイス一覧を開き、システム設定でのペアリングは不要です。Bluetooth 接続中はボタンにデバイス名が表示されます。USB / Wi-Fi はシリアルポートまたは Wi-Fi を使い、ボタンには IP アドレスが表示されます。",
         manualInterfaceTitle: "インターフェース説明",
         manualWorkspace: "ブロックワークスペース：左側のパネルからブロックをドラッグしてここに配置し、プログラムを作成します",
         manualConsole: "コンソールログ：プログラムのステータスとデバッグ情報を表示します",
-        manualSerial: "シリアルモニター：ロボットと直接通信し、コマンドを送信したり応答を確認したりします",
+        manualSerial: "シリアルモニター：コマンドを送り、応答を確認します。Chrome の Bluetooth 接続も同じモニターを使います。",
         manualBlocks: "よく使うブロック",
-        manualConnectBlock: "デバイスに接続：すべてのプログラムの最初のブロック。シリアル接続時、WiFi接続成功後にIPアドレスが自動更新されます。既知のデバイスIPアドレスを手動で入力することもできます",
+        manualConnectBlock: "デバイスに接続：すべてのプログラムの最初のブロック。Bluetooth 接続中は入力欄に Bluetooth 名が表示され、切断後は以前のアドレスに戻ります。それ以外はデバイスの IP が表示され、手入力もできます。",
         manualMotionBlocks: "動作ブロック：ロボットの歩行、旋回、アクション（立つ、座る、バックフリップ）を制御します",
         manualJointBlocks: "関節ブロック：各関節の角度を正確に制御します",
         manualPinBlocks: "ピンブロック：デジタル/アナログ入出力ピンを制御します",
@@ -673,10 +676,10 @@
         manualMusicBlocks: "音楽ブロック：音符やメロディを再生します",
         manualImportantNotes: "重要な注意事項",
         manualNote1: "すべてのプログラムは「デバイスに接続」ブロックから始める必要があります",
-        manualNote2: "コードを実行する前に、シリアルポートまたは WiFi が接続されていることを確認してください",
+        manualNote2: "コードを実行する前に、USB、Bluetooth、または Wi-Fi で接続してください",
         manualNote3: "アクロバティックな動作（前/後ろフリップ）はロボットの関節に高い負荷をかけます - 注意して使用してください",
         manualNote4: "USB を使用する場合、ポートが見つからない場合は、ケーブルを抜き差ししてみてください",
-        manualNote5: "Bluetooth 接続には、システム設定で事前にペアリングが必要な場合があります",
+        manualNote5: "Windows、Mac、Chromebook のいずれも、Bluetooth は Chrome のクイック接続でつなぎます。システムの Bluetooth 設定ではペアリングしないでください。",
         manualMoreDetails: "詳細情報",
         manualMoreDetailsDesc: "より詳細なインターフェースの説明や高度な使い方については、",
         manualDocCenter: "ドキュメントセンター",
