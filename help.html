@@ -299,23 +299,32 @@
               <td id="manualMacWiFi" style="color: #28a745;">✓ Local only</td>
             </tr>
             <tr>
-              <td id="manualChromebook">Chromebook</td>
+              <td id="manualChromebook">Chromebook**</td>
               <td id="manualChromeUsb" style="color: #28a745;">✓ Supported</td>
               <td id="manualChromeBt" style="color: #28a745;">✓ Chrome Bluetooth</td>
               <td id="manualChromeWiFi" style="color: #28a745;">✓ Local only</td>
             </tr>
             <tr>
-              <td id="manualMobile">Mobile Device</td>
-              <td id="manualMobileUsb" style="color: #dc3545;">✗ Not supported</td>
-              <td id="manualMobileBt" style="color: #dc3545;">✗ Not supported</td>
-              <td id="manualMobileWiFi" style="color: #dc3545;">✗ Not supported</td>
+              <td id="manualAndroid">Android***</td>
+              <td id="manualAndroidUsb" style="color: #dc3545;">✗ Not supported</td>
+              <td id="manualAndroidBt" style="color: #e67e22;">△ Partially supported</td>
+              <td id="manualAndroidWiFi" style="color: #28a745;">✓ Supported</td>
+            </tr>
+            <tr>
+              <td id="manualIos">iOS***</td>
+              <td id="manualIosUsb" style="color: #dc3545;">✗ Not supported</td>
+              <td id="manualIosBt" style="color: #dc3545;">✗ Not supported</td>
+              <td id="manualIosWiFi" style="color: #dc3545;">✗ Not supported</td>
             </tr>
           </table>
           <p style="margin-top: 15px; font-size: 13px; color: #666; line-height: 1.5;">
-            <strong id="manualChromebookNote">*Chromebook Bluetooth:</strong> <span id="manualChromebookDetail">Connect in Chrome with Quick Connect → Bluetooth. The browser shows the device list. Do not pair the robot in the system Bluetooth settings.</span>
+            <strong id="manualWiFi24Note">*WiFi 2.4 GHz note:</strong> <span id="manualWiFi24Detail">Many modern routers broadcast 2.4 GHz and 5 GHz at the same time. They may share one network name (SSID) and let each device connect on the appropriate band automatically. Petoi robots use 2.4 GHz WiFi. You can also connect both your computer and the robot to your phone's mobile hotspot.</span>
           </p>
           <p style="margin-top: 10px; font-size: 13px; color: #666; line-height: 1.5;">
-            <strong id="manualWiFi24Note">*WiFi 2.4 GHz note:</strong> <span id="manualWiFi24Detail">Many modern routers broadcast 2.4 GHz and 5 GHz at the same time. They may share one network name (SSID) and let each device connect on the appropriate band automatically. Petoi robots use 2.4 GHz WiFi. You can also connect both your computer and the robot to your phone's mobile hotspot.</span>
+            <strong id="manualChromebookNote">**Chromebook Bluetooth:</strong> <span id="manualChromebookDetail">Connect in Chrome with Quick Connect → Bluetooth. The browser shows the device list. Do not pair the robot in the system Bluetooth settings.</span>
+          </p>
+          <p style="margin-top: 10px; font-size: 13px; color: #666; line-height: 1.5;">
+            <strong id="manualMobileAppNote">***Android / iOS:</strong> <span id="manualMobileAppDetail">We will release a mobile app version of this site.</span>
           </p>
         </div>
 
@@ -455,7 +464,7 @@
         manualWiFiSupported: "WiFi 2.4G*",
         manualWindows: "Windows",
         manualMacLinux: "Mac/Linux",
-        manualChromebook: "Chromebook",
+        manualChromebook: "Chromebook**",
         manualWindowsUsb: "✓ Supported",
         manualWindowsBt: "✓ Supported",
         manualWindowsWiFi: "✓ Local only",
@@ -465,11 +474,17 @@
         manualChromeUsb: "✓ Supported",
         manualChromeBt: "✓ Chrome Bluetooth",
         manualChromeWiFi: "✓ Local only",
-        manualMobile: "Mobile Device",
-        manualMobileUsb: "✗ Not supported",
-        manualMobileBt: "✗ Not supported",
-        manualMobileWiFi: "✗ Not supported",
-        manualChromebookNote: "*Chromebook Bluetooth:",
+        manualAndroid: "Android***",
+        manualAndroidUsb: "✗ Not supported",
+        manualAndroidBt: "△ Partially supported",
+        manualAndroidWiFi: "✓ Supported",
+        manualIos: "iOS***",
+        manualIosUsb: "✗ Not supported",
+        manualIosBt: "✗ Not supported",
+        manualIosWiFi: "✗ Not supported",
+        manualMobileAppNote: "***Android / iOS:",
+        manualMobileAppDetail: "We will release a mobile app version of this site.",
+        manualChromebookNote: "**Chromebook Bluetooth:",
         manualChromebookDetail: "Connect in Chrome with Quick Connect → Bluetooth. The browser shows the device list. Do not pair the robot in the system Bluetooth settings.",
         manualWiFi24Note: "*WiFi 2.4 GHz note:",
         manualWiFi24Detail: "Many modern routers broadcast 2.4 GHz and 5 GHz at the same time. They may share one network name (SSID) and let each device connect on the appropriate band automatically. Petoi robots use 2.4 GHz WiFi. You can also connect both your computer and the robot to your phone's mobile hotspot.",
@@ -541,7 +556,7 @@
         manualWiFiSupported: "WiFi 2.4G*",
         manualWindows: "Windows",
         manualMacLinux: "Mac/Linux",
-        manualChromebook: "Chromebook",
+        manualChromebook: "Chromebook**",
         manualWindowsUsb: "✓ 支持",
         manualWindowsBt: "✓ 支持",
         manualWindowsWiFi: "✓ 仅本地",
@@ -551,11 +566,17 @@
         manualChromeUsb: "✓ 支持",
         manualChromeBt: "✓ Chrome 蓝牙",
         manualChromeWiFi: "✓ 仅本地",
-        manualMobile: "移动设备",
-        manualMobileUsb: "✗ 不支持",
-        manualMobileBt: "✗ 不支持",
-        manualMobileWiFi: "✗ 不支持",
-        manualChromebookNote: "*Chromebook 蓝牙：",
+        manualAndroid: "Android***",
+        manualAndroidUsb: "✗ 不支持",
+        manualAndroidBt: "△ 部分支持",
+        manualAndroidWiFi: "✓ 支持",
+        manualIos: "iOS***",
+        manualIosUsb: "✗ 不支持",
+        manualIosBt: "✗ 不支持",
+        manualIosWiFi: "✗ 不支持",
+        manualMobileAppNote: "***Android / iOS：",
+        manualMobileAppDetail: "我们将发布本网站的移动应用版本。",
+        manualChromebookNote: "**Chromebook 蓝牙：",
         manualChromebookDetail: "在 Chrome 里点「快速连接」并选择蓝牙。设备列表由浏览器弹出。不要在系统蓝牙设置里配对。",
         manualWiFi24Note: "*WiFi 2.4G 说明：",
         manualWiFi24Detail: "许多现代路由器会同时提供 2.4G 与 5G 网络，且可能使用相同的名称（SSID），由设备自动选择合适频段。Petoi 机器狗使用 2.4G WiFi。您也可以将电脑与机器狗一并连接到手机热点。",
@@ -627,7 +648,7 @@
         manualWiFiSupported: "WiFi 2.4G*",
         manualWindows: "Windows",
         manualMacLinux: "Mac/Linux",
-        manualChromebook: "Chromebook",
+        manualChromebook: "Chromebook**",
         manualWindowsUsb: "✓ 対応",
         manualWindowsBt: "✓ 対応",
         manualWindowsWiFi: "✓ ローカルのみ",
@@ -637,11 +658,17 @@
         manualChromeUsb: "✓ 対応",
         manualChromeBt: "✓ Chrome Bluetooth",
         manualChromeWiFi: "✓ ローカルのみ",
-        manualMobile: "モバイルデバイス",
-        manualMobileUsb: "✗ 非対応",
-        manualMobileBt: "✗ 非対応",
-        manualMobileWiFi: "✗ 非対応",
-        manualChromebookNote: "*Chromebook Bluetooth：",
+        manualAndroid: "Android***",
+        manualAndroidUsb: "✗ 非対応",
+        manualAndroidBt: "△ 一部対応",
+        manualAndroidWiFi: "✓ 対応",
+        manualIos: "iOS***",
+        manualIosUsb: "✗ 非対応",
+        manualIosBt: "✗ 非対応",
+        manualIosWiFi: "✗ 非対応",
+        manualMobileAppNote: "***Android / iOS：",
+        manualMobileAppDetail: "このサイトのモバイルアプリ版をリリースします。",
+        manualChromebookNote: "**Chromebook Bluetooth：",
         manualChromebookDetail: "Chrome でクイック接続 → Bluetooth を選びます。デバイス一覧はブラウザに表示されます。システムの Bluetooth 設定ではペアリングしないでください。",
         manualWiFi24Note: "*WiFi 2.4GHz に関する注意：",
         manualWiFi24Detail: "多くの最新ルーターは 2.4GHz と 5GHz を同時に提供し、同じネットワーク名（SSID）を共有して、各デバイスに適切な帯域を自動割り当てすることがあります。Petoi ロボットは 2.4GHz WiFi を使用します。コンピュータとロボットの両方をスマートフォンのテザリング（ホットスポット）に接続することもできます。",
