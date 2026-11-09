@@ -4260,6 +4260,9 @@ Generated at: ${now.toISOString()}
     let port = null;
     let reader = null;
     let writer = null;
+    // 主板识别结果绑定当前 writer，断开或更换设备后不会沿用旧结果。
+    const nyBoardWriters = new WeakSet();
+    let serialValidationPromise = null;
     let bleLink = null;
     let wifiMonitorSending = false;
 
@@ -4758,7 +4761,9 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
     function normalizeBluetoothServiceClassId(rawServiceClassId)
     {
-      const raw = String(rawServiceClassId || '').trim().toLowerCase();
+      const raw = (typeof rawServiceClassId === 'number'
+        ? rawServiceClassId.toString(16)
+        : String(rawServiceClassId || '')).trim().toLowerCase().replace(/^0x/, '');
       if (!raw)
       {
         return '';
@@ -6565,6 +6570,10 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
     // 发送WiFi命令获取IP地址（内部使用）
     async function sendWifiCommandInternal(forceShowDialog = false)
     {
+      // 等待 ? 查询完成，尤其是蓝牙串口将型号、版本分批返回的情况。
+      if (serialValidationPromise) await serialValidationPromise;
+      if (isNyBoardSerialConnection()) return true;
+
       if (!writer)
       {
         console.log(getText('noSerialWriterAvailable'));
@@ -6651,6 +6660,8 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
     // 显示WiFi配置对话框
     function showWifiConfigDialog(forceShow = false)
     {
+      if (isNyBoardSerialConnection()) return;
+
       // 如果不是强制显示，检查是否已经显示过WiFi配置对话框
       if (!forceShow && hasShownWifiDialog)
       {
@@ -7106,9 +7117,25 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
 
 
-    // 验证串口连接 - 发送'?'字符并基于缓冲区轮询检查回复（避免与读取循环争用 reader）
-    async function validateSerialConnection()
+    function isNyBoardSerialConnection()
     {
+      return !!(writer && nyBoardWriters.has(writer));
+    }
+
+    function validateSerialConnection()
+    {
+      if (serialValidationPromise) return serialValidationPromise;
+      serialValidationPromise = validateSerialConnectionInternal().finally(() =>
+      {
+        serialValidationPromise = null;
+      });
+      return serialValidationPromise;
+    }
+
+    // 验证串口连接 - 发送'?'字符并基于缓冲区轮询检查回复（避免与读取循环争用 reader）
+    async function validateSerialConnectionInternal()
+    {
+      const validationWriter = writer;
       try
       {
         // 清空之前的缓冲区（仅影响验证期的匹配，不影响输出渲染）
@@ -7128,7 +7155,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
             console.log(getText("sentValidationCommand") + ` (attempt ${attempt}/${maxRetries})`);
 
             // 发送'?'字符（不少固件单字符命令无需换行）
-            await writer.write(encoder.encode('?'));
+            await validationWriter.write(encoder.encode('?'));
 
             const startTime = Date.now();
             const keywordRegex = /(Bittle|Nybble|Petoi|Chero|Quaddle)/i;
@@ -7137,7 +7164,15 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
             // 轮询缓冲区，等待固件自报信息
             while (Date.now() - startTime < waitTime)
             {
+              // 只匹配完整的版本行，如 N_250916，避免将 Nybble 型号误认成版本。
+              const isNyBoard = /(?:^|[\r\n])\s*N[_-]?\d[^\r\n]*(?:\r|\n)/i.test(serialBuffer);
+              if (isNyBoard) nyBoardWriters.add(validationWriter);
               if (serialBuffer && keywordRegex.test(serialBuffer))
+              {
+                matched = true;
+              }
+              // 型号可能先于版本到达；等版本或 ? 结束标记后再完成验证。
+              if (isNyBoard || (matched && /(?:^|[\r\n])\s*\?\s*(?:\r|\n|$)/.test(serialBuffer)))
               {
                 matched = true;
                 // 提取一段可读信息用于展示
