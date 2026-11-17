@@ -54,7 +54,10 @@
   <div class="header">
     <div class="title" data-i18n="appTitle">Petoi Web Coding Blocks</div>
     <div class="header-right">
-      <div class="version-date" id="versionDate"></div>
+      <div class="version-group">
+        <div class="version-date" id="versionDate"></div>
+        <a class="version-download" href="https://github.com/PetoiCamp/PetoiWebCoding/releases/latest" target="_blank" rel="noopener noreferrer" data-i18n="downloadLocalVersion">Download local</a>
+      </div>
       <label class="product-switch" for="productSelect">
         <span class="product-switch-label" data-i18n="productType">Product</span>
         <select id="productSelect" class="product-select" data-i18n-title="productType"
@@ -214,8 +217,8 @@
     }
 
     // Global version date variable (format: vYear.Month.Day)
-    const GLOBAL_VERSION_DATE = "v2026.10.28";
-    const GLOBAL_VERSION_LAST_MODIFIED = "2026-10-28 12:30:00";
+    const GLOBAL_VERSION_DATE = "v2026.11.17";
+    const GLOBAL_VERSION_LAST_MODIFIED = "2026-11-17 22:43:00";
 
     // Set version date
     function setVersionDate()

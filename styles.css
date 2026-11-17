@@ -26,10 +26,27 @@ body {
     gap: 20px;
 }
 
+.version-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .version-date {
     font-size: 14px;
     color: #666;
     font-weight: normal;
+}
+
+.version-download {
+    font-size: 14px;
+    color: #0366d6;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.version-download:hover {
+    text-decoration: underline;
 }
 
 .language-switch {
@@ -1489,6 +1506,10 @@ body.mobile-layout .header-right {
     width: 100%;
     justify-content: space-between;
     gap: 10px;
+}
+
+body.mobile-layout .version-download {
+    font-size: 12px;
 }
 
 body.mobile-layout .language-switch {

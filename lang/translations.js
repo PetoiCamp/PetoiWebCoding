@@ -3,6 +3,7 @@ const TRANSLATIONS = {
     // 按钮和标题
     "appTitle": "Petoi陪拓网页编程积木",
     "productType": "产品",
+    "downloadLocalVersion": "下载本地版",
     "showCode": "显示代码",
     "runCode": "运行",
     "stopCode": "停止",
@@ -663,6 +664,7 @@ const TRANSLATIONS = {
     // Buttons and titles
     "appTitle": "Petoi Web Coding Blocks",
     "productType": "Product",
+    "downloadLocalVersion": "Download local",
     "showCode": "Show Code",
     "runCode": "Run",
     "stopCode": "Stop",
@@ -1322,6 +1324,7 @@ const TRANSLATIONS = {
     // ボタンとタイトル
     "appTitle": "Petoiウェブコーディングブロック",
     "productType": "製品",
+    "downloadLocalVersion": "ローカル版",
     "showCode": "コード表示",
     "runCode": "実行",
     "stopCode": "停止",
