@@ -56,7 +56,10 @@
     <div class="header-right">
       <div class="version-group">
         <div class="version-date" id="versionDate"></div>
-        <a class="version-download" href="https://github.com/PetoiCamp/PetoiWebCoding/releases/latest" target="_blank" rel="noopener noreferrer" data-i18n="downloadLocalVersion">Download local</a>
+        <span class="version-download-wrap">
+          <a class="version-download" href="https://github.com/PetoiCamp/PetoiWebCoding/releases/latest" target="_blank" rel="noopener noreferrer" data-i18n="downloadLocalVersion" aria-describedby="downloadLocalVersionTip">Download local</a>
+          <span class="version-download-tip" id="downloadLocalVersionTip" role="tooltip" data-i18n="downloadLocalVersionTip">The downloadable version lets you connect the robot via Wi-Fi. The browser does not allow a page on the internet to reach your internal Wi-Fi. Bluetooth does not require a local download.</span>
+        </span>
       </div>
       <label class="product-switch" for="productSelect">
         <span class="product-switch-label" data-i18n="productType">Product</span>
@@ -217,8 +220,8 @@
     }
 
     // Global version date variable (format: vYear.Month.Day)
-    const GLOBAL_VERSION_DATE = "v2026.11.17";
-    const GLOBAL_VERSION_LAST_MODIFIED = "2026-11-17 22:43:00";
+    const GLOBAL_VERSION_DATE = "v2026.11.20";
+    const GLOBAL_VERSION_LAST_MODIFIED = "2026-11-20 10:32:00";
 
     // Set version date
     function setVersionDate()
