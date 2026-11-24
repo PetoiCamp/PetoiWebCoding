@@ -431,6 +431,8 @@ body {
 .quick-connect-dialog {
     width: min(420px, calc(100vw - 32px));
     max-width: calc(100vw - 32px);
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
     box-sizing: border-box;
 }
 
@@ -441,6 +443,19 @@ body {
     line-height: 1.45;
 }
 
+.quick-connect-bluetooth-guide,
+.quick-connect-bluetooth-guide ul {
+    padding-inline-start: 20px;
+}
+
+.quick-connect-bluetooth-guide li + li {
+    margin-top: 6px;
+}
+
+.quick-connect-bluetooth-guide p {
+    margin: 6px 0 0;
+}
+
 .quick-connect-choices {
     flex-direction: column;
 }
@@ -449,7 +464,7 @@ body {
     width: 100%;
 }
 
-.wifi-dialog button.quick-connect-ble {
+.quick-connect-choices button.confirm:nth-child(2) {
     background-color: #1b9e5a;
 }
 

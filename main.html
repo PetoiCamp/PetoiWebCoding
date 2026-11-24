@@ -1219,106 +1219,62 @@
       return false;
     }
 
-    // 尝试使用配置的IP地址连接
     async function tryConnectWithConfigIP()
     {
-      if (typeof hasActiveBleConnection === 'function' && hasActiveBleConnection())
+      if (hasActiveBleConnection()) return false;
+      if (config.lastKnownIP && currentDeviceIP === config.lastKnownIP)
       {
-        return false;
-      }
-
-      if (!config.lastKnownIP)
-      {
-        if (typeof showDebug !== 'undefined' && showDebug)
-        {
-          console.log('No configured IP address available');
-        }
-        return false;
-      }
-
-      // 如果当前IP就是配置的IP，说明已经连接成功，不需要重复连接
-      if (currentDeviceIP === config.lastKnownIP)
-      {
-        if (typeof showDebug !== 'undefined' && showDebug)
-        {
-          console.log(`Already connected to configured IP: ${config.lastKnownIP}`);
-        }
-
-        // 确保按钮显示正确的IP地址
         updateQuickConnectButtonState(currentDeviceIP);
-        if (typeof showDebug !== 'undefined' && showDebug)
-        {
-          console.log(`Updated Quick Connect button to show IP: ${currentDeviceIP}`);
-        }
-
-        // 连接成功时重置WiFi对话框标志
         hasShownWifiDialog = false;
+        return true;
+      }
+      return tryConnectWithWifiIP(config.lastKnownIP);
+    }
 
+    async function tryConnectWithWifiIP(ip)
+    {
+      if (hasActiveBleConnection() || !ip) return false;
+
+      const url = `ws://${ip}:81`;
+      const previousClient = window.petoiClient;
+      if (previousClient?.baseUrl === url && previousClient.connected &&
+        previousClient.ws?.readyState === WebSocket.OPEN && currentDeviceIP === ip)
+      {
+        updateQuickConnectButtonState(ip);
+        hasShownWifiDialog = false;
         return true;
       }
 
-      if (typeof showDebug !== 'undefined' && showDebug)
-      {
-        console.log(`Trying to connect with configured IP: ${config.lastKnownIP}`);
-      }
-
+      const client = new PetoiAsyncClient(url);
       try
       {
-        // 尝试使用配置的IP地址创建WebSocket连接
-        const testClient = new PetoiAsyncClient(`ws://${config.lastKnownIP}:81`);
-        window.petoiClient = testClient;
-        await testClient.connect();
-
-        // 如果连接成功，更新当前IP地址
-        currentDeviceIP = config.lastKnownIP;
-        if (typeof showDebug !== 'undefined' && showDebug)
-        {
-          console.log(`Successfully connected with configured IP: ${currentDeviceIP}`);
-        }
-
-        // 连接成功时重置WiFi对话框标志
-        hasShownWifiDialog = false;
-
-        // 更新Quick Connect按钮状态
-        updateQuickConnectButtonState(currentDeviceIP);
-
-        // 更新配置中的连接时间并保存
-        config.lastConnectedTime = new Date().toISOString();
-        await saveConfig();
-        if (typeof showDebug !== 'undefined' && showDebug)
-        {
-          console.log('Configuration updated with successful connection:', config);
-        }
-
-        // 更新make_connection积木中的IP地址
-        const makeConnectionBlocks = workspace.getBlocksByType('make_connection');
-        if (makeConnectionBlocks && makeConnectionBlocks.length > 0)
-        {
-          // 更新第一个make_connection积木块的IP_ADDRESS字段
-          makeConnectionBlocks[0].setFieldValue(currentDeviceIP, 'IP_ADDRESS');
-          if (typeof showDebug !== 'undefined' && showDebug)
-          {
-            console.log(`Updated make_connection block IP to: ${currentDeviceIP}`);
-          }
-        }
-
-        return true;
+        await client.connect();
       } catch (error)
       {
-        if (shouldSuggestLocalControlForWifi(config.lastKnownIP))
+        client.disconnect();
+        if (shouldSuggestLocalControlForWifi(ip) && !(await ensureWifiAccessAllowed(ip)))
         {
-          const allowWifi = await ensureWifiAccessAllowed(config.lastKnownIP);
-          if (!allowWifi)
-          {
-            return 'blocked';
-          }
+          return 'blocked';
         }
-        if (typeof showDebug !== 'undefined' && showDebug)
-        {
-          console.log(`Failed to connect with configured IP ${config.lastKnownIP}:`, error);
-        }
+        if (showDebug) console.log(`Failed to connect to Wi-Fi IP ${ip}:`, error);
         return false;
       }
+
+      if (hasActiveBleConnection())
+      {
+        client.disconnect();
+        return false;
+      }
+
+      window.petoiClient?.disconnect();
+      window.petoiClient = client;
+      currentDeviceIP = ip;
+      hasShownWifiDialog = false;
+      updateQuickConnectButtonState(ip);
+      workspace.getBlocksByType('make_connection')[0]?.setFieldValue(ip, 'IP_ADDRESS');
+      config.lastConnectedTime = new Date().toISOString();
+      await saveConfig();
+      return true;
     }
 
     // 更新自定义积木的定义
@@ -4328,17 +4284,24 @@ Generated at: ${now.toISOString()}
     ];
 
     const BLUETOOTH_NAME_KEYWORDS = ['petoi', 'bittle', 'nybble', 'mini'];
-    const BLUETOOTH_SERIAL_SERVICE_CLASS_IDS = [
-      0x1101, // Serial Port Profile (SPP)
+    const BLUETOOTH_SERIAL_FILTERS = [
+      { bluetoothServiceClassId: 0x1101 }, // Serial Port Profile (SPP)
     ];
     let isOpeningSerialPort = false;
+
+    function buildUsbSerialFilters()
+    {
+      return ESP32_USB_CHIPS.map(({ vendorId, productId }) => productId === undefined
+        ? { usbVendorId: vendorId }
+        : { usbVendorId: vendorId, usbProductId: productId });
+    }
 
     // 构建供 Chrome 原生串口选择器使用的过滤规则
     function buildWebSerialFilters()
     {
       try
       {
-        // On Windows, keep unfiltered picker to avoid missing COM ports.
+        // Legacy system picker can list all Windows COM ports.
         const isWindows = (navigator.platform && navigator.platform.includes('Win')) ||
           (navigator.userAgent && navigator.userAgent.includes('Windows'));
 
@@ -4351,23 +4314,7 @@ Generated at: ${now.toISOString()}
           return [];
         }
 
-        const filters = [];
-        ESP32_USB_CHIPS.forEach(chip =>
-        {
-          if (chip.productId !== undefined)
-          {
-            filters.push({ usbVendorId: chip.vendorId, usbProductId: chip.productId });
-          } else
-          {
-            filters.push({ usbVendorId: chip.vendorId });
-          }
-        });
-
-        BLUETOOTH_SERIAL_SERVICE_CLASS_IDS.forEach(classId =>
-        {
-          filters.push({ bluetoothServiceClassId: classId });
-        });
-        return filters;
+        return [...buildUsbSerialFilters(), ...BLUETOOTH_SERIAL_FILTERS];
       } catch (e)
       {
         return [];
@@ -4375,9 +4322,8 @@ Generated at: ${now.toISOString()}
     }
 
     // 使用过滤器优先的串口请求封装；若因过滤器导致"no compatible devices found"，自动回退为无过滤请求
-    async function requestSerialPortWithFallback(options = {})
+    async function requestSerialPortWithFallback()
     {
-      const allowUnfilteredFallback = options.allowUnfilteredFallback !== false;
       const builtFilters = buildWebSerialFilters();
       try
       {
@@ -4405,10 +4351,6 @@ Generated at: ${now.toISOString()}
         // 当过滤器导致设备不匹配时，Chrome 会抛出 NotFoundError，消息通常包含 "compatible devices"
         if (error && error.name === 'NotFoundError' && /compatible devices/i.test(error.message || ''))
         {
-          if (!allowUnfilteredFallback)
-          {
-            throw error;
-          }
           if (typeof showDebug !== 'undefined' && showDebug)
           {
             console.log('Filtered picker returned no compatible devices, falling back to unfiltered picker');
@@ -5553,7 +5495,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       }
     }
 
-    async function openSerialPort()
+    async function openSerialPort({ bluetoothOnly = false } = {})
     {
       if (isOpeningSerialPort)
       {
@@ -5627,46 +5569,26 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           console.log(getText("esp32DetectionResult").replace("{esp32Count}", esp32Ports.length).replace("{totalCount}", validPorts.length));
         }
 
-        // 总是显示完整的串口选择，包括系统选择选项
-        if (validPorts.length === 0)
+        if (typeof showDebug !== 'undefined' && showDebug)
         {
-          // 如果没有任何已授权的串口，直接请求用户选择新的串口
-          if (typeof showDebug !== 'undefined' && showDebug)
-          {
-            console.log(getText("noAuthorizedPorts"));
-          }
-          // 直接使用 Chrome 原生选择器（带过滤优先，必要时回退为无过滤）
-          const selectPort = await requestSerialPortWithFallback({ allowUnfilteredFallback: false });
-          selectedPort = selectPort;
-          try
-          {
-            const pinfo = selectedPort.getInfo();
-            console.log(getText("selectedPortInfo").replace("{name}", getSerialPortDisplayName(selectedPort)));
-            console.log(getText("hardwareInfo").replace("{vid}", pinfo.usbVendorId?.toString(16)).replace("{pid}", pinfo.usbProductId?.toString(16)).replace("{isESP32}", isESP32SerialPort(selectedPort)));
-            if (isLikelyBluetoothSerialPortInfo(pinfo))
-            {
-              console.log(`- Bluetooth: serviceClassId=${getBluetoothServiceClassIdString(pinfo)}`);
-            }
-          } catch (e) { /* ignore */ }
-        } else
-        {
-          // 统一走 Chrome 原生选择器（带过滤优先，必要时回退为无过滤）
-          if (typeof showDebug !== 'undefined' && showDebug)
-          {
-            console.log(getText("showingPortsForSelection").replace("{count}", validPorts.length));
-          }
-          selectedPort = await requestSerialPortWithFallback({ allowUnfilteredFallback: false });
-          try
-          {
-            const pinfo = selectedPort.getInfo();
-            console.log(getText("selectedPortInfo").replace("{name}", getSerialPortDisplayName(selectedPort)));
-            console.log(getText("hardwareInfo").replace("{vid}", pinfo.usbVendorId?.toString(16)).replace("{pid}", pinfo.usbProductId?.toString(16)).replace("{isESP32}", isESP32SerialPort(selectedPort)));
-            if (isLikelyBluetoothSerialPortInfo(pinfo))
-            {
-              console.log(`- Bluetooth: serviceClassId=${getBluetoothServiceClassIdString(pinfo)}`);
-            }
-          } catch (e) { /* ignore */ }
+          const message = validPorts.length === 0
+            ? getText("noAuthorizedPorts")
+            : getText("showingPortsForSelection").replace("{count}", validPorts.length);
+          console.log(message);
         }
+
+        const filters = bluetoothOnly ? BLUETOOTH_SERIAL_FILTERS : buildUsbSerialFilters();
+        selectedPort = await navigator.serial.requestPort({ filters });
+        try
+        {
+          const pinfo = selectedPort.getInfo();
+          console.log(getText("selectedPortInfo").replace("{name}", getSerialPortDisplayName(selectedPort)));
+          console.log(getText("hardwareInfo").replace("{vid}", pinfo.usbVendorId?.toString(16)).replace("{pid}", pinfo.usbProductId?.toString(16)).replace("{isESP32}", isESP32SerialPort(selectedPort)));
+          if (isLikelyBluetoothSerialPortInfo(pinfo))
+          {
+            console.log(`- Bluetooth: serviceClassId=${getBluetoothServiceClassIdString(pinfo)}`);
+          }
+        } catch (e) { /* ignore */ }
 
         try
         {
@@ -6187,7 +6109,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
       if (hasActiveSerialConnection())
       {
-        return startUsbQuickConnect();
+        return runQuickConnect(() => sendWifiCommandInternal(true));
       }
 
       if (hasActiveBleConnection())
@@ -6199,7 +6121,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       showQuickConnectChooser();
     }
 
-    async function startUsbQuickConnect()
+    async function runQuickConnect(connect)
     {
       if (quickConnectPromise)
       {
@@ -6209,11 +6131,13 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       const quickConnectBtn = document.getElementById('quickConnectBtn');
       if (quickConnectBtn) quickConnectBtn.disabled = true;
 
-      // Quick Connect总是强制显示WiFi配置对话框（如果需要）
-      quickConnectPromise = handleWifiConnection(true);
       try
       {
+        quickConnectPromise = connect();
         return await quickConnectPromise;
+      } catch (error)
+      {
+        console.error(getText("quickConnectFailed"), error);
       } finally
       {
         quickConnectPromise = null;
@@ -6221,7 +6145,38 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       }
     }
 
-    function showQuickConnectChooser()
+    async function connectQuickBluetoothSerial()
+    {
+      if (!navigator.serial)
+      {
+        alert(getText("quickConnectSerialUnsupported"));
+        return;
+      }
+      await openSerialPort({ bluetoothOnly: true });
+    }
+
+    async function connectQuickWifi()
+    {
+      const blockIP = workspace.getBlocksByType('make_connection')[0]?.getFieldValue('IP_ADDRESS');
+      const suggestedIP = [blockIP, config.lastKnownIP].find(isValidIPAddress) || '';
+      const enteredIP = window.prompt(getText("quickConnectWifiPrompt"), suggestedIP);
+      if (enteredIP === null) return;
+
+      const ip = enteredIP.trim();
+      if (!isValidIPAddress(ip))
+      {
+        alert(getText("invalidIPAddress"));
+        return;
+      }
+
+      const connected = await tryConnectWithWifiIP(ip);
+      if (connected === false)
+      {
+        alert(getText("connectionFailedCheck"));
+      }
+    }
+
+    function showQuickConnectChooser(chooseBluetooth = false)
     {
       if (document.querySelector('.quick-connect-dialog'))
       {
@@ -6232,14 +6187,25 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       overlay.className = 'overlay';
       const dialog = document.createElement('div');
       dialog.className = 'wifi-dialog quick-connect-dialog';
+      const titleKey = chooseBluetooth ? 'quickConnectBluetooth' : 'quickConnectChoose';
+      const hintKey = chooseBluetooth ? 'quickConnectBluetoothHint' : 'quickConnectHint';
       dialog.innerHTML = `
-        <h3>${getText("quickConnectChoose")}</h3>
-        <p class="quick-connect-hint">${getText("quickConnectBleHint")}</p>
-        <div class="button-container quick-connect-choices">
-          <button type="button" class="confirm" id="quickConnectUsbBtn">${getText("quickConnectUsb")}</button>
-          <button type="button" class="confirm quick-connect-ble" id="quickConnectBleBtn">${getText("quickConnectBluetooth")}</button>
-          <button type="button" class="cancel" id="quickConnectCancelBtn">${getText("cancel")}</button>
-        </div>
+        <h3 data-i18n="${titleKey}">${getText(titleKey)}</h3>
+        <p class="quick-connect-hint" data-i18n="${hintKey}" ${chooseBluetooth ? 'data-i18n-rich' : ''}>${getText(hintKey)}</p>
+        ${chooseBluetooth ? `
+          <ul class="quick-connect-hint quick-connect-bluetooth-guide">
+            <li data-i18n="quickConnectQuaddleHint" data-i18n-rich>${getText("quickConnectQuaddleHint")}</li>
+            <li>
+              <span data-i18n="quickConnectBluetoothPairHint" data-i18n-rich>${getText("quickConnectBluetoothPairHint")}</span>
+              <ul>
+                <li data-i18n="quickConnectNyBoardHint" data-i18n-rich>${getText("quickConnectNyBoardHint")}</li>
+                <li data-i18n="quickConnectBiBoardHint" data-i18n-rich>${getText("quickConnectBiBoardHint")}</li>
+              </ul>
+              <p data-i18n="quickConnectBluetoothSelectHint" data-i18n-rich>${getText("quickConnectBluetoothSelectHint")}</p>
+            </li>
+          </ul>
+        ` : ''}
+        <div class="button-container quick-connect-choices"></div>
       `;
 
       function closeChooser()
@@ -6248,19 +6214,34 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         if (overlay.parentNode) overlay.remove();
       }
 
+      const buttons = dialog.querySelector('.quick-connect-choices');
+      function addChoice(key, className, action)
+      {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = className;
+        button.dataset.i18n = key;
+        button.textContent = getText(key);
+        button.addEventListener('click', () =>
+        {
+          closeChooser();
+          action?.();
+        });
+        buttons.appendChild(button);
+      }
+
+      if (chooseBluetooth)
+      {
+        // Start the browser's BLE picker directly in the user's click.
+        addChoice('quickConnectBle', 'confirm', () => runQuickConnect(connectBleSerial));
+        addChoice('quickConnectSerialPort', 'confirm', () => runQuickConnect(connectQuickBluetoothSerial));
+      } else
+      {
+        addChoice('quickConnectBluetooth', 'confirm', () => showQuickConnectChooser(true));
+        addChoice('quickConnectWifi', 'confirm', () => runQuickConnect(connectQuickWifi));
+        addChoice('cancel', 'cancel');
+      }
       overlay.addEventListener('click', closeChooser);
-      dialog.querySelector('#quickConnectCancelBtn').addEventListener('click', closeChooser);
-      dialog.querySelector('#quickConnectUsbBtn').addEventListener('click', () =>
-      {
-        closeChooser();
-        startUsbQuickConnect();
-      });
-      // requestDevice() must run in this click, before any other await.
-      dialog.querySelector('#quickConnectBleBtn').addEventListener('click', () =>
-      {
-        closeChooser();
-        connectBleSerial();
-      });
       document.body.appendChild(overlay);
       document.body.appendChild(dialog);
     }
@@ -6456,6 +6437,8 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       {
         device = await navigator.bluetooth.requestDevice({
           filters: names.map((namePrefix) => ({ namePrefix })),
+          // JDY-23 dongles use a different BLE UART service. The broadcast name is configurable.
+          exclusionFilters: [{ services: [0xffe0] }],
           optionalServices: [serviceId],
         });
       } catch (error)

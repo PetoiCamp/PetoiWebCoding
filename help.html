@@ -321,7 +321,7 @@
             <strong id="manualWiFi24Note">*WiFi 2.4 GHz note:</strong> <span id="manualWiFi24Detail">Many modern routers broadcast 2.4 GHz and 5 GHz at the same time. They may share one network name (SSID) and let each device connect on the appropriate band automatically. Petoi robots use 2.4 GHz WiFi. You can also connect both your computer and the robot to your phone's mobile hotspot.</span>
           </p>
           <p style="margin-top: 10px; font-size: 13px; color: #666; line-height: 1.5;">
-            <strong id="manualChromebookNote">**Chromebook Bluetooth:</strong> <span id="manualChromebookDetail">Connect in Chrome with Quick Connect → Bluetooth. The browser shows the device list. Do not pair the robot in the system Bluetooth settings.</span>
+            <strong id="manualChromebookNote">**Chromebook Bluetooth:</strong> <span id="manualChromebookDetail">Choose Quick Connect → Bluetooth → Bluetooth BLE to scan for compatible robots such as Quaddle.</span>
           </p>
           <p style="margin-top: 10px; font-size: 13px; color: #666; line-height: 1.5;">
             <strong id="manualMobileAppNote">***Android / iOS:</strong> <span id="manualMobileAppDetail">We will release a mobile app version of this site.</span>
@@ -330,28 +330,28 @@
 
         <div class="connection-method">
           <h4 id="manualUsbTitle">1. USB Cable Connection (Most Stable)</h4>
-          <p id="manualUsbDesc">Connect your robot to the computer using a USB cable. Click the "Connect Serial Port" button and select a port with "wchusbserial" or "usbserial" in its name.</p>
+          <p id="manualUsbDesc">Connect your robot with a USB data cable. In the serial monitor, click Connect Serial Port and choose the USB device. The browser may show a name such as USB Single Serial (COM90) or a port containing wchusbserial.</p>
         </div>
 
         <div class="connection-method">
           <h4 id="manualBluetoothTitle">2. Bluetooth Connection</h4>
-          <p id="manualBluetoothDesc">On Windows, Mac, and Chromebook, connect Bluetooth in Chrome. Click Quick Connect and choose Bluetooth. Chrome shows the device list in the browser. Names usually start with Bittle, Nybble, Quaddle, Petoi, or Mini. Do not pair the robot in the system Bluetooth settings. After it connects, the serial monitor opens, and the Quick Connect button shows the Bluetooth name. While that link is connected, Run sends commands over Bluetooth and does not connect to the IP in the Connect Device block.</p>
+          <p id="manualBluetoothDesc">In desktop Chrome, open Quick Connect → Bluetooth. For Quaddle, turn on system Bluetooth, choose Bluetooth BLE, and select the robot by name. For NyBoard (JDY‑23) or BiBoard, pair the device in system settings first, then choose Bluetooth Serial and select its name. NyBoard uses PIN 0000 or 1234. For BiBoard, choose the device with SSP in its name and follow the system’s pairing prompt.</p>
           <table>
             <tr>
               <td>Windows</td>
-              <td id="manualBluetoothTableWindows">Quick Connect → Bluetooth in Chrome. The browser shows the device list. Do not use the system Bluetooth settings.</td>
+              <td id="manualBluetoothTableWindows">Choose Quick Connect → Bluetooth → Bluetooth BLE to scan for compatible robots such as Quaddle.</td>
             </tr>
             <tr>
               <td>Mac/Linux</td>
-              <td id="manualBluetoothTableMac">Quick Connect → Bluetooth in Chrome. The browser shows the device list. Do not use the system Bluetooth settings.</td>
+              <td id="manualBluetoothTableMac">Choose Quick Connect → Bluetooth → Bluetooth BLE to scan for compatible robots such as Quaddle.</td>
             </tr>
             <tr>
               <td>Chromebook</td>
-              <td id="manualBluetoothTableChromebook">Quick Connect → Bluetooth in Chrome. The browser shows the device list. Do not use the system Bluetooth settings.</td>
+              <td id="manualBluetoothTableChromebook">Choose Quick Connect → Bluetooth → Bluetooth BLE to scan for compatible robots such as Quaddle.</td>
             </tr>
           </table>
           <div id="manualConnectionPriority" style="margin-top: 15px; padding: 15px; background: #e8f4f8; border-radius: 6px; font-size: 13px;">
-            <strong>Connection priority:</strong> While Quick Connect Bluetooth is connected, programs use Bluetooth and do not open Wi-Fi. Otherwise the order is USB, then Bluetooth, then Wi-Fi.
+            <strong>Connection priority:</strong> Run uses an active USB, Bluetooth serial, or BLE connection first. When running over Wi-Fi, Run uses the address in the Connect Device block.
           </div>
         </div>
 
@@ -373,7 +373,7 @@
 
         <div class="connection-method">
           <h4 id="manualQuickConnect">Quick Connect Button</h4>
-          <p id="manualQuickConnectDesc">Click to choose USB / Wi-Fi or Bluetooth. Bluetooth opens Chrome's device list and does not need pairing in the system settings. When Bluetooth is connected, the button shows the device name. USB / Wi-Fi uses the serial port or Wi-Fi, and the button shows the IP address.</p>
+          <p id="manualQuickConnectDesc">Choose Bluetooth for BLE or a paired Bluetooth serial device. Choose Wi-Fi to enter the IP address of a robot on the same network. For USB, use Connect Serial Port in the serial monitor.</p>
         </div>
       </div>
 
@@ -389,7 +389,7 @@
       <div class="section">
         <h2 id="manualBlocks">Common Blocks</h2>
         <ul>
-          <li id="manualConnectBlock">Connect Device: The first block of every program. While Bluetooth is connected, the field shows the Bluetooth name and returns to the previous address after disconnect. Otherwise it shows the device IP, which you can also type in.</li>
+          <li id="manualConnectBlock">Connect Device: The first block of every program. It displays the robot’s name during a BLE connection and its IP address during a Wi-Fi connection. You can also enter the IP address directly.</li>
           <li id="manualMotionBlocks">Motion Blocks: Control robot walking, turning, and actions (stand, sit, backflip)</li>
           <li id="manualJointBlocks">Joint Blocks: Precisely control each joint's angle</li>
           <li id="manualPinBlocks">Pin Blocks: Control digital/analog input and output pins</li>
@@ -405,7 +405,7 @@
           <li id="manualNote2">Before running code, connect with USB, Bluetooth, or Wi-Fi</li>
           <li id="manualNote3">Acrobatic moves (front/back flips) put high stress on robot joints - use with caution</li>
           <li id="manualNote4">When using USB, if no port is found, try unplugging and reconnecting the cable</li>
-          <li id="manualNote5">On Windows, Mac, and Chromebook, connect Bluetooth in Chrome with Quick Connect. Do not pair the robot in the system Bluetooth settings.</li>
+          <li id="manualNote5">Choose Quick Connect → Bluetooth → Bluetooth BLE to scan for compatible robots such as Quaddle.</li>
         </ul>
       </div>
 
@@ -493,17 +493,17 @@
         manualMobileAppNote: "***Android / iOS:",
         manualMobileAppDetail: "We will release a mobile app version of this site.",
         manualChromebookNote: "**Chromebook Bluetooth:",
-        manualChromebookDetail: "Connect in Chrome with Quick Connect → Bluetooth. The browser shows the device list. Do not pair the robot in the system Bluetooth settings.",
+        manualChromebookDetail: "Choose Quick Connect → Bluetooth → Bluetooth BLE to scan for compatible robots such as Quaddle.",
         manualWiFi24Note: "*WiFi 2.4 GHz note:",
         manualWiFi24Detail: "Many modern routers broadcast 2.4 GHz and 5 GHz at the same time. They may share one network name (SSID) and let each device connect on the appropriate band automatically. Petoi robots use 2.4 GHz WiFi. You can also connect both your computer and the robot to your phone's mobile hotspot.",
         manualUsbTitle: "1. USB Cable Connection (Most Stable)",
-        manualUsbDesc: "Connect your robot to the computer using a USB cable. Click the \"Connect Serial Port\" button and select a port with \"wchusbserial\" or \"usbserial\" in its name.",
+        manualUsbDesc: "Connect your robot with a USB data cable. In the serial monitor, click Connect Serial Port and choose the USB device. The browser may show a name such as USB Single Serial (COM90) or a port containing wchusbserial.",
         manualBluetoothTitle: "2. Bluetooth Connection",
-        manualBluetoothDesc: "On Windows, Mac, and Chromebook, connect Bluetooth in Chrome. Click Quick Connect and choose Bluetooth. Chrome shows the device list in the browser. Names usually start with Bittle, Nybble, Quaddle, Petoi, or Mini. Do not pair the robot in the system Bluetooth settings. After it connects, the serial monitor opens, and the Quick Connect button shows the Bluetooth name. While that link is connected, Run sends commands over Bluetooth and does not connect to the IP in the Connect Device block.",
-        manualBluetoothTableWindows: "Quick Connect → Bluetooth in Chrome. The browser shows the device list. Do not use the system Bluetooth settings.",
-        manualBluetoothTableMac: "Quick Connect → Bluetooth in Chrome. The browser shows the device list. Do not use the system Bluetooth settings.",
-        manualBluetoothTableChromebook: "Quick Connect → Bluetooth in Chrome. The browser shows the device list. Do not use the system Bluetooth settings.",
-        manualConnectionPriority: "<strong>Connection priority:</strong> While Quick Connect Bluetooth is connected, programs use Bluetooth and do not open Wi-Fi. Otherwise the order is USB, then Bluetooth, then Wi-Fi.",
+        manualBluetoothDesc: "In desktop Chrome, open Quick Connect → Bluetooth. For Quaddle, turn on system Bluetooth, choose Bluetooth BLE, and select the robot by name. For NyBoard (JDY‑23) or BiBoard, pair the device in system settings first, then choose Bluetooth Serial and select its name. NyBoard uses PIN 0000 or 1234. For BiBoard, choose the device with SSP in its name and follow the system’s pairing prompt.",
+        manualBluetoothTableWindows: "Choose Quick Connect → Bluetooth → Bluetooth BLE to scan for compatible robots such as Quaddle.",
+        manualBluetoothTableMac: "Choose Quick Connect → Bluetooth → Bluetooth BLE to scan for compatible robots such as Quaddle.",
+        manualBluetoothTableChromebook: "Choose Quick Connect → Bluetooth → Bluetooth BLE to scan for compatible robots such as Quaddle.",
+        manualConnectionPriority: "<strong>Connection priority:</strong> Run uses an active USB, Bluetooth serial, or BLE connection first. When running over Wi-Fi, Run uses the address in the Connect Device block.",
         manualWiFiTitle: "3. WiFi / Local Website Connection",
         manualWiFiNote: "Important:",
         manualWiFiDesc: "WiFi connection requires running the website locally due to browser security restrictions.",
@@ -513,13 +513,13 @@
         manualWiFiStep4: "Now WiFi and all connection methods work!",
         manualNyBoardWiFiNote: "<strong>For NyBoard,</strong> you will need an extra step to configure its <a href='https://docs.petoi.com/web-block-base-programming/petoi-web-coding-blocks/setup-on-nyboard' target='_blank' rel='noopener noreferrer'>WiFi module</a>.",
         manualQuickConnect: "Quick Connect Button",
-        manualQuickConnectDesc: "Click to choose USB / Wi-Fi or Bluetooth. Bluetooth opens Chrome's device list and does not need pairing in the system settings. When Bluetooth is connected, the button shows the device name. USB / Wi-Fi uses the serial port or Wi-Fi, and the button shows the IP address.",
+        manualQuickConnectDesc: "Choose Bluetooth for BLE or a paired Bluetooth serial device. Choose Wi-Fi to enter the IP address of a robot on the same network. For USB, use Connect Serial Port in the serial monitor.",
         manualInterfaceTitle: "Interface Guide",
         manualWorkspace: "Block Workspace: Drag blocks from the left panel here to build your program",
         manualConsole: "Console Log: Displays program status and debug information",
         manualSerial: "Serial Monitor: Send commands and view replies. A Chrome Bluetooth connection uses this same monitor.",
         manualBlocks: "Common Blocks",
-        manualConnectBlock: "Connect Device: The first block of every program. While Bluetooth is connected, the field shows the Bluetooth name and returns to the previous address after disconnect. Otherwise it shows the device IP, which you can also type in.",
+        manualConnectBlock: "Connect Device: The first block of every program. It displays the robot’s name during a BLE connection and its IP address during a Wi-Fi connection. You can also enter the IP address directly.",
         manualMotionBlocks: "Motion Blocks: Control robot walking, turning, and actions (stand, sit, backflip)",
         manualJointBlocks: "Joint Blocks: Precisely control each joint's angle",
         manualPinBlocks: "Pin Blocks: Control digital/analog input and output pins",
@@ -530,7 +530,7 @@
         manualNote2: "Before running code, connect with USB, Bluetooth, or Wi-Fi",
         manualNote3: "Acrobatic moves (front/back flips) put high stress on robot joints - use with caution",
         manualNote4: "When using USB, if no port is found, try unplugging and reconnecting the cable",
-        manualNote5: "On Windows, Mac, and Chromebook, connect Bluetooth in Chrome with Quick Connect. Do not pair the robot in the system Bluetooth settings.",
+        manualNote5: "Choose Quick Connect → Bluetooth → Bluetooth BLE to scan for compatible robots such as Quaddle.",
         manualCurriculumTitle: "Courses and Projects",
         manualCurriculumDesc: "Learn block-based programming, motion and sound control, and sensor interaction through Bittle X projects. Nybble Q users with BiBoard V1 can also follow the curriculum, adapting movements and joint control to their model. Some projects require additional sensors.",
         manualCurriculumLink: "Explore the Bittle X Curriculum (English)",
@@ -588,17 +588,17 @@
         manualMobileAppNote: "***Android / iOS：",
         manualMobileAppDetail: "我们将发布本网站的移动应用版本。",
         manualChromebookNote: "**Chromebook 蓝牙：",
-        manualChromebookDetail: "在 Chrome 里点「快速连接」并选择蓝牙。设备列表由浏览器弹出。不要在系统蓝牙设置里配对。",
+        manualChromebookDetail: "选择「快速连接 → 蓝牙 → 低功耗蓝牙 (BLE)」，扫描 Quaddle 等兼容机器人。",
         manualWiFi24Note: "*WiFi 2.4G 说明：",
         manualWiFi24Detail: "许多现代路由器会同时提供 2.4G 与 5G 网络，且可能使用相同的名称（SSID），由设备自动选择合适频段。Petoi 机器狗使用 2.4G WiFi。您也可以将电脑与机器狗一并连接到手机热点。",
         manualUsbTitle: "1. USB 数据线连接（最稳定）",
-        manualUsbDesc: "使用 USB 数据线将机器狗连接到电脑。点击\"连接串口\"按钮，选择带有 \"wchusbserial\" 或 \"usbserial\" 字样的端口。",
+        manualUsbDesc: "使用 USB 数据线连接机器人。在串口监视器中点击「连接串口」，选择 USB 设备。浏览器可能显示 USB Single Serial (COM90) 或名称包含 wchusbserial 的端口。",
         manualBluetoothTitle: "2. 蓝牙连接",
-        manualBluetoothDesc: "Windows、Mac 和 Chromebook 都在 Chrome 里连接蓝牙。点击「快速连接」，选择蓝牙。设备列表由浏览器弹出。名称通常以 Bittle、Nybble、Quaddle、Petoi 或 Mini 开头。不要在系统蓝牙设置里配对。连上后会打开串口监视器，快速连接按钮显示蓝牙名称。蓝牙连着时，运行走蓝牙，不会去连接「连接设备」积木里的 IP。",
-        manualBluetoothTableWindows: "在 Chrome 里点快速连接 → 蓝牙。设备列表由浏览器弹出。不要使用系统蓝牙设置。",
-        manualBluetoothTableMac: "在 Chrome 里点快速连接 → 蓝牙。设备列表由浏览器弹出。不要使用系统蓝牙设置。",
-        manualBluetoothTableChromebook: "在 Chrome 里点快速连接 → 蓝牙。设备列表由浏览器弹出。不要使用系统蓝牙设置。",
-        manualConnectionPriority: "<strong>连接优先级：</strong>快速连接的蓝牙已连上时，程序走蓝牙，不会打开 Wi-Fi。否则顺序是 USB、蓝牙、Wi-Fi。",
+        manualBluetoothDesc: "在电脑的 Chrome 中打开「快速连接 → 蓝牙」。Quaddle 只需开启系统蓝牙，再通过「低功耗蓝牙 (BLE)」选择机器人。NyBoard（JDY‑23）或 BiBoard 请先在系统设置中配对，再通过「蓝牙串口」选择设备名称。NyBoard 按提示输入 0000 或 1234，BiBoard 请选择名称含 SSP 的设备并按系统提示配对。",
+        manualBluetoothTableWindows: "选择「快速连接 → 蓝牙 → 低功耗蓝牙 (BLE)」，扫描 Quaddle 等兼容机器人。",
+        manualBluetoothTableMac: "选择「快速连接 → 蓝牙 → 低功耗蓝牙 (BLE)」，扫描 Quaddle 等兼容机器人。",
+        manualBluetoothTableChromebook: "选择「快速连接 → 蓝牙 → 低功耗蓝牙 (BLE)」，扫描 Quaddle 等兼容机器人。",
+        manualConnectionPriority: "<strong>连接优先级：</strong>运行时优先使用已连接的 USB、蓝牙串口或 BLE。通过 Wi-Fi 运行时，使用「连接设备」积木中的地址。",
         manualWiFiTitle: "3. WiFi / 本地网站连接",
         manualWiFiNote: "重要提示：",
         manualWiFiDesc: "由于浏览器安全限制，WiFi 连接需要以本地方式运行网站。",
@@ -608,13 +608,13 @@
         manualWiFiStep4: "现在 WiFi 和所有连接方式都可以使用了！",
         manualNyBoardWiFiNote: "<strong>对于 NyBoard，</strong>您还需要执行一个额外步骤来配置其 <a href='https://docs.petoi.com/web-block-base-programming/petoi-web-coding-blocks/setup-on-nyboard' target='_blank' rel='noopener noreferrer'>WiFi 模块</a>。",
         manualQuickConnect: "快速连接按钮",
-        manualQuickConnectDesc: "点击后选择 USB / Wi-Fi 或蓝牙。蓝牙会打开 Chrome 的设备列表，不需要在系统设置里配对。连上蓝牙后，按钮显示设备名称。USB / Wi-Fi 走串口或 Wi-Fi，按钮显示 IP 地址。",
+        manualQuickConnectDesc: "选择「蓝牙」可连接低功耗蓝牙设备或已配对的蓝牙串口。选择「Wi-Fi」可输入同一网络中机器人的 IP 地址。USB 连接请使用串口监视器中的「连接串口」。",
         manualInterfaceTitle: "界面说明",
         manualWorkspace: "积木工作区：拖拽左侧积木到这里组合成程序",
         manualConsole: "控制台日志：显示程序运行状态和调试信息",
         manualSerial: "串口监视器：发送命令并查看回复。Chrome 蓝牙连接使用同一个监视器。",
         manualBlocks: "常用积木说明",
-        manualConnectBlock: "连接设备：程序的第一个积木。蓝牙连着时，输入框显示蓝牙名称，断开后恢复原来的地址。否则显示设备 IP，也可以手动输入。",
+        manualConnectBlock: "连接设备：程序的第一个积木。通过 BLE 连接时显示机器人名称，通过 Wi-Fi 连接时显示 IP 地址。也可以直接输入 IP 地址。",
         manualMotionBlocks: "动作积木：控制机器狗行走、转身、做动作（如站立、坐下、后空翻）",
         manualJointBlocks: "关节积木：精确控制每个关节的角度",
         manualPinBlocks: "引脚积木：控制数字/模拟输入输出引脚",
@@ -625,7 +625,7 @@
         manualNote2: "运行代码前，请先连上 USB、蓝牙或 Wi-Fi",
         manualNote3: "特技动作（如前/后空翻）对机器狗关节压力较大，请谨慎使用",
         manualNote4: "使用 USB 时，如果找不到端口，尝试重新插拔数据线",
-        manualNote5: "Windows、Mac 和 Chromebook 都在 Chrome 里用快速连接连蓝牙。不要在系统蓝牙设置里配对。",
+        manualNote5: "选择「快速连接 → 蓝牙 → 低功耗蓝牙 (BLE)」，扫描 Quaddle 等兼容机器人。",
         manualCurriculumTitle: "课程与项目实践",
         manualCurriculumDesc: "通过 Bittle X 项目学习图形化编程、动作与声音控制，以及传感器交互。使用 BiBoard V1 主板的 Nybble Q 也可参考本课程，具体动作和关节控制需按机型调整。部分项目需要额外传感器。",
         manualCurriculumLink: "查看 Bittle X 课程（英文）",
@@ -683,17 +683,17 @@
         manualMobileAppNote: "***Android / iOS：",
         manualMobileAppDetail: "このサイトのモバイルアプリ版をリリースします。",
         manualChromebookNote: "**Chromebook Bluetooth：",
-        manualChromebookDetail: "Chrome でクイック接続 → Bluetooth を選びます。デバイス一覧はブラウザに表示されます。システムの Bluetooth 設定ではペアリングしないでください。",
+        manualChromebookDetail: "「クイック接続 → Bluetooth → Bluetooth BLE」を選び、Quaddle などの対応ロボットを検索します。",
         manualWiFi24Note: "*WiFi 2.4GHz に関する注意：",
         manualWiFi24Detail: "多くの最新ルーターは 2.4GHz と 5GHz を同時に提供し、同じネットワーク名（SSID）を共有して、各デバイスに適切な帯域を自動割り当てすることがあります。Petoi ロボットは 2.4GHz WiFi を使用します。コンピュータとロボットの両方をスマートフォンのテザリング（ホットスポット）に接続することもできます。",
         manualUsbTitle: "1. USB ケーブル接続（最も安定）",
-        manualUsbDesc: "USB ケーブルを使用してロボットをコンピュータに接続します。「シリアルポートを接続」ボタンをクリックし、「wchusbserial」または「usbserial」という名前のポートを選択してください。",
+        manualUsbDesc: "USB データケーブルでロボットを接続します。シリアルモニターの「シリアルポートに接続」を押し、USB デバイスを選択します。USB Single Serial (COM90) や wchusbserial を含むポート名が表示されることがあります。",
         manualBluetoothTitle: "2. Bluetooth 接続",
-        manualBluetoothDesc: "Windows、Mac、Chromebook のいずれも、Bluetooth は Chrome の中で接続します。クイック接続を押し、Bluetooth を選びます。デバイス一覧はブラウザに表示されます。名前は通常 Bittle、Nybble、Quaddle、Petoi、Mini で始まります。システムの Bluetooth 設定ではペアリングしないでください。接続後にシリアルモニターが開き、クイック接続ボタンには Bluetooth 名が表示されます。Bluetooth 接続中は、実行コマンドは Bluetooth で送られ、接続ブロック内の IP には接続しません。",
-        manualBluetoothTableWindows: "Chrome でクイック接続 → Bluetooth。デバイス一覧はブラウザに表示されます。システムの Bluetooth 設定は使わないでください。",
-        manualBluetoothTableMac: "Chrome でクイック接続 → Bluetooth。デバイス一覧はブラウザに表示されます。システムの Bluetooth 設定は使わないでください。",
-        manualBluetoothTableChromebook: "Chrome でクイック接続 → Bluetooth。デバイス一覧はブラウザに表示されます。システムの Bluetooth 設定は使わないでください。",
-        manualConnectionPriority: "<strong>接続の優先順位：</strong>クイック接続の Bluetooth が接続中は Bluetooth を使い、Wi-Fi は開きません。それ以外は USB、Bluetooth、Wi-Fi の順です。",
+        manualBluetoothDesc: "パソコンの Chrome で「クイック接続 → Bluetooth」を開きます。Quaddle はシステムの Bluetooth をオンにし、「Bluetooth BLE」でロボットを選びます。NyBoard（JDY‑23）または BiBoard はシステム設定でペアリングしてから、「Bluetooth シリアル」でデバイスを選びます。NyBoard は PIN コード 0000 または 1234 を入力し、BiBoard は名前に SSP が含まれるデバイスを選んでシステムの指示に従います。",
+        manualBluetoothTableWindows: "「クイック接続 → Bluetooth → Bluetooth BLE」を選び、Quaddle などの対応ロボットを検索します。",
+        manualBluetoothTableMac: "「クイック接続 → Bluetooth → Bluetooth BLE」を選び、Quaddle などの対応ロボットを検索します。",
+        manualBluetoothTableChromebook: "「クイック接続 → Bluetooth → Bluetooth BLE」を選び、Quaddle などの対応ロボットを検索します。",
+        manualConnectionPriority: "<strong>接続の優先順位：</strong>実行時は接続済みの USB、Bluetooth シリアル、または BLE を優先します。Wi-Fi で実行するときは、接続ブロックのアドレスを使います。",
         manualWiFiTitle: "3. WiFi / ローカル Web サイト接続",
         manualWiFiNote: "重要：",
         manualWiFiDesc: "ブラウザのセキュリティ制限により、WiFi 接続には Web サイトをローカルで実行する必要があります。",
@@ -703,13 +703,13 @@
         manualWiFiStep4: "これで WiFi とすべての接続方法が使用可能になります！",
         manualNyBoardWiFiNote: "<strong>NyBoard の場合、</strong><a href='https://docs.petoi.com/web-block-base-programming/petoi-web-coding-blocks/setup-on-nyboard' target='_blank' rel='noopener noreferrer'>WiFi モジュール</a>を設定する追加手順が必要です。",
         manualQuickConnect: "クイック接続ボタン",
-        manualQuickConnectDesc: "クリックして USB / Wi-Fi または Bluetooth を選びます。Bluetooth は Chrome のデバイス一覧を開き、システム設定でのペアリングは不要です。Bluetooth 接続中はボタンにデバイス名が表示されます。USB / Wi-Fi はシリアルポートまたは Wi-Fi を使い、ボタンには IP アドレスが表示されます。",
+        manualQuickConnectDesc: "「Bluetooth」で BLE またはペアリング済みの Bluetooth シリアルデバイスに接続できます。「Wi-Fi」では同じネットワーク上のロボットの IP アドレスを入力します。USB 接続にはシリアルモニターの「シリアルポートに接続」を使います。",
         manualInterfaceTitle: "インターフェース説明",
         manualWorkspace: "ブロックワークスペース：左側のパネルからブロックをドラッグしてここに配置し、プログラムを作成します",
         manualConsole: "コンソールログ：プログラムのステータスとデバッグ情報を表示します",
         manualSerial: "シリアルモニター：コマンドを送り、応答を確認します。Chrome の Bluetooth 接続も同じモニターを使います。",
         manualBlocks: "よく使うブロック",
-        manualConnectBlock: "デバイスに接続：すべてのプログラムの最初のブロック。Bluetooth 接続中は入力欄に Bluetooth 名が表示され、切断後は以前のアドレスに戻ります。それ以外はデバイスの IP が表示され、手入力もできます。",
+        manualConnectBlock: "デバイスに接続：すべてのプログラムの最初のブロック。BLE 接続中はロボット名、Wi-Fi 接続中は IP アドレスが表示されます。IP アドレスを直接入力することもできます。",
         manualMotionBlocks: "動作ブロック：ロボットの歩行、旋回、アクション（立つ、座る、バックフリップ）を制御します",
         manualJointBlocks: "関節ブロック：各関節の角度を正確に制御します",
         manualPinBlocks: "ピンブロック：デジタル/アナログ入出力ピンを制御します",
@@ -720,7 +720,7 @@
         manualNote2: "コードを実行する前に、USB、Bluetooth、または Wi-Fi で接続してください",
         manualNote3: "アクロバティックな動作（前/後ろフリップ）はロボットの関節に高い負荷をかけます - 注意して使用してください",
         manualNote4: "USB を使用する場合、ポートが見つからない場合は、ケーブルを抜き差ししてみてください",
-        manualNote5: "Windows、Mac、Chromebook のいずれも、Bluetooth は Chrome のクイック接続でつなぎます。システムの Bluetooth 設定ではペアリングしないでください。",
+        manualNote5: "「クイック接続 → Bluetooth → Bluetooth BLE」を選び、Quaddle などの対応ロボットを検索します。",
         manualCurriculumTitle: "カリキュラムと実践プロジェクト",
         manualCurriculumDesc: "Bittle X のプロジェクトを通して、ブロックプログラミング、動作・音の制御、センサーを使ったインタラクションを学べます。BiBoard V1 を搭載した Nybble Q でも参考にできますが、動作や関節の制御は機種に合わせて調整してください。一部のプロジェクトには追加のセンサーが必要です。",
         manualCurriculumLink: "Bittle X カリキュラムを見る（英語）",
