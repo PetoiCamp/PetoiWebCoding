@@ -351,7 +351,7 @@
             </tr>
           </table>
           <div id="manualConnectionPriority" style="margin-top: 15px; padding: 15px; background: #e8f4f8; border-radius: 6px; font-size: 13px;">
-            <strong>Connection priority:</strong> Run uses an active USB, Bluetooth serial, or BLE connection first. When running over Wi-Fi, Run uses the address in the Connect Device block.
+            <strong>Choosing a connection:</strong> Run uses the value in the Connect Device block. A USB port name selects USB, a Bluetooth device name selects Bluetooth, and an IP address selects Wi-Fi.
           </div>
         </div>
 
@@ -373,7 +373,7 @@
 
         <div class="connection-method">
           <h4 id="manualQuickConnect">Quick Connect Button</h4>
-          <p id="manualQuickConnectDesc">Choose Bluetooth for BLE or a paired Bluetooth serial device. Choose Wi-Fi to enter the IP address of a robot on the same network. For USB, use Connect Serial Port in the serial monitor.</p>
+          <p id="manualQuickConnectDesc">Choose Bluetooth for BLE or a paired Bluetooth serial device. Choose Wi-Fi to enter your robot’s IP address. With a serial port already connected, Quick Connect can query the robot for its Wi-Fi address and select it for the next run.</p>
         </div>
       </div>
 
@@ -389,7 +389,7 @@
       <div class="section">
         <h2 id="manualBlocks">Common Blocks</h2>
         <ul>
-          <li id="manualConnectBlock">Connect Device: The first block of every program. It displays the robot’s name during a BLE connection and its IP address during a Wi-Fi connection. You can also enter the IP address directly.</li>
+          <li id="manualConnectBlock">Connect Device shows the selected USB port, Bluetooth device name, or Wi-Fi IP address. You can also enter the IP address directly.</li>
           <li id="manualMotionBlocks">Motion Blocks: Control robot walking, turning, and actions (stand, sit, backflip)</li>
           <li id="manualJointBlocks">Joint Blocks: Precisely control each joint's angle</li>
           <li id="manualPinBlocks">Pin Blocks: Control digital/analog input and output pins</li>
@@ -503,7 +503,7 @@
         manualBluetoothTableWindows: "Choose Quick Connect → Bluetooth → Bluetooth BLE to scan for compatible robots such as Quaddle.",
         manualBluetoothTableMac: "Choose Quick Connect → Bluetooth → Bluetooth BLE to scan for compatible robots such as Quaddle.",
         manualBluetoothTableChromebook: "Choose Quick Connect → Bluetooth → Bluetooth BLE to scan for compatible robots such as Quaddle.",
-        manualConnectionPriority: "<strong>Connection priority:</strong> Run uses an active USB, Bluetooth serial, or BLE connection first. When running over Wi-Fi, Run uses the address in the Connect Device block.",
+        manualConnectionPriority: "<strong>Choosing a connection:</strong> Run uses the value in the Connect Device block. A USB port name selects USB, a Bluetooth device name selects Bluetooth, and an IP address selects Wi-Fi.",
         manualWiFiTitle: "3. WiFi / Local Website Connection",
         manualWiFiNote: "Important:",
         manualWiFiDesc: "WiFi connection requires running the website locally due to browser security restrictions.",
@@ -513,13 +513,13 @@
         manualWiFiStep4: "Now WiFi and all connection methods work!",
         manualNyBoardWiFiNote: "<strong>For NyBoard,</strong> you will need an extra step to configure its <a href='https://docs.petoi.com/web-block-base-programming/petoi-web-coding-blocks/setup-on-nyboard' target='_blank' rel='noopener noreferrer'>WiFi module</a>.",
         manualQuickConnect: "Quick Connect Button",
-        manualQuickConnectDesc: "Choose Bluetooth for BLE or a paired Bluetooth serial device. Choose Wi-Fi to enter the IP address of a robot on the same network. For USB, use Connect Serial Port in the serial monitor.",
+        manualQuickConnectDesc: "Choose Bluetooth for BLE or a paired Bluetooth serial device. Choose Wi-Fi to enter your robot’s IP address. With a serial port already connected, Quick Connect can query the robot for its Wi-Fi address and select it for the next run.",
         manualInterfaceTitle: "Interface Guide",
         manualWorkspace: "Block Workspace: Drag blocks from the left panel here to build your program",
         manualConsole: "Console Log: Displays program status and debug information",
         manualSerial: "Serial Monitor: Send commands and view replies. A Chrome Bluetooth connection uses this same monitor.",
         manualBlocks: "Common Blocks",
-        manualConnectBlock: "Connect Device: The first block of every program. It displays the robot’s name during a BLE connection and its IP address during a Wi-Fi connection. You can also enter the IP address directly.",
+        manualConnectBlock: "Connect Device shows the selected USB port, Bluetooth device name, or Wi-Fi IP address. You can also enter the IP address directly.",
         manualMotionBlocks: "Motion Blocks: Control robot walking, turning, and actions (stand, sit, backflip)",
         manualJointBlocks: "Joint Blocks: Precisely control each joint's angle",
         manualPinBlocks: "Pin Blocks: Control digital/analog input and output pins",
@@ -598,7 +598,7 @@
         manualBluetoothTableWindows: "选择「快速连接 → 蓝牙 → 低功耗蓝牙 (BLE)」，扫描 Quaddle 等兼容机器人。",
         manualBluetoothTableMac: "选择「快速连接 → 蓝牙 → 低功耗蓝牙 (BLE)」，扫描 Quaddle 等兼容机器人。",
         manualBluetoothTableChromebook: "选择「快速连接 → 蓝牙 → 低功耗蓝牙 (BLE)」，扫描 Quaddle 等兼容机器人。",
-        manualConnectionPriority: "<strong>连接优先级：</strong>运行时优先使用已连接的 USB、蓝牙串口或 BLE。通过 Wi-Fi 运行时，使用「连接设备」积木中的地址。",
+        manualConnectionPriority: "<strong>选择运行方式</strong>　「运行」以「连接设备」积木中的内容为准。USB 串口名使用 USB，蓝牙设备名使用蓝牙，IP 地址使用 Wi-Fi。",
         manualWiFiTitle: "3. WiFi / 本地网站连接",
         manualWiFiNote: "重要提示：",
         manualWiFiDesc: "由于浏览器安全限制，WiFi 连接需要以本地方式运行网站。",
@@ -608,13 +608,13 @@
         manualWiFiStep4: "现在 WiFi 和所有连接方式都可以使用了！",
         manualNyBoardWiFiNote: "<strong>对于 NyBoard，</strong>您还需要执行一个额外步骤来配置其 <a href='https://docs.petoi.com/web-block-base-programming/petoi-web-coding-blocks/setup-on-nyboard' target='_blank' rel='noopener noreferrer'>WiFi 模块</a>。",
         manualQuickConnect: "快速连接按钮",
-        manualQuickConnectDesc: "选择「蓝牙」可连接低功耗蓝牙设备或已配对的蓝牙串口。选择「Wi-Fi」可输入同一网络中机器人的 IP 地址。USB 连接请使用串口监视器中的「连接串口」。",
+        manualQuickConnectDesc: "选择「蓝牙」可连接 BLE 设备或已配对的蓝牙串口。选择「Wi-Fi」可输入机器人的 IP 地址。串口已连接时，「快速连接」可查询机器人的 Wi-Fi 地址，并将它选为下次运行的目标。",
         manualInterfaceTitle: "界面说明",
         manualWorkspace: "积木工作区：拖拽左侧积木到这里组合成程序",
         manualConsole: "控制台日志：显示程序运行状态和调试信息",
         manualSerial: "串口监视器：发送命令并查看回复。Chrome 蓝牙连接使用同一个监视器。",
         manualBlocks: "常用积木说明",
-        manualConnectBlock: "连接设备：程序的第一个积木。通过 BLE 连接时显示机器人名称，通过 Wi-Fi 连接时显示 IP 地址。也可以直接输入 IP 地址。",
+        manualConnectBlock: "「连接设备」积木显示选中的 USB 串口名、蓝牙设备名或 Wi-Fi IP 地址。也可以直接输入 IP 地址。",
         manualMotionBlocks: "动作积木：控制机器狗行走、转身、做动作（如站立、坐下、后空翻）",
         manualJointBlocks: "关节积木：精确控制每个关节的角度",
         manualPinBlocks: "引脚积木：控制数字/模拟输入输出引脚",
@@ -693,7 +693,7 @@
         manualBluetoothTableWindows: "「クイック接続 → Bluetooth → Bluetooth BLE」を選び、Quaddle などの対応ロボットを検索します。",
         manualBluetoothTableMac: "「クイック接続 → Bluetooth → Bluetooth BLE」を選び、Quaddle などの対応ロボットを検索します。",
         manualBluetoothTableChromebook: "「クイック接続 → Bluetooth → Bluetooth BLE」を選び、Quaddle などの対応ロボットを検索します。",
-        manualConnectionPriority: "<strong>接続の優先順位：</strong>実行時は接続済みの USB、Bluetooth シリアル、または BLE を優先します。Wi-Fi で実行するときは、接続ブロックのアドレスを使います。",
+        manualConnectionPriority: "<strong>実行時の接続方法</strong>　「デバイスに接続」ブロックに表示される値に従います。USB ポート名は USB、Bluetooth デバイス名は Bluetooth、IP アドレスは Wi-Fi を使います。",
         manualWiFiTitle: "3. WiFi / ローカル Web サイト接続",
         manualWiFiNote: "重要：",
         manualWiFiDesc: "ブラウザのセキュリティ制限により、WiFi 接続には Web サイトをローカルで実行する必要があります。",
@@ -703,13 +703,13 @@
         manualWiFiStep4: "これで WiFi とすべての接続方法が使用可能になります！",
         manualNyBoardWiFiNote: "<strong>NyBoard の場合、</strong><a href='https://docs.petoi.com/web-block-base-programming/petoi-web-coding-blocks/setup-on-nyboard' target='_blank' rel='noopener noreferrer'>WiFi モジュール</a>を設定する追加手順が必要です。",
         manualQuickConnect: "クイック接続ボタン",
-        manualQuickConnectDesc: "「Bluetooth」で BLE またはペアリング済みの Bluetooth シリアルデバイスに接続できます。「Wi-Fi」では同じネットワーク上のロボットの IP アドレスを入力します。USB 接続にはシリアルモニターの「シリアルポートに接続」を使います。",
+        manualQuickConnectDesc: "「Bluetooth」で BLE またはペアリング済みの Bluetooth シリアルデバイスに接続できます。「Wi-Fi」ではロボットの IP アドレスを入力します。シリアルポートに接続済みの場合は、「クイック接続」で Wi-Fi の IP アドレスを取得し、次回の実行先に設定できます。",
         manualInterfaceTitle: "インターフェース説明",
         manualWorkspace: "ブロックワークスペース：左側のパネルからブロックをドラッグしてここに配置し、プログラムを作成します",
         manualConsole: "コンソールログ：プログラムのステータスとデバッグ情報を表示します",
         manualSerial: "シリアルモニター：コマンドを送り、応答を確認します。Chrome の Bluetooth 接続も同じモニターを使います。",
         manualBlocks: "よく使うブロック",
-        manualConnectBlock: "デバイスに接続：すべてのプログラムの最初のブロック。BLE 接続中はロボット名、Wi-Fi 接続中は IP アドレスが表示されます。IP アドレスを直接入力することもできます。",
+        manualConnectBlock: "「デバイスに接続」ブロックには、選択した USB ポート名、Bluetooth デバイス名、または Wi-Fi の IP アドレスが表示されます。IP アドレスを直接入力することもできます。",
         manualMotionBlocks: "動作ブロック：ロボットの歩行、旋回、アクション（立つ、座る、バックフリップ）を制御します",
         manualJointBlocks: "関節ブロック：各関節の角度を正確に制御します",
         manualPinBlocks: "ピンブロック：デジタル/アナログ入出力ピンを制御します",

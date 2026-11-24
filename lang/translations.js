@@ -20,6 +20,7 @@ const TRANSLATIONS = {
     "skillLoaded": "已加载技能：{filename}",
     "skillLoadFailed": "技能加载失败",
     "serialNotConnected": "请先连接串口",
+    "connectSelectedDeviceFirst": "请先连接积木中指定的设备：{device}",
     "clearAll": "清除",
     "generateLog": "生成日志",
 
@@ -180,7 +181,7 @@ const TRANSLATIONS = {
 
     // 积木文本 - 引脚与传感器
     "connectWithIP": "连接设备 %1",
-    "connectDeviceTooltip": "程序的起始积木。IP地址输入框显示当前连接设备的IP（串口连接时自动更新），也可手动输入已知的WiFi设备IP。",
+    "connectDeviceTooltip": "程序的起始积木。显示 USB 串口名或蓝牙设备名时，程序使用对应连接。显示 IP 地址时，程序使用 Wi-Fi。",
     "getDigitalInput": "获取数字输入 %1",
     "getAnalogInput": "获取模拟输入 %1",
     "getSensorInput": "获取传感器 %1",
@@ -692,6 +693,7 @@ const TRANSLATIONS = {
     "skillLoaded": "Skill loaded: {filename}",
     "skillLoadFailed": "Failed to load skill",
     "serialNotConnected": "Please connect to serial port first",
+    "connectSelectedDeviceFirst": "Connect to the device selected in the block first: {device}",
     "clearAll": "Clear",
     "generateLog": "Generate Log",
 
@@ -852,7 +854,7 @@ const TRANSLATIONS = {
 
     // Block text - Pins and Sensors
     "connectWithIP": "connect device %1",
-    "connectDeviceTooltip": "The starting block of every program. The IP field shows the current device IP (auto-updates when using serial connection), or you can manually enter a known WiFi device IP.",
+    "connectDeviceTooltip": "The starting block of every program. A USB port name or Bluetooth device name uses the corresponding connection. An IP address uses Wi-Fi.",
     "getDigitalInput": "get digital input %1",
     "getAnalogInput": "get analog input %1",
     "getSensorInput": "get sensor %1",
@@ -1363,6 +1365,7 @@ const TRANSLATIONS = {
     "skillLoaded": "スキルロード完了：{filename}",
     "skillLoadFailed": "スキルロード失敗",
     "serialNotConnected": "シリアルポートに接続してください",
+    "connectSelectedDeviceFirst": "先にブロックで指定したデバイスに接続してください：{device}",
     "clearAll": "クリア",
     "generateLog": "ログ生成",
 
@@ -1530,7 +1533,7 @@ const TRANSLATIONS = {
 
     // ブロックテキスト - ピンとセンサー
     "connectWithIP": "デバイスに接続 %1",
-    "connectDeviceTooltip": "すべてのプログラムの最初のブロック。IPアドレスフィールドは現在のデバイスIPを表示します（シリアル接続時に自動更新）、または既知のWiFiデバイスIPを手動で入力できます。",
+    "connectDeviceTooltip": "プログラムの開始ブロックです。USB ポート名または Bluetooth デバイス名の場合は対応する接続を使い、IP アドレスの場合は Wi-Fi を使います。",
     "getDigitalInput": "デジタル入力を取得 %1",
     "getAnalogInput": "アナログ入力を取得 %1",
     "getSensorInput": "センサーを取得 %1",

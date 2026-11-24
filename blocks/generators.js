@@ -33,7 +33,7 @@ await (async function() {
     : ((typeof window !== 'undefined' && typeof window.serialBuffer === 'string') ? window.serialBuffer.length : undefined);
   await webRequest("${cmd}", 20000, true);
   // Wait for completion signal in serial mode: gait commands usually use 'k' as completion marker
-  if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') {
+  if ((typeof window === 'undefined' || (window.__isSerialMode ?? !window.petoiClient)) && typeof waitForSerialTokenLine === 'function') {
     await waitForSerialTokenLine('k', 20000, __from);
   }
   // Record token received time (WiFi: webRequest resolves after receiving k; Serial: waitForSerialTokenLine returned)
@@ -72,7 +72,7 @@ await (async function() {
     : ((typeof window !== 'undefined' && typeof window.serialBuffer === 'string') ? window.serialBuffer.length : undefined);
   await webRequest("${cmd}", 10000, true);
   // Wait for completion signal in serial mode: 'k...' returns 'k'; 'd' (rest) returns 'd'
-  if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') {
+  if ((typeof window === 'undefined' || (window.__isSerialMode ?? !window.petoiClient)) && typeof waitForSerialTokenLine === 'function') {
     const _tok = '${cmd}'.charAt(0);
     await waitForSerialTokenLine(_tok, 15000, __from);
   }
@@ -139,7 +139,7 @@ Blockly.JavaScript.forBlock["play_tone_list"] = function (block) {
         }
     `) + '\n';
     // Serial mode: wait for serial to return 'B' (tone list complete) before starting delay timer
-    code += `if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') {
+    code += `if ((typeof window === 'undefined' || (window.__isSerialMode ?? !window.petoiClient)) && typeof waitForSerialTokenLine === 'function') {
   const __from = (typeof window !== 'undefined' && typeof window.__lastSerialStartIndex === 'number') ? window.__lastSerialStartIndex : undefined;
   await waitForSerialTokenLine('B', 15000, __from);
   if (typeof window !== 'undefined') window.__lastSerialStartIndex = null;
@@ -192,7 +192,7 @@ await (async function() {
     ? serialBuffer.length
     : ((typeof window !== 'undefined' && typeof window.serialBuffer === 'string') ? window.serialBuffer.length : undefined);
   await webRequest("${cmd}", ${ACROBATIC_MOVES_TIMEOUT}, true);
-  if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') {
+  if ((typeof window === 'undefined' || (window.__isSerialMode ?? !window.petoiClient)) && typeof waitForSerialTokenLine === 'function') {
     await waitForSerialTokenLine('k', ${ACROBATIC_MOVES_TIMEOUT}, __from);
   }
   if (typeof window !== 'undefined') window.__lastTokenReceivedAt = Date.now();
@@ -229,7 +229,7 @@ await (async function() {
     ? serialBuffer.length
     : ((typeof window !== 'undefined' && typeof window.serialBuffer === 'string') ? window.serialBuffer.length : undefined);
   await webRequest("${cmd}", ${BEHAVIOR_COMMAND_TIMEOUT}, true);
-  if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') {
+  if ((typeof window === 'undefined' || (window.__isSerialMode ?? !window.petoiClient)) && typeof waitForSerialTokenLine === 'function') {
     const _tok = '${cmd}'.charAt(0);
     await waitForSerialTokenLine(_tok, ${BEHAVIOR_COMMAND_TIMEOUT}, __from);
   }
@@ -315,7 +315,7 @@ Blockly.JavaScript.forBlock["send_custom_command"] = function (block) {
     `) + '\n';
     // If custom command starts with 'm'/'k'/'d', wait for the completion marker in serial mode.
     // Quaddle queue macros echo one intermediate 'k' and one final 'k', so only the second one completes the macro.
-    code += `if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') { try { 
+    code += `if ((typeof window === 'undefined' || (window.__isSerialMode ?? !window.petoiClient)) && typeof waitForSerialTokenLine === 'function') { try {
   const _c = ${command}; 
   const _t = (typeof _c === 'string' && _c.length>0) ? _c[0] : null; 
   if (_t && ('mkd'.includes(_t))) { 
@@ -403,7 +403,7 @@ Blockly.JavaScript.forBlock["play_melody"] = function (block) {
       const result = await webRequest("${encodeCmd}", ${LONG_COMMAND_TIMEOUT}, true, "${displayCmd}");
     `) + '\n';
     // Serial mode: wait for serial to return 'B' (melody complete) before starting delay timer
-    code += `if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') { 
+    code += `if ((typeof window === 'undefined' || (window.__isSerialMode ?? !window.petoiClient)) && typeof waitForSerialTokenLine === 'function') {
   const __from = (typeof window !== 'undefined' && typeof window.__lastSerialStartIndex === 'number') ? window.__lastSerialStartIndex : undefined;
   await waitForSerialTokenLine('B', ${LONG_COMMAND_TIMEOUT}, __from); 
   if (typeof window !== 'undefined') window.__lastSerialStartIndex = null;
@@ -443,7 +443,7 @@ await (async function() {
   const command = await encodeMoveCommand("${token}", ${variableText});
   const __from = (typeof serialBuffer === 'string') ? serialBuffer.length : ((typeof window !== 'undefined' && typeof window.serialBuffer === 'string') ? window.serialBuffer.length : undefined);
   await webRequest(command, ${COMMAND_TIMEOUT_MAX}, true);
-  if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') {
+  if ((typeof window === 'undefined' || (window.__isSerialMode ?? !window.petoiClient)) && typeof waitForSerialTokenLine === 'function') {
     await waitForSerialTokenLine('m', 15000, __from);
   }
   return true;
@@ -485,7 +485,7 @@ await (async function() {
   const command = await encodeMoveCommand("${token}", ${variableText});
   const __from = (typeof serialBuffer === 'string') ? serialBuffer.length : ((typeof window !== 'undefined' && typeof window.serialBuffer === 'string') ? window.serialBuffer.length : undefined);
   await webRequest(command, ${COMMAND_TIMEOUT_MAX}, true);
-  if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') {
+  if ((typeof window === 'undefined' || (window.__isSerialMode ?? !window.petoiClient)) && typeof waitForSerialTokenLine === 'function') {
     await waitForSerialTokenLine('i', 30000, __from);
   }
   return true;
@@ -578,7 +578,7 @@ await (async function() {
   const command = await encodeMoveCommand("${token}", ${variableText});
   const __from = (typeof serialBuffer === 'string') ? serialBuffer.length : ((typeof window !== 'undefined' && typeof window.serialBuffer === 'string') ? window.serialBuffer.length : undefined);
   await webRequest(command, ${COMMAND_TIMEOUT_MAX}, true);
-  if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') {
+  if ((typeof window === 'undefined' || (window.__isSerialMode ?? !window.petoiClient)) && typeof waitForSerialTokenLine === 'function') {
     await waitForSerialTokenLine('m', 15000, __from);
   }
   return true;
@@ -671,7 +671,7 @@ await (async function() {
     ? serialBuffer.length
     : ((typeof window !== 'undefined' && typeof window.serialBuffer === 'string') ? window.serialBuffer.length : undefined);
   await webRequest("${cmd}", ${LONG_COMMAND_TIMEOUT}, true);
-  if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') {
+  if ((typeof window === 'undefined' || (window.__isSerialMode ?? !window.petoiClient)) && typeof waitForSerialTokenLine === 'function') {
     const _tok = '${cmd}'.charAt(0);
     await waitForSerialTokenLine(_tok, ${LONG_COMMAND_TIMEOUT}, __from);
   }
@@ -723,7 +723,7 @@ javascript.javascriptGenerator.forBlock["action_skill_file"] = function (
       const result = await webRequest("${cmd}", ${LONG_COMMAND_TIMEOUT}, true);
     `) + '\n';
     // Serial mode: wait for corresponding completion marker based on skill file token type
-    code += `if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') { 
+    code += `if ((typeof window === 'undefined' || (window.__isSerialMode ?? !window.petoiClient)) && typeof waitForSerialTokenLine === 'function') {
   const __from = (typeof window !== 'undefined' && typeof window.__lastSerialStartIndex === 'number') ? window.__lastSerialStartIndex : undefined;
   await waitForSerialTokenLine('${token}', ${LONG_COMMAND_TIMEOUT}, __from); 
   if (typeof window !== 'undefined') window.__lastSerialStartIndex = null;
@@ -749,22 +749,17 @@ javascript.javascriptGenerator.forBlock["action_skill_file"] = function (
 
 // Connect robot code generation
 javascript.javascriptGenerator.forBlock["make_connection"] = function (block) {
-    const ip = block.getFieldValue("IP_ADDRESS");
+    const address = JSON.stringify((block.getFieldValue("IP_ADDRESS") || "").trim())
+        .replace(/[\u2018\u2019\u201c\u201d]/g, char => "\\u" + char.charCodeAt(0).toString(16));
     return `
-try {
-  const connectionResult = await makeConnection("${ip}");
-  if(connectionResult) {
-    const bleName = (typeof hasActiveBleConnection === "function" && hasActiveBleConnection() && typeof bleLink !== "undefined" && bleLink && bleLink.name) ? bleLink.name : "";
-    if (!bleName) {
-      deviceIP = "${ip}";
-    }
-    console.log(getText("connectedToDevice").replace("{ip}", bleName || deviceIP || "${ip}"));
-    window.__gesturePollIntervalMs = 600;
-  } else {
-    console.log(getText("debugConnectionFailed"));
+{
+  const address = ${address};
+  if (!(await makeConnection(address))) {
+    throw new Error(getText("debugConnectionFailed"));
   }
-} catch (error) {
-  console.error(getText("debugConnectionError"), error.message);
+  deviceIP = address;
+  console.log(getText("connectedToDevice").replace("{ip}", () => address));
+  window.__gesturePollIntervalMs = 600;
 }\n`;
 };
 
@@ -918,6 +913,9 @@ await (async function() {
     if (typeof window !== 'undefined') window.__cameraActivated = true;
   }
   checkStopExecution();
+  if (typeof window !== 'undefined' && window.__isSerialMode === false) {
+    return parseCameraCoordinateResult(await webRequest("XCP", 5000, true));
+  }
   // Send get command only once initially, serial response is mirrored by serial read hook
   if (typeof window === 'undefined' || !window.__cameraPolled) {
     await webRequest("XCP", 5000, true);
@@ -1043,7 +1041,8 @@ await (async function() {
 
     // 2) Fallback: only for serial mode take latest frame from buffer; WiFi has no buffer, don't wait 200ms to maintain real-time performance
     const __hasSerialBuffer = (typeof serialBuffer !== 'undefined' && typeof serialBuffer === 'string') || (typeof window !== 'undefined' && typeof window.serialBuffer === 'string');
-    if (![0, 1, 2, 3].includes(gestureValue) && __hasSerialBuffer) {
+    if (![0, 1, 2, 3].includes(gestureValue) && __hasSerialBuffer &&
+        (typeof window === 'undefined' || window.__isSerialMode !== false)) {
       if (typeof serialBuffer !== 'undefined' && typeof serialBuffer === 'string' && serialBuffer.length > 5000) {
         serialBuffer = serialBuffer.substring(serialBuffer.length - 3000);
       } else if (typeof window !== 'undefined' && typeof window.serialBuffer === 'string' && window.serialBuffer.length > 5000) {
@@ -1099,20 +1098,12 @@ await (async function() {
           return;
         }
         
-        // Get buffer data (support WebSocket and serial)
+        // Get buffered serial data.
         let buffer = '';
-        if (typeof window !== 'undefined' && window.__isSerialMode) {
-          // Serial mode
-          if (typeof serialBuffer !== 'undefined' && typeof serialBuffer === 'string') {
-            buffer = serialBuffer;
-          } else if (typeof window !== 'undefined' && typeof window.serialBuffer === 'string') {
-            buffer = window.serialBuffer;
-          }
-        } else {
-          // WebSocket mode
-          if (typeof serialBuffer !== 'undefined' && typeof serialBuffer === 'string') {
-            buffer = serialBuffer;
-          }
+        if (typeof serialBuffer !== 'undefined' && typeof serialBuffer === 'string') {
+          buffer = serialBuffer;
+        } else if (typeof window !== 'undefined' && typeof window.serialBuffer === 'string') {
+          buffer = window.serialBuffer;
         }
         
         if (buffer) {
@@ -1148,8 +1139,7 @@ await (async function() {
       }
     }
     
-    // If WebSocket mode didn't find, or using serial mode, wait for "X" from buffer
-    if (!foundX) {
+    if (!foundX && (typeof window === 'undefined' || window.__isSerialMode !== false)) {
       try {
         await waitForResponse('X', 3000);
       } catch (e) {
@@ -1277,7 +1267,7 @@ function parseCameraCoordinateResult(rawResult) {
     // 2) New format (line 0 is '=', line 1 is "x y size = w h", line 2 is 'X')
     function extractFromText(text) {
         if (!text) return [];
-        const norm = String(text).replace(/\r\n/g, "\n");
+        const norm = (Array.isArray(text) ? text.join("\n") : String(text)).replace(/\r\n/g, "\n");
         const lines = norm.split("\n").map(l => l.trim()).filter(l => l.length > 0);
 
         // Priority match new format block:
@@ -1318,12 +1308,16 @@ function parseCameraCoordinateResult(rawResult) {
                 }
             }
         }
+        // Wi-Fi may return the coordinate line without the frame markers.
+        const coords = lines.at(-1)?.match(/^(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+size\s*=\s*(\d+)\s+(\d+)$/i);
+        if (coords) return coords.slice(1).map(Number);
         return [];
     }
 
     // 1) Try to parse passed rawResult (WebSocket path usually returns full text)
     let parsed = extractFromText(rawResult);
     if (parsed.length === 4) return parsed;
+    if (typeof window !== 'undefined' && window.__isSerialMode === false) return [];
 
     // 2) Serial path: webRequest("XCP") may return placeholder text (like "Command sent via serial").
     //    Fallback to parse latest frame coordinate block from global serial buffer (prefer global binding serialBuffer, then window.serialBuffer).
@@ -1823,7 +1817,7 @@ await (async function() {
                         ? serialBuffer.length
                         : ((typeof window !== 'undefined' && typeof window.serialBuffer === 'string') ? window.serialBuffer.length : undefined);
                       await _wr(cmd, timeout, true);
-                      if (!((typeof window !== 'undefined') && window.petoiClient) && typeof waitForSerialTokenLine === 'function') {
+                      if ((typeof window === 'undefined' || (window.__isSerialMode ?? !window.petoiClient)) && typeof waitForSerialTokenLine === 'function') {
                         await waitForSerialTokenLine(token, timeout, __from);
                       }
                       if (typeof window !== 'undefined') window.__lastTokenReceivedAt = Date.now();
@@ -1856,7 +1850,8 @@ await (async function() {
                         checkStopExecution: checkStopExecution,
                         checkStopExecutionInLoop: checkStopExecutionInLoop,
                         webRequest: (typeof window !== 'undefined' && window.webRequest) ? window.webRequest : webRequest,
-                        waitForSerialTokenLine: (typeof waitForSerialTokenLine === 'function') ? waitForSerialTokenLine : undefined,
+                        waitForSerialTokenLine: ((typeof window === 'undefined' || window.__isSerialMode !== false) &&
+                            typeof waitForSerialTokenLine === 'function') ? waitForSerialTokenLine : undefined,
                         delay: delay,
                         encodeCommand: encodeCommand,
                         parseSingleResult: parseSingleResult,

@@ -362,7 +362,8 @@
     {
       const icon = button.getAttribute('data-mobile-icon') || '';
       const i18nKey = button.getAttribute('data-mobile-i18n-key') || '';
-      const label = i18nKey ? getText(i18nKey) : button.textContent.trim();
+      const connectedDevice = button.getAttribute('data-connected-device');
+      const label = connectedDevice || (i18nKey ? getText(i18nKey) : button.textContent.trim());
       button.setAttribute('data-mobile-label', label);
       button.setAttribute('aria-label', label);
       button.title = label;
@@ -370,12 +371,9 @@
 
     function renderMainActionButtonContent(button, hideLabelAfterIcon)
     {
-      if (button.id === 'quickConnectBtn' && button.hasAttribute('data-connected') && !mobileLayoutState.isActive)
+      if (button.id === 'quickConnectBtn' && button.hasAttribute('data-connected-device'))
       {
-        const label = button.getAttribute('data-mobile-label') || '';
-        const bleText = (bleLink && writer && writer.isBle && bleLink.name) ? bleLink.name : '';
-        const ipText = currentDeviceIP && currentDeviceIP !== '192.168.4.1' ? currentDeviceIP : '';
-        button.textContent = bleText || ipText || label;
+        button.textContent = button.getAttribute('data-connected-device');
         button.classList.remove('mobile-icon-only');
         return;
       }
@@ -1204,7 +1202,14 @@
       {
         try
         {
-          if (!hasActiveSerialConnection())
+          if (hasActiveSerialConnection())
+          {
+            if (serialDevice?.port === port)
+            {
+              connectionBlocks()[0]?.setFieldValue(serialDevice.name, 'IP_ADDRESS');
+              updateQuickConnectButtonState(serialDevice.isBluetooth ? serialDevice.name : null);
+            }
+          } else
           {
             await openSerialPort();
           }
@@ -1222,26 +1227,19 @@
     async function tryConnectWithConfigIP()
     {
       if (hasActiveBleConnection()) return false;
-      if (config.lastKnownIP && currentDeviceIP === config.lastKnownIP)
-      {
-        updateQuickConnectButtonState(currentDeviceIP);
-        hasShownWifiDialog = false;
-        return true;
-      }
-      return tryConnectWithWifiIP(config.lastKnownIP);
+      return isValidIPAddress(config.lastKnownIP) && tryConnectWithWifiIP(config.lastKnownIP);
     }
 
     async function tryConnectWithWifiIP(ip)
     {
-      if (hasActiveBleConnection() || !ip) return false;
+      if (!ip) return false;
 
       const url = `ws://${ip}:81`;
       const previousClient = window.petoiClient;
       if (previousClient?.baseUrl === url && previousClient.connected &&
         previousClient.ws?.readyState === WebSocket.OPEN && currentDeviceIP === ip)
       {
-        updateQuickConnectButtonState(ip);
-        hasShownWifiDialog = false;
+        await selectWifiAddress(ip);
         return true;
       }
 
@@ -1260,21 +1258,20 @@
         return false;
       }
 
-      if (hasActiveBleConnection())
-      {
-        client.disconnect();
-        return false;
-      }
-
       window.petoiClient?.disconnect();
       window.petoiClient = client;
+      config.lastConnectedTime = new Date().toISOString();
+      await selectWifiAddress(ip);
+      return true;
+    }
+
+    async function selectWifiAddress(ip)
+    {
       currentDeviceIP = ip;
       hasShownWifiDialog = false;
+      connectionBlocks()[0]?.setFieldValue(ip, 'IP_ADDRESS');
       updateQuickConnectButtonState(ip);
-      workspace.getBlocksByType('make_connection')[0]?.setFieldValue(ip, 'IP_ADDRESS');
-      config.lastConnectedTime = new Date().toISOString();
       await saveConfig();
-      return true;
     }
 
     // 更新自定义积木的定义
@@ -1956,12 +1953,9 @@
       {
         // 创建make_connection积木块
         const connectionBlock = workspace.newBlock('make_connection');
-        // 设置IP地址为当前设备IP
-        connectionBlock.setFieldValue(currentDeviceIP, 'IP_ADDRESS');
-        if (typeof showBleNameOnConnectionBlock === 'function')
-        {
-          showBleNameOnConnectionBlock();
-        }
+        const activeSerialName = hasActiveBleConnection() ? bleLink.name :
+          (hasActiveSerialConnection() ? serialDevice?.name : '');
+        connectionBlock.setFieldValue(activeSerialName || currentDeviceIP, 'IP_ADDRESS');
         // 初始化积木块(确保所有连接点正确设置)
         connectionBlock.initSvg();
         // 渲染积木块
@@ -2176,27 +2170,15 @@
     let programStartTime = 0; // 程序启动时间
     let isProgramRunning = false;
     let stopExecution = false; // 全局停止标志
+    const DEFAULT_DEVICE_ADDRESS = '192.168.4.1';
 
     // IP地址格式验证函数
     function isValidIPAddress(ip)
     {
-      if (!ip || typeof ip !== 'string')
-      {
-        return false;
-      }
-
-      // 检查是否为192.168.4.1
-      if (ip === '192.168.4.1')
-      {
-        return false; // 返回false表示需要quick connect
-      }
-
-      // 检查IP地址格式
-      const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-      return ipRegex.test(ip);
+      return ip !== DEFAULT_DEVICE_ADDRESS && isLikelyIPv4Address(ip);
     }
 
-    function runCode()
+    async function runCode()
     {
       const now = Date.now();
 
@@ -2220,103 +2202,40 @@
         return;
       }
 
-      // USB 串口或已连接的 BLE 都算可运行的链路。BLE 没有 Web Serial 端口。
-      const hasValidSerial = hasActiveSerialConnection() || hasActiveBleConnection();
-
-      // 检查WebSocket连接状态（通过window.client和currentDeviceIP判断）
-      const hasValidWebSocket = (typeof window.client !== 'undefined' && window.client && 
-                                 window.client.connected && 
-                                 window.client.ws && 
-                                 window.client.ws.readyState === WebSocket.OPEN) ||
-                                (typeof currentDeviceIP !== 'undefined' && 
-                                 currentDeviceIP && 
-                                 currentDeviceIP !== '192.168.4.1');
-
-      // 如果两种通信方式都可用，优先使用串口通信模式
-      if (hasValidSerial && hasValidWebSocket)
+      const mainBlock = connectionBlocks()[0];
+      if (!mainBlock)
       {
-        if (showDebug) console.log(getText("bothConnectionsAvailableUsingSerial") || "检测到串口和WebSocket连接，优先使用串口通信模式");
-        executeRunCode();
+        alert(getText('noConnectionBlockError'));
         return;
       }
 
-      // 如果只有串口连接可用，使用串口
-      if (hasValidSerial)
+      let address = mainBlock.getFieldValue('IP_ADDRESS').trim();
+      const usingDefaultWifi = address === currentDeviceIP && hasEstablishedWifiConnection();
+      if (address === DEFAULT_DEVICE_ADDRESS && !usingDefaultWifi &&
+        !hasActiveSerialConnection() && !hasActiveBleConnection())
       {
-        // 如果有串口连接，直接执行程序，让makeConnection积木处理连接逻辑
-        if (showDebug) console.log(getText("detectedSerialConnectionDirectExecute"));
-        executeRunCode();
-        return;
-      }
-
-      // 没有串口连接时，检查WebSocket连接和IP地址
-      const makeConnectionBlocks = workspace.getBlocksByType('make_connection');
-      let blockIP = '192.168.4.1'; // 默认IP
-
-      if (makeConnectionBlocks.length > 0)
-      {
-        const mainBlock = makeConnectionBlocks[0];
-        blockIP = mainBlock.getFieldValue('IP_ADDRESS') || '192.168.4.1';
-      }
-
-      // 检查积木中的IP地址是否需要自动执行quick connect
-      if (!isValidIPAddress(blockIP))
-      {
-        if (typeof showDebug !== 'undefined' && showDebug)
+        if (isOpeningSerialPort) return;
+        try
         {
-          console.log(getText("detectedInvalidIP").replace('{ip}', blockIP));
+          await openSerialPort();
+        } catch (error)
+        {
+          // The connection flow handles failures. Cancelling the picker leaves the program idle.
+          return;
         }
-        handleWifiConnection(false).then(() =>
-        {
-          // quick connect完成后，延迟1秒再执行runCode
-          setTimeout(async () =>
-          {
-            // 串口已连接时，直接执行（避免进入 HTTPS WiFi 提示循环）
-            if (hasActiveSerialConnection())
-            {
-              executeRunCode();
-              return;
-            }
+        if (isProgramRunning || connectionBlocks()[0] !== mainBlock || !hasActiveSerialConnection()) return;
+        address = mainBlock.getFieldValue('IP_ADDRESS').trim();
+      }
 
-            const allowWifi = await ensureWifiAccessAllowed(currentDeviceIP || blockIP);
-            if (!allowWifi)
-            {
-              // 用户在提示中改为 USB 后，串口已连接则直接执行
-              if (hasActiveSerialConnection())
-              {
-                executeRunCode();
-              }
-              return;
-            }
-            executeRunCode();
-          }, 1000);
-        }).catch((error) =>
-        {
-          if (error && error.code === 'BLUETOOTH_SERIAL_CONNECT_FIRST')
-          {
-            alert(getText("bluetoothSerialConnectFirst"));
-            return;
-          }
-          console.error(getText("quickConnectFailed") + ":", error);
-          // 即使quick connect失败，也尝试执行runCode
-          ensureWifiAccessAllowed(currentDeviceIP || blockIP).then((allowWifi) =>
-          {
-            if (!allowWifi)
-            {
-              if (hasActiveSerialConnection())
-              {
-                executeRunCode();
-              }
-              return;
-            }
-            executeRunCode();
-          });
-        });
+      const useWifi = isLikelyIPv4Address(address);
+      const runSerialWriter = useWifi ? null : getWriterForDeviceName(address);
+      if (!useWifi && !runSerialWriter)
+      {
+        alert(getText(address ? 'connectSelectedDeviceFirst' : 'quickConnectChoose').replace('{device}', address));
         return;
       }
 
-      // IP合法且非默认值时，先直接尝试连接；若被浏览器阻断，再在连接流程中提示切换串口
-      executeRunCode();
+      executeRunCode(mainBlock, runSerialWriter);
     }
 
     function stopCode()
@@ -2346,7 +2265,7 @@
       }
     }
 
-    function executeRunCode()
+    function executeRunCode(mainBlock, runSerialWriter)
     {
       const now = Date.now();
       programStartTime = now; // 记录程序启动时间
@@ -2381,36 +2300,13 @@
 
       if (showDebug) console.log(getText("programExecutionStarted"));
 
-      // 检查是否有有效的串口连接。BLE 只有 writer，没有 Web Serial port。
-      const hasValidSerial = hasActiveSerialConnection() || hasActiveBleConnection();
-      if (hasValidSerial)
-      {
-        if (hasActiveBleConnection())
-        {
-          releaseWifiClientsForBle();
-        }
-        if (showDebug) console.log(getText("usingSerialConnectionExecute"));
-      } else
-      {
-        if (showDebug) console.log(getText("usingWebSocketConnectionExecute"));
-      }
+      const useSerial = !!runSerialWriter;
+      if (showDebug) console.log(getText(useSerial ? 'usingSerialConnectionExecute' : 'usingWebSocketConnectionExecute'));
 
       window.LoopTrap = 1000;
       Blockly.JavaScript.INFINITE_LOOP_TRAP =
         'if (--window.LoopTrap < 0) throw "无限循环";\n';
 
-      // 查找工作区中的'make_connection'积木块（Connect Device）
-      const makeConnectionBlocks = workspace.getBlocksByType('make_connection');
-
-      if (makeConnectionBlocks.length === 0)
-      {
-        console.error(getText("noConnectionBlockError") || "错误：请添加一个'Connect Device'积木块并将代码连接在其下方！");
-        alert(getText("noConnectionBlockError") || "错误：请添加一个'Connect Device'积木块并将代码连接在其下方！");
-        isProgramRunning = false;
-        return;
-      }
-
-      const mainBlock = makeConnectionBlocks[0];
       const tempWorkspace = new Blockly.Workspace();
       const clonedMainBlock = Blockly.serialization.blocks.save(mainBlock);
       Blockly.serialization.blocks.append(clonedMainBlock, tempWorkspace);
@@ -2425,78 +2321,22 @@
       let connectionFunctions = '';
       let restCommand = '';
       let closeConnectionCall = '';
+      const previousWebRequest = window.webRequest;
+      const previousSerialMode = window.__isSerialMode;
 
-      if (hasValidSerial)
+      if (useSerial)
       {
         // 使用串口连接的函数
         connectionFunctions = `
-// 串口通信函数，支持自动切换到WiFi
+// 通过本次运行所选的 USB 串口、蓝牙串口或 BLE 发送
 async function serialRequest(command, timeout = 5000, isRest = false, expectedResponse = null, bypassStopCheck = false) {
   if (!bypassStopCheck) {
     checkStopExecution();
   }
-  
-  // USB 要有可读写的 port。BLE 只有 writer，GATT 仍连接即可发送。
-  const bleReady = !!(writer && writer.isBle && bleLink && bleLink.device && bleLink.device.gatt && bleLink.device.gatt.connected);
-  if (!bleReady && (!writer || !port || !port.readable || !port.writable)) {
-    if (typeof hasActiveBleConnection === 'function' && hasActiveBleConnection()) {
-      throw new Error(getText("serialUnavailableNoValidIP"));
-    }
-    console.warn(getText("serialDisconnectedTryWiFi"));
-    
-    // 如果有保存的IP地址，尝试使用WiFi连接
-    if (currentDeviceIP && currentDeviceIP !== '192.168.4.1') {
-      try {
-        if (showDebug) console.log(getText("tryingWiFiConnection") + ": " + currentDeviceIP);
-        
-        // 创建WebSocket连接
-        if (typeof ensureWifiAccessAllowed === 'function') {
-          const allowWifi = await ensureWifiAccessAllowed(currentDeviceIP);
-          if (!allowWifi) {
-            throw new Error(getText("webSocketConnectionUnavailable"));
-          }
-        }
-        if (window.petoiClient) {
-          await window.petoiClient.disconnect();
-        }
-        
-        window.petoiClient = new PetoiAsyncClient("ws://" + currentDeviceIP + ":81");
-        await window.petoiClient.connect();
-        
-        // 处理命令格式
-        let wifiCommand = command;
-        if (command.startsWith("bytes:")) {
-          // 对于WiFi连接，字节数组需要转换为base64格式
-          const byteArrayStr = command.substring(6);
-          const byteArray = JSON.parse(byteArrayStr);
-          const uint8Array = new Uint8Array(byteArray);
-          const dataText = String.fromCharCode.apply(null, uint8Array);
-          wifiCommand = "b64:" + btoa(dataText);
-        }
-        
-        // 在发送命令前记录到Console Log
-        if (showSentCommands && typeof logSentCommand === 'function') {
-          logSentCommand(wifiCommand);
-        }
-        
-        // 使用WiFi发送命令
-        const result = await window.petoiClient.sendCommand(wifiCommand, timeout, expectedResponse);
-        
-        // 在收到响应后记录到Console Log
-        if (showSentCommands && typeof logCommandResponse === 'function') {
-          logCommandResponse(result);
-        }
-        
-        return result;
-      } catch (wifiError) {
-        console.error(getText("wiFiConnectionFailed") + ":", wifiError);
-        throw new Error(getText("serialAndWiFiBothUnavailable"));
-      }
-    } else {
-      throw new Error(getText("serialUnavailableNoValidIP"));
-    }
+  if (runSerialWriter !== writer || !(runSerialWriter.isBle ? hasActiveBleConnection() : hasActiveSerialConnection())) {
+    throw new Error(getText("serialNotConnected"));
   }
-  
+
   try {
     // 检查是否为字节数组格式的命令
     let dataToSend;
@@ -2526,7 +2366,7 @@ async function serialRequest(command, timeout = 5000, isRest = false, expectedRe
       // Text commands on BLE are one GATT payload ending in a newline.
       // USB serial keeps the original bytes.
       let textCommand = command;
-      if (writer && writer.isBle && typeof textCommand === 'string' && !textCommand.endsWith('\\n') && !textCommand.endsWith('~')) {
+      if (runSerialWriter.isBle && typeof textCommand === 'string' && !textCommand.endsWith('\\n') && !textCommand.endsWith('~')) {
         textCommand = textCommand + '\\n';
       }
       dataToSend = new TextEncoder().encode(textCommand);
@@ -2542,7 +2382,7 @@ async function serialRequest(command, timeout = 5000, isRest = false, expectedRe
     }
     
     // 发送命令
-    await writer.write(dataToSend);
+    await runSerialWriter.write(dataToSend);
     
     // 检查是否为查询关节角度命令
     if (command === 'j') {
@@ -2589,80 +2429,13 @@ async function serialRequest(command, timeout = 5000, isRest = false, expectedRe
     }
   } catch (error) {
     console.error(getText("serialSendError") + ":", error);
-    if (typeof hasActiveBleConnection === 'function' && hasActiveBleConnection()) {
-      throw error;
-    }
-    
-    // 串口发送失败，尝试使用WiFi
-    if (currentDeviceIP && currentDeviceIP !== '192.168.4.1') {
-      try {
-        if (showDebug) console.log(getText("serialSendFailedTryWiFi") + ": " + currentDeviceIP);
-        
-        if (typeof ensureWifiAccessAllowed === 'function') {
-          const allowWifi = await ensureWifiAccessAllowed(currentDeviceIP);
-          if (!allowWifi) {
-            throw new Error(getText("webSocketConnectionUnavailable"));
-          }
-        }
-        if (window.petoiClient) {
-          await window.petoiClient.disconnect();
-        }
-        
-        window.petoiClient = new PetoiAsyncClient("ws://" + currentDeviceIP + ":81");
-        await window.petoiClient.connect();
-        
-        // 处理命令格式
-        let wifiCommand = command;
-        if (command.startsWith("bytes:")) {
-          // 对于WiFi连接，字节数组需要转换为base64格式
-          const byteArrayStr = command.substring(6);
-          const byteArray = JSON.parse(byteArrayStr);
-          const uint8Array = new Uint8Array(byteArray);
-          const dataText = String.fromCharCode.apply(null, uint8Array);
-          wifiCommand = "b64:" + btoa(dataText);
-        }
-        
-        // 在发送命令前记录到Console Log
-        if (showSentCommands && typeof logSentCommand === 'function') {
-          logSentCommand(wifiCommand);
-        }
-        
-        const result = await window.petoiClient.sendCommand(wifiCommand, timeout, expectedResponse);
-        
-        // 在收到响应后记录到Console Log
-        if (showSentCommands && typeof logCommandResponse === 'function') {
-          logCommandResponse(result);
-        }
-        
-        return result;
-      } catch (wifiError) {
-        console.error(getText("wiFiConnectionAlsoFailed") + ":", wifiError);
-      }
-    }
-    
     throw error;
   }
 }
 
-// 串口连接函数（处理IP获取）
-async function makeConnection(ip) {
+// USB 串口或蓝牙已连接，直接复用当前连接
+async function makeConnection() {
   if (showDebug) console.log(getText("serialConnectedSkipWebSocket"));
-  if (typeof hasActiveBleConnection === 'function' && hasActiveBleConnection()) {
-    return true;
-  }
-  
-  // 如果需要获取IP地址，通过串口获取
-  if (!currentDeviceIP || currentDeviceIP === '192.168.4.1') {
-    if (showDebug) console.log(getText("getIPAddressViaSerial"));
-    try {
-      await sendWifiCommand();
-    } catch (error) {
-      console.warn(getText("getIPAddressViaSerialFailed") + ":", error);
-    }
-  } else {
-    if (showDebug) console.log(getText("usingExistingIPAddress") + ":", currentDeviceIP);
-  }
-  
   return true;
 }
 
@@ -2946,34 +2719,26 @@ async function waitForGeneralSerialResponse(command, timeout = 1000) {
     // 稍微延迟后开始检查（给设备一点反应时间）
     setTimeout(checkData, 50);
   });
-}`;
+}
+
+const webRequest = serialRequest;`;
 
         restCommand = 'await serialRequest("d", 5000, true);';
         closeConnectionCall = 'await closeConnection();';
-
-        // 设置串口模式标志，并重定向webRequest到serialRequest
-        connectionFunctions += `
-// 串口模式标志
-window.__isSerialMode = true;
-
-// 在串口模式下，将webRequest重定向到serialRequest
-// 这样generators.js中的encodeMoveCommand函数也能正常工作
-window.webRequest = serialRequest;
-`;
-
-        // 将生成代码中的webRequest替换为serialRequest
-        code = code.replace(/webRequest\(/g, 'serialRequest(');
       } else
       {
         // 使用WebSocket连接的函数（原有逻辑）
         connectionFunctions = `
+let runWifiClient = null;
+let ownsWifiClient = false;
+
 // WebSocket通信函数
 async function webRequest(command, timeout = 5000, isRest = false, expectedResponse = null, bypassStopCheck = false) {
   if (!bypassStopCheck) {
     checkStopExecution();
   }
   
-  if (!window.petoiClient) {
+  if (!runWifiClient) {
     throw new Error(getText("webSocketConnectionUnavailable"));
   }
   
@@ -2994,7 +2759,7 @@ async function webRequest(command, timeout = 5000, isRest = false, expectedRespo
       setTimeout(() => { try { logSentCommand(finalCommand); } catch (e) {} }, 0);
     }
     
-    let result = await window.petoiClient.sendCommand(finalCommand, timeout, expectedResponse);
+    let result = await runWifiClient.sendCommand(finalCommand, timeout, expectedResponse);
     
     // 对于扩展命令（X开头的命令，如 XGp~、XGr~、Xg~），
     // 固件会先输出具体响应，然后输出 'X' token 确认命令完成
@@ -3034,17 +2799,17 @@ async function webRequest(command, timeout = 5000, isRest = false, expectedRespo
 
 // WebSocket连接函数
 async function makeConnection(ip) {
-  if (typeof hasActiveBleConnection === 'function' && hasActiveBleConnection()) {
-    if (showDebug) console.log(getText("serialConnectedSkipWebSocket"));
+  const url = "ws://" + ip + ":81";
+  const existingClient = window.petoiClient;
+  if (existingClient?.baseUrl === url && existingClient.connected && existingClient.ws?.readyState === WebSocket.OPEN) {
+    runWifiClient = existingClient;
     return true;
   }
-  if (window.petoiClient) {
-    await window.petoiClient.disconnect();
-  }
-  
-  window.petoiClient = new PetoiAsyncClient("ws://" + ip + ":81");
+
+  runWifiClient = new PetoiAsyncClient(url);
+  ownsWifiClient = true;
   try {
-    await window.petoiClient.connect();
+    await runWifiClient.connect();
   } catch (connectError) {
     let promptedLocalFallback = false;
     const shouldOfferLocalFallback = (typeof shouldSuggestLocalControlForWifi === 'function')
@@ -3078,9 +2843,8 @@ async function makeConnection(ip) {
 
 // 关闭WebSocket连接函数
 async function closeConnection() {
-  if (window.petoiClient) {
-    await window.petoiClient.disconnect();
-    window.petoiClient = null;
+  if (ownsWifiClient) {
+    await runWifiClient.disconnect();
     if (showDebug) console.log(getText("webSocketClosed"));
   }
   return true;
@@ -3095,8 +2859,8 @@ async function closeConnection() {
       function escapeScriptTag(s) { return (s == null ? '' : String(s)).replace(new RegExp('<' + '/script>', 'gi'), '\\u003c/script>'); }
       code = escapeScriptTag(code);
       connectionFunctions = escapeScriptTag(connectionFunctions);
-      const runCodePrefix = "function asyncLog(message) {\n  return new Promise((resolve) => {\n    console.log(message);\n    setTimeout(resolve, 0);\n  });\n}\n\nfunction checkStopExecution() {\n  if (stopExecution) {\n    throw new Error(getText(\"programExecutionStoppedByUser\"));\n  }\n}\n\nfunction checkStopExecutionInLoop() {\n  if (stopExecution) {\n    throw new Error(getText(\"programExecutionStoppedByUser\"));\n  }\n  return new Promise(resolve => setTimeout(resolve, 0));\n}\n\n" + connectionFunctions + "\n\n(async function () {\n  try {\n    checkStopExecution();\n\n";
-      const runCodeSuffix = "\n    checkStopExecution();\n    // 等待最后一个动作的冷却时间结束\n    if (typeof window !== 'undefined' && window.__motionBusyUntil) {\n      const __now = Date.now();\n      const __remainingCooldown = window.__motionBusyUntil - __now;\n      if (__remainingCooldown > 0) {\n        if (showDebug) console.log('Waiting for final action cooldown: ' + __remainingCooldown + 'ms');\n        await new Promise(resolve => setTimeout(resolve, __remainingCooldown));\n      }\n    }\n    await asyncLog(getText(\"programEndingRestCommand\"));\n    " + restCommand + "\n  } catch (e) {\n    if (e.message === \"\u7a0b\u5e8f\u6267\u884c\u88ab\u7528\u6237\u505c\u6b62\") {\n      await asyncLog(getText(\"programExecutionStopped\"));\n      try {\n        await asyncLog(getText(\"programEndingRestCommand\"));\n        " + (hasValidSerial ? 'await serialRequest("d", 5000, true, null, true);' : 'await webRequest("d", 5000, true, null, true);') + "\n        if (showDebug) console.log(\"Rest command sent successfully\");\n      } catch (restError) {\n        console.error(getText(\"restCommandFailed\") + restError.message);\n      }\n    } else {\n      console.error(getText(\"programExecutionError\") + \":\", e.message);\n      console.error(getText(\"restCommandFailed\") + e.message);\n    }\n  }\n  " + closeConnectionCall + "\n  console.log(getText(\"taskEnded\"));\n})().catch((e) => {\n  if (e.message !== \"\u7a0b\u5e8f\u6267\u884c\u88ab\u7528\u6237\u505c\u6b62\") {\n    console.error(getText(\"networkRequestError\") + \": \" + e.message);\n    alert(getText(\"networkRequestError\") + \": \" + e.message);\n  }\n}).finally(() => {\n  if (showDebug) console.log(getText(\"programExecutionCompletedResetState\"));\n  isProgramRunning = false;\n  stopExecution = false;\n  var stopBtn = document.getElementById('stopCodeBtn');\n  if (stopBtn) { stopBtn.style.display = 'none'; stopBtn.style.backgroundColor = ''; stopBtn.style.color = ''; }\n  var runBtn = document.querySelector('button[onclick=\"runCode()\"]');\n  if (runBtn) runBtn.style.display = 'inline-block';\n  if (typeof clearConsoleInput === 'function') clearConsoleInput();\n  if (showDebug) console.log(getText(\"programExecutionCompleted\"));\n});\n";
+      const runCodePrefix = "function asyncLog(message) {\n  return new Promise((resolve) => {\n    console.log(message);\n    setTimeout(resolve, 0);\n  });\n}\n\nfunction checkStopExecution() {\n  if (stopExecution) {\n    throw new Error(getText(\"programExecutionStoppedByUser\"));\n  }\n}\n\nfunction checkStopExecutionInLoop() {\n  if (stopExecution) {\n    throw new Error(getText(\"programExecutionStoppedByUser\"));\n  }\n  return new Promise(resolve => setTimeout(resolve, 0));\n}\n\n" + connectionFunctions + "\n\nwindow.__isSerialMode = useSerial;\nwindow.webRequest = webRequest;\n\n(async function () {\n  try {\n    checkStopExecution();\n\n";
+      const runCodeSuffix = "\n    checkStopExecution();\n    // 等待最后一个动作的冷却时间结束\n    if (typeof window !== 'undefined' && window.__motionBusyUntil) {\n      const __now = Date.now();\n      const __remainingCooldown = window.__motionBusyUntil - __now;\n      if (__remainingCooldown > 0) {\n        if (showDebug) console.log('Waiting for final action cooldown: ' + __remainingCooldown + 'ms');\n        await new Promise(resolve => setTimeout(resolve, __remainingCooldown));\n      }\n    }\n    await asyncLog(getText(\"programEndingRestCommand\"));\n    " + restCommand + "\n  } catch (e) {\n    if (e.message === \"\u7a0b\u5e8f\u6267\u884c\u88ab\u7528\u6237\u505c\u6b62\") {\n      await asyncLog(getText(\"programExecutionStopped\"));\n      try {\n        await asyncLog(getText(\"programEndingRestCommand\"));\n        " + (useSerial ? 'await serialRequest("d", 5000, true, null, true);' : 'await webRequest("d", 5000, true, null, true);') + "\n        if (showDebug) console.log(\"Rest command sent successfully\");\n      } catch (restError) {\n        console.error(getText(\"restCommandFailed\") + restError.message);\n      }\n    } else {\n      console.error(getText(\"programExecutionError\") + \":\", e.message);\n      console.error(getText(\"restCommandFailed\") + e.message);\n    }\n  }\n  " + closeConnectionCall + "\n  console.log(getText(\"taskEnded\"));\n})().catch((e) => {\n  if (e.message !== \"\u7a0b\u5e8f\u6267\u884c\u88ab\u7528\u6237\u505c\u6b62\") {\n    console.error(getText(\"networkRequestError\") + \": \" + e.message);\n    alert(getText(\"networkRequestError\") + \": \" + e.message);\n  }\n}).finally(() => {\n  window.webRequest = previousWebRequest;\n  window.__isSerialMode = previousSerialMode;\n  if (showDebug) console.log(getText(\"programExecutionCompletedResetState\"));\n  isProgramRunning = false;\n  stopExecution = false;\n  var stopBtn = document.getElementById('stopCodeBtn');\n  if (stopBtn) { stopBtn.style.display = 'none'; stopBtn.style.backgroundColor = ''; stopBtn.style.color = ''; }\n  var runBtn = document.querySelector('button[onclick=\"runCode()\"]');\n  if (runBtn) runBtn.style.display = 'inline-block';\n  if (typeof clearConsoleInput === 'function') clearConsoleInput();\n  if (showDebug) console.log(getText(\"programExecutionCompleted\"));\n});\n";
       // 对完整拼接结果再转义一次，防止“script 结束标签”字面量混入导致 eval 或解析异常
       let runCodeBlock = escapeScriptTag(runCodePrefix + code + runCodeSuffix);
       // 将智能引号等易导致 Invalid or unexpected token 的字符规范为 ASCII
@@ -3549,21 +3313,6 @@ async function closeConnection() {
 
           // 更新文件名和标签显示
           updateUIText();
-
-          if (currentDeviceIP !== "192.168.4.1")
-          {
-            // 查找工作区中的make_connection积木块并更新IP地址
-            const makeConnectionBlocks = workspace.getBlocksByType('make_connection');
-            if (makeConnectionBlocks && makeConnectionBlocks.length > 0)
-            {
-              // 更新第一个make_connection积木块的IP_ADDRESS字段
-              makeConnectionBlocks[0].setFieldValue(currentDeviceIP, 'IP_ADDRESS');
-            }
-          }
-          if (typeof showBleNameOnConnectionBlock === 'function')
-          {
-            showBleNameOnConnectionBlock();
-          }
 
           // 不使用alert，而是在控制台显示加载成功信息
           const successMsg = getText('fileLoaded').replace('{filename}', file.name);
@@ -4182,8 +3931,6 @@ Generated at: ${now.toISOString()}
         /Using serial connection to execute program/,
         /Using WebSocket connection to execute program/,
         /Serial connected, skipping WebSocket connection/,
-        /Getting IP address via serial/,
-        /Using existing IP address/,
         /Keeping serial connection/,
         /Program execution completed, resetting state/,
         /Detected serial connection, executing program directly/,
@@ -4193,10 +3940,6 @@ Generated at: ${now.toISOString()}
         /Trying WiFi connection/,
         /Command sent via serial/,
         /Sending command:/,
-        // IP address acquisition debug messages
-        /Getting IP address, waiting for completion/,
-        /IP address acquisition complete/,
-        /Successfully acquired IP address/,
         // WebSocket connection debug messages
         /WebSocket connection established/,
         /WebSocket connection closed/,
@@ -4208,8 +3951,6 @@ Generated at: ${now.toISOString()}
         /使用串口连接执行程序/,
         /使用WebSocket连接执行程序/,
         /串口已连接，跳过WebSocket连接/,
-        /通过串口获取IP地址/,
-        /使用已有IP地址/,
         /保持串口连接/,
         /程序执行完成，重置状态/,
         /检测到串口连接，直接执行程序/
@@ -4222,6 +3963,7 @@ Generated at: ${now.toISOString()}
     let port = null;
     let reader = null;
     let writer = null;
+    let serialDevice = null;
     // 主板识别结果绑定当前 writer，断开或更换设备后不会沿用旧结果。
     const nyBoardWriters = new WeakSet();
     let serialValidationPromise = null;
@@ -4233,16 +3975,14 @@ Generated at: ${now.toISOString()}
     let currentFilePath = '';
 
     // 设备IP地址
-    let currentDeviceIP = '192.168.4.1'; // 默认IP地址
-    let isGettingIP = false; // 标志是否正在获取IP地址
+    let currentDeviceIP = DEFAULT_DEVICE_ADDRESS;
     let quickConnectPromise = null; // 共享当前Quick Connect流程，避免重复点击启动并发连接
-    let wifiCommandPromise = null; // 共享正在进行的IP获取流程，避免重复发送w指令
-    let ipResponseWaiters = []; // 等待串口返回有效IP的回调
+    let pendingSerialIP = null;
     let hasShownWifiDialog = false; // 标志是否已经显示过WiFi配置对话框
 
     // 配置文件相关
     let config = {
-      lastKnownIP: '192.168.4.1',
+      lastKnownIP: DEFAULT_DEVICE_ADDRESS,
       lastConnectedTime: '',
       connectionHistory: [],
       autoConnect: true,
@@ -4260,8 +4000,6 @@ Generated at: ${now.toISOString()}
     // 是否显示debug信息
     let showDebug = false;
 
-    let ipCheckTimer = null;
-    let lastPartialIP = null;
     let serialBufferText = '';
     let serialBuffer = '';
     let lastSerialMessageTime = 0; // 记录上次收到串口消息的时间
@@ -4532,31 +4270,6 @@ Generated at: ${now.toISOString()}
       }
 
       throw lastError || new Error('Failed to open authorized Bluetooth SPP serial ports');
-    }
-
-    async function hasAuthorizedBluetoothSPPPort()
-    {
-      try
-      {
-        if (!navigator.serial || typeof navigator.serial.getPorts !== 'function')
-        {
-          return false;
-        }
-        const ports = await navigator.serial.getPorts();
-        return ports.some(candidate =>
-        {
-          try
-          {
-            return isBluetoothSPPPortInfo(candidate.getInfo());
-          } catch (e)
-          {
-            return false;
-          }
-        });
-      } catch (error)
-      {
-        return false;
-      }
     }
 
     // 系统检测函数
@@ -4947,45 +4660,28 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       }
     }
 
-    function truncatePortLabel(label, maxLength = 28)
+    function getSerialDevice(port, bluetoothOnly)
     {
-      const text = String(label || '').trim();
-      if (text.length <= maxLength)
+      const info = port.getInfo();
+      if (bluetoothOnly || info.bluetoothServiceClassId != null)
       {
-        return text;
+        return { port, name: getMeaningfulBluetoothNames(port, info)[0] || 'Bluetooth SPP', isBluetooth: true };
       }
-      return `${text.slice(0, maxLength - 3)}...`;
-    }
 
-    function getSerialMonitorPortLabel(port)
-    {
-      try
+      const labels = [info.path, port.path, info.portName, port.portName, ...getBluetoothNameCandidates(port, info)];
+      for (const label of labels)
       {
-        const portInfo = port.getInfo();
-        const normalizedServiceClassId = normalizeBluetoothServiceClassId(portInfo.bluetoothServiceClassId);
-        if (isLikelyBluetoothSerialPortInfo(portInfo))
+        if (typeof label !== 'string') continue;
+        const match = label.match(/\b(COM\d+)\b/i) || label.match(/\/dev\/([^\s)]+)/);
+        if (match) return { port, name: match[1], hasSystemName: true };
+        if (/^(?:cu\.|tty)[\w.-]+$/.test(label.trim()))
         {
-          if (normalizedServiceClassId === '1101' || normalizedServiceClassId === '0000110100001000800000805f9b34fb')
-          {
-            return 'Bluetooth SPP';
-          }
-
-          const preferredName = getSerialPortDisplayName(port);
-          if (preferredName && !/^Bluetooth Serial/i.test(preferredName))
-          {
-            return truncatePortLabel(preferredName, 24);
-          }
-
-          return 'Bluetooth Serial';
+          return { port, name: label.trim(), hasSystemName: true };
         }
-
-        const displayName = getSerialPortDisplayName(port);
-        const tailName = displayName.split(/[.\\/]/).pop() || displayName;
-        return truncatePortLabel(tailName, 28);
-      } catch (error)
-      {
-        return 'Serial Port';
       }
+
+      // Standard Web Serial exposes USB IDs, but does not expose the chooser's system port name.
+      return { port, name: 'USB Serial' };
     }
 
     // 生成简短的4位伪序列号（基于端口在列表中的位置）
@@ -5593,7 +5289,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         try
         {
           const selectedInfo = selectedPort.getInfo();
-          if (isLikelyBluetoothSerialPortInfo(selectedInfo) && !isAllowedBluetoothPortByName(selectedPort, selectedInfo))
+          if ((bluetoothOnly || selectedInfo.bluetoothServiceClassId != null) && !isAllowedBluetoothPortByName(selectedPort, selectedInfo))
           {
             alert(getText("bluetoothPortNotAllowed"));
             throw new Error('Bluetooth serial device is not in allowed keyword list');
@@ -5688,6 +5384,10 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           throw streamError;
         }
 
+        serialDevice = getSerialDevice(selectedPort, bluetoothOnly);
+        connectionBlocks()[0]?.setFieldValue(serialDevice.name, 'IP_ADDRESS');
+        updateQuickConnectButtonState(serialDevice.isBluetooth ? serialDevice.name : null);
+
         // 串口打开后立即显示监视界面，后续验证数据会在其中显示
         const serialInterface = document.getElementById('serialInterface');
         serialInterface.style.display = 'flex';
@@ -5716,7 +5416,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         const serialPortInfo = document.getElementById('serialPortInfo');
         if (serialTitle && serialPortInfo)
         {
-          const serialLabel = getSerialMonitorPortLabel(port);
+          const serialLabel = serialDevice.name;
           // 保持标题为"Serial Monitor"
           serialTitle.textContent = getText("serialOutput");
           serialPortInfo.textContent = serialLabel;
@@ -5752,24 +5452,10 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         // 开始读取串口数据
         readSerialData().catch(() => { /* readSerialData内部已处理错误 */ });
 
-        // 读取循环启动后再查询设备信息。必须等待验证流程完全结束，
-        // 避免'?'与w指令在设备尚未就绪时几乎同时写入串口。
-        try
-        {
-          console.log(getText("validatingSerialConnection"));
-          const validationSucceeded = await validateSerialConnection();
-          if (!validationSucceeded)
-          {
-            // 某些固件不返回可识别的型号字符串，但仍可能支持w指令。
-            // 验证超时后再给串口一个短暂的稳定时间。
-            await new Promise(resolve => setTimeout(resolve, 300));
-          }
-        } catch (e)
-        {
-          await new Promise(resolve => setTimeout(resolve, 300));
-        }
+        // 读取循环启动后再查询设备信息。
+        console.log(getText("validatingSerialConnection"));
+        await validateSerialConnection();
 
-        // 串口连接成功，IP地址将由makeConnection积木统一处理
         if (showDebug) console.log(getText("serialConnectedWaitingMakeConnection"));
         isOpeningSerialPort = false;
 
@@ -5803,24 +5489,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         if (window.selectSystemPort) delete window.selectSystemPort;
         if (window.cancelAllPortSelection) delete window.cancelAllPortSelection;
 
-        // 只有在没有WebSocket连接时才重置Quick Connect按钮
-        // 如果有currentDeviceIP，说明可能还有WebSocket连接，不重置按钮
-        if (!currentDeviceIP || currentDeviceIP === '192.168.4.1')
-        {
-          resetQuickConnectButton();
-          if (typeof showDebug !== 'undefined' && showDebug)
-          {
-            console.log('Reset Quick Connect button (no WebSocket connection)');
-          }
-        } else
-        {
-          // 如果有IP地址，保持按钮显示IP
-          updateQuickConnectButtonState(currentDeviceIP);
-          if (typeof showDebug !== 'undefined' && showDebug)
-          {
-            console.log(`Kept Quick Connect button showing IP: ${currentDeviceIP}`);
-          }
-        }
+        updateQuickConnectAfterSerialClose();
         if (droppedBleForUsb)
         {
           quickCloseSerialPort();
@@ -5836,6 +5505,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
     {
       try
       {
+        if (pendingSerialIP?.writer === writer) pendingSerialIP.finish(null);
         dropBleLinkSync();
         if (reader)
         {
@@ -5897,8 +5567,10 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
     async function closeSerialPort()
     {
+      const closingDevice = serialDevice?.port === port ? serialDevice : null;
       try
       {
+        if (pendingSerialIP?.writer === writer) pendingSerialIP.finish(null);
         if (bleLink)
         {
           await disconnectBleLink();
@@ -5964,6 +5636,17 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           }
         }
 
+        if (closingDevice && serialDevice === closingDevice)
+        {
+          serialDevice = null;
+          const block = connectionBlocks()[0];
+          if (!closingDevice.isBluetooth && block &&
+            matchesSerialDeviceName(block.getFieldValue('IP_ADDRESS').trim(), closingDevice))
+          {
+            block.setFieldValue(DEFAULT_DEVICE_ADDRESS, 'IP_ADDRESS');
+          }
+        }
+
         // 更新UI状态
         document.getElementById('serialInterface').style.display = 'none';
 
@@ -5995,16 +5678,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           serialPortInfo.style.display = 'none';
         }
 
-        // 只有在没有WebSocket连接时才重置Quick Connect按钮
-        // 如果有currentDeviceIP，说明可能还有WebSocket连接，不重置按钮
-        if (!currentDeviceIP || currentDeviceIP === '192.168.4.1')
-        {
-          resetQuickConnectButton();
-        } else
-        {
-          // 如果有IP地址，保持按钮显示IP
-          updateQuickConnectButtonState(currentDeviceIP);
-        }
+        updateQuickConnectAfterSerialClose();
 
         // 强制重新调整工作区大小
         setTimeout(function ()
@@ -6013,90 +5687,9 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           repositionUndoRedoButtons();
         }, 100);
 
-        // 不要重置当前IP地址，保留上一次的连接信息
-        // currentDeviceIP = '192.168.4.1'; // 重置为默认IP
       } catch (error)
       {
         console.error(getText("closeSerialError"), error);
-      }
-    }
-
-    // WiFi连接处理函数（内部使用）
-    async function handleWifiConnection(forceShowDialog = false)
-    {
-      // BLE 已经在传指令。不要再弹 Web Serial 选择框，那个列表里没有 BLE 设备。
-      if (hasActiveBleConnection())
-      {
-        return;
-      }
-
-      // 检查串口是否已连接（不要仅依据port对象，必须是可读写的活动连接）
-      if (!hasActiveSerialConnection())
-      {
-        try
-        {
-          // 如果串口未连接，先尝试连接串口
-          await openSerialPort();
-          if (!hasActiveSerialConnection())
-          {
-            throw new Error('Serial port object exists but active connection not established');
-          }
-        } catch (error)
-        {
-          // 另一个连接流程可能已在当前异步操作失败期间打开了串口。
-          // 此时继续尝试旧IP或显示WiFi对话框会覆盖新连接的成功状态。
-          if (hasActiveSerialConnection())
-          {
-            if (typeof showDebug !== 'undefined' && showDebug)
-            {
-              console.log('Serial connection became active; skipping stale fallback flow');
-            }
-          }
-          else
-          {
-            // runCode流程下，若已检测到蓝牙SPP端口但串口仍未打开，不应误导到WiFi本地页面提示
-            if (!forceShowDialog && await hasAuthorizedBluetoothSPPPort())
-            {
-              const btError = new Error(getText("bluetoothSerialConnectFirst"));
-              btError.code = 'BLUETOOTH_SERIAL_CONNECT_FIRST';
-              throw btError;
-            }
-
-            if (typeof showDebug !== 'undefined' && showDebug)
-            {
-              console.log('Serial port connection failed, trying configured IP...');
-            }
-
-            // 串口连接失败，尝试使用配置文件中的IP地址
-            const connectedWithConfig = await tryConnectWithConfigIP();
-
-            if (connectedWithConfig === 'blocked')
-            {
-              return;
-            }
-
-            if (!connectedWithConfig)
-            {
-              // 等待配置IP期间也可能已建立新串口连接，显示对话框前必须再次确认。
-              if (!hasActiveSerialConnection())
-              {
-                console.log('Both serial and configured IP failed, showing WiFi config dialog');
-                showWifiConfigDialog(forceShowDialog);
-                return; // 显示WiFi配置界面后退出
-              }
-              if (typeof showDebug !== 'undefined' && showDebug)
-              {
-                console.log('Serial connection became active while checking configured IP; skipping WiFi dialog');
-              }
-            }
-          }
-        }
-      }
-
-      // 如果串口已连接，尝试发送WiFi命令获取IP地址
-      if (writer)
-      {
-        await sendWifiCommandInternal(forceShowDialog);
       }
     }
 
@@ -6109,7 +5702,8 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
       if (hasActiveSerialConnection())
       {
-        return runQuickConnect(() => sendWifiCommandInternal(true));
+        if (pendingSerialIP) return;
+        return runQuickConnect(queryWifiAddressOverSerial);
       }
 
       if (hasActiveBleConnection())
@@ -6158,12 +5752,12 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
     async function connectQuickWifi()
     {
       const blockIP = workspace.getBlocksByType('make_connection')[0]?.getFieldValue('IP_ADDRESS');
-      const suggestedIP = [blockIP, config.lastKnownIP].find(isValidIPAddress) || '';
+      const suggestedIP = [blockIP, config.lastKnownIP].find(isLikelyIPv4Address) || '';
       const enteredIP = window.prompt(getText("quickConnectWifiPrompt"), suggestedIP);
       if (enteredIP === null) return;
 
       const ip = enteredIP.trim();
-      if (!isValidIPAddress(ip))
+      if (!isLikelyIPv4Address(ip))
       {
         alert(getText("invalidIPAddress"));
         return;
@@ -6244,31 +5838,6 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       overlay.addEventListener('click', closeChooser);
       document.body.appendChild(overlay);
       document.body.appendChild(dialog);
-    }
-
-    function releaseWifiClientsForBle()
-    {
-      if (typeof PetoiAsyncClient !== 'undefined' && typeof PetoiAsyncClient.disconnectAll === 'function')
-      {
-        PetoiAsyncClient.disconnectAll();
-      }
-      const clients = [window.petoiClient, window.client];
-      window.petoiClient = null;
-      window.client = null;
-      clients.forEach((client) =>
-      {
-        if (!client || typeof client.disconnect !== 'function') return;
-        try
-        {
-          client.disconnect();
-        } catch (error)
-        {
-          if (typeof showDebug !== 'undefined' && showDebug)
-          {
-            console.warn('Failed to close Wi-Fi client while BLE is active:', error);
-          }
-        }
-      });
     }
 
     function hasActiveBleConnection()
@@ -6361,18 +5930,6 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       {
         serialPortInfo.textContent = deviceName || 'Bluetooth';
         serialPortInfo.style.display = 'block';
-      }
-
-      const quickConnectBtn = document.getElementById('quickConnectBtn');
-      if (quickConnectBtn)
-      {
-        quickConnectBtn.textContent = deviceName || getText("quickConnectBluetooth");
-        quickConnectBtn.style.backgroundColor = '#4CAF50';
-        quickConnectBtn.setAttribute('data-connected', 'true');
-      }
-      if (typeof window.applyMobileMainActionLabels === 'function')
-      {
-        window.applyMobileMainActionLabels();
       }
 
       setTimeout(function ()
@@ -6482,8 +6039,8 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
         tx.addEventListener('characteristicvaluechanged', onNotify);
         await tx.startNotifications();
-        releaseWifiClientsForBle();
-        applyBleQuickConnectLabel(quickConnectBtn);
+        showBleNameOnConnectionBlock();
+        updateQuickConnectButtonState(bleLink.name);
 
         try
         {
@@ -6518,132 +6075,67 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       if (overlay) overlay.remove();
     }
 
-    // 等待串口解析器收到一条明确的有效IP响应。
-    // 等待器要在写入w指令之前创建，避免遗漏返回很快的设备响应。
-    function waitForDetectedIP(timeoutMs)
+    function waitForSerialIP(outputWriter, timeout)
     {
-      let finish = null;
-      const promise = new Promise((resolve) =>
-      {
-        let settled = false;
-        const waiter = (ip) =>
-        {
-          if (settled) return;
-          settled = true;
-          clearTimeout(timer);
-          resolve(ip);
-        };
-        finish = waiter;
-        const timer = setTimeout(() =>
-        {
-          if (settled) return;
-          settled = true;
-          ipResponseWaiters = ipResponseWaiters.filter(item => item !== waiter);
-          resolve(null);
-        }, timeoutMs);
-        ipResponseWaiters.push(waiter);
-      });
-      return {
+      let resolveIP;
+      const promise = new Promise(resolve => { resolveIP = resolve; });
+      const response = {
+        writer: outputWriter,
         promise,
-        cancel: () =>
+        finish(ip)
         {
-          if (finish)
-          {
-            ipResponseWaiters = ipResponseWaiters.filter(item => item !== finish);
-            finish(null);
-          }
+          clearTimeout(timer);
+          if (pendingSerialIP === response) pendingSerialIP = null;
+          resolveIP(ip);
         }
       };
+      const timer = setTimeout(() => response.finish(null), timeout);
+      pendingSerialIP = response;
+      return response;
     }
 
-    // 发送WiFi命令获取IP地址（内部使用）
-    async function sendWifiCommandInternal(forceShowDialog = false)
+    async function queryWifiAddressOverSerial()
     {
-      // 等待 ? 查询完成，尤其是蓝牙串口将型号、版本分批返回的情况。
+      const outputWriter = writer;
       if (serialValidationPromise) await serialValidationPromise;
-      if (isNyBoardSerialConnection()) return true;
+      if (writer !== outputWriter || !hasActiveSerialConnection() || isNyBoardSerialConnection()) return;
 
-      if (!writer)
-      {
-        console.log(getText('noSerialWriterAvailable'));
-        showWifiConfigDialog(forceShowDialog);
-        return Promise.reject(new Error('No serial writer available'));
-      }
-
-      // 如果正在获取IP，共享同一个流程，不重复写入w指令。
-      if (wifiCommandPromise)
-      {
-        if (showDebug) console.log(getText('gettingIPAddressWaiting'));
-        return wifiCommandPromise;
-      }
-
-      wifiCommandPromise = (async () =>
-      {
-        isGettingIP = true;
-        const maxAttempts = 3;
-        const responseTimeoutMs = 4000;
-        const encoder = new TextEncoder();
-
-        for (let attempt = 1; attempt <= maxAttempts; attempt++)
-        {
-          // 先注册等待器，再发送指令，只接受解析器确认的IP响应。
-          const ipWait = waitForDetectedIP(responseTimeoutMs);
-          try
-          {
-            await writer.write(encoder.encode('w\n'));
-          } catch (writeError)
-          {
-            ipWait.cancel();
-            throw writeError;
-          }
-          console.log(getText('wifiCommandSent') + ` (attempt ${attempt}/${maxAttempts})`);
-
-          const detectedIP = await ipWait.promise;
-          if (detectedIP && detectedIP !== '192.168.4.1')
-          {
-            if (showDebug) console.log(getText('successfullyAcquiredIPAddress') + ': ' + detectedIP);
-            hasShownWifiDialog = false;
-            return true;
-          }
-
-          // 192.168.4.1是机器人的默认AP地址，表示尚未连入用户的WiFi，
-          // 已经收到明确响应，无需继续重试，下方将显示配置对话框。
-          if (detectedIP === '192.168.4.1')
-          {
-            break;
-          }
-
-          if (attempt < maxAttempts)
-          {
-            if (showDebug) console.log(`No IP response on attempt ${attempt}, retrying...`);
-            await new Promise(resolve => setTimeout(resolve, 300));
-          }
-        }
-
-        console.log(getText('noValidIPReceived'));
-        showWifiConfigDialog(forceShowDialog);
-        return false;
-      })();
-
+      const command = new TextEncoder().encode('w\n');
       try
       {
-        return await wifiCommandPromise;
+        for (let attempt = 1; attempt <= 3 && writer === outputWriter && hasActiveSerialConnection(); attempt++)
+        {
+          const response = waitForSerialIP(outputWriter, 4000);
+          try
+          {
+            await outputWriter.write(command);
+          } catch (error)
+          {
+            response.finish(null);
+            throw error;
+          }
+          console.log(getText('wifiCommandSent') + ` (${attempt}/3)`);
+
+          const ip = await response.promise;
+          if (writer !== outputWriter || !hasActiveSerialConnection()) return;
+          if (isValidIPAddress(ip))
+          {
+            await selectWifiAddress(ip);
+            return;
+          }
+          if (ip === DEFAULT_DEVICE_ADDRESS) break;
+          if (attempt < 3) await new Promise(resolve => setTimeout(resolve, 300));
+        }
+        if (writer === outputWriter && hasActiveSerialConnection())
+        {
+          console.log(getText('noValidIPReceived'));
+          showWifiConfigDialog(true);
+        }
       } catch (error)
       {
-        console.error('Failed to send WiFi command:', error);
-        showWifiConfigDialog(forceShowDialog);
+        if (writer === outputWriter && hasActiveSerialConnection()) showWifiConfigDialog(true);
         throw error;
-      } finally
-      {
-        isGettingIP = false;
-        wifiCommandPromise = null;
       }
-    }
-
-    // 发送WiFi命令获取IP地址（公共接口）
-    async function sendWifiCommand()
-    {
-      await sendWifiCommandInternal(false); // 默认不强制显示对话框
     }
 
     // 显示WiFi配置对话框
@@ -6729,30 +6221,26 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       }
     }
 
-    // 重置Quick Connect按钮样式和文本为默认状态
-    function resetQuickConnectButton()
-    {
-      const quickConnectBtn = document.getElementById('quickConnectBtn');
-      if (quickConnectBtn)
-      {
-        quickConnectBtn.textContent = getText("quickConnect");
-        quickConnectBtn.style.backgroundColor = ''; // 恢复默认颜色
-        quickConnectBtn.removeAttribute('data-connected'); // 移除连接状态标记
-      }
-      if (!applyBleQuickConnectLabel(quickConnectBtn))
-      {
-        if (typeof window.applyMobileMainActionLabels === 'function')
-        {
-          window.applyMobileMainActionLabels();
-        }
-      }
-      updateWifiMonitorButton();
-    }
-
     function connectionBlocks()
     {
       if (!workspace || typeof workspace.getBlocksByType !== 'function') return [];
       return workspace.getBlocksByType('make_connection') || [];
+    }
+
+    function getWriterForDeviceName(name)
+    {
+      if (!name) return null;
+      if (hasActiveBleConnection() && name === bleLink.name) return writer;
+      if (!hasActiveSerialConnection() || serialDevice?.port !== port) return null;
+      return matchesSerialDeviceName(name, serialDevice) ? writer : null;
+    }
+
+    function matchesSerialDeviceName(name, device)
+    {
+      if (name === device.name) return true;
+      // A user can enter the chooser's port name when the browser only exposes USB IDs.
+      const usbPortName = /^(?:COM\d+|(?:\/dev\/)?(?:cu\.|tty)[\w.-]+)$/i;
+      return !device.isBluetooth && !device.hasSystemName && usbPortName.test(name);
     }
 
     // Show the BLE device name in the Connect Device field while that link is up.
@@ -6789,53 +6277,24 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       });
     }
 
-    function applyBleQuickConnectLabel(button)
+    // Keep the connected device label through layout and language changes.
+    function updateQuickConnectButtonState(deviceName = null)
     {
-      if (!button || !hasActiveBleConnection()) return false;
-      showBleNameOnConnectionBlock();
-      button.textContent = bleLink.name || getText("quickConnectBluetooth");
-      button.style.backgroundColor = '#4CAF50';
-      button.setAttribute('data-connected', 'true');
-      if (typeof window.applyMobileMainActionLabels === 'function')
-      {
-        window.applyMobileMainActionLabels();
-      }
-      return true;
-    }
+      const button = document.getElementById('quickConnectBtn');
+      if (!button) return;
 
-    // 更新快速连接按钮状态（统一管理函数）
-    function updateQuickConnectButtonState(ip = null)
-    {
-      const quickConnectBtn = document.getElementById('quickConnectBtn');
-      if (!quickConnectBtn) return;
-
-      if (hasActiveBleConnection())
+      button.textContent = deviceName || getText('quickConnect');
+      button.style.backgroundColor = deviceName ? '#4CAF50' : '';
+      if (deviceName)
       {
-        applyBleQuickConnectLabel(quickConnectBtn);
-        updateWifiMonitorButton();
-        return;
-      }
-
-      if (ip)
-      {
-        // 显示IP地址（已连接状态）
-        quickConnectBtn.textContent = ip;
-        quickConnectBtn.style.backgroundColor = '#4CAF50';
-        quickConnectBtn.setAttribute('data-connected', 'true');
-      } else if (!hasActiveBleConnection())
-      {
-        // 显示默认文本（未连接状态）
-        quickConnectBtn.textContent = getText("quickConnect");
-        quickConnectBtn.style.backgroundColor = '';
-        quickConnectBtn.removeAttribute('data-connected');
+        button.setAttribute('data-connected', 'true');
+        button.setAttribute('data-connected-device', deviceName);
       } else
       {
-        applyBleQuickConnectLabel(quickConnectBtn);
+        button.removeAttribute('data-connected');
+        button.removeAttribute('data-connected-device');
       }
-      if (typeof window.applyMobileMainActionLabels === 'function')
-      {
-        window.applyMobileMainActionLabels();
-      }
+      window.applyMobileMainActionLabels?.();
       if (isSerialMonitorVisible() && !writer && !port && hasEstablishedWifiConnection())
       {
         applyWifiMonitorTitle();
@@ -6843,40 +6302,18 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       updateWifiMonitorButton();
     }
 
-    // 语言切换时处理快速连接按钮状态
+    function updateQuickConnectAfterSerialClose()
+    {
+      const address = connectionBlocks()[0]?.getFieldValue('IP_ADDRESS');
+      const shownAddress = document.getElementById('quickConnectBtn')?.getAttribute('data-connected-device');
+      const wifiSelected = address === currentDeviceIP && (isValidIPAddress(address) || shownAddress === address);
+      updateQuickConnectButtonState(wifiSelected ? address : (hasActiveBleConnection() ? bleLink.name : null));
+    }
+
     function handleQuickConnectButtonOnLanguageChange()
     {
-      const quickConnectBtn = document.getElementById('quickConnectBtn');
-      if (!quickConnectBtn) return;
-
-      if (quickConnectBtn.hasAttribute('data-connected'))
-      {
-        if (applyBleQuickConnectLabel(quickConnectBtn))
-        {
-          return;
-        }
-        // 如果按钮标记为已连接，检查是否有有效的IP地址
-        if (currentDeviceIP && currentDeviceIP !== '192.168.4.1')
-        {
-          // 有有效的IP地址，保持显示IP地址
-          quickConnectBtn.textContent = currentDeviceIP;
-        } else if (!applyBleQuickConnectLabel(quickConnectBtn))
-        {
-          // 没有有效的IP地址，重置为未连接状态
-          quickConnectBtn.textContent = getText("quickConnect");
-          quickConnectBtn.removeAttribute('data-connected');
-          quickConnectBtn.style.backgroundColor = '';
-        }
-      } else
-      {
-        // 如果按钮未连接，更新为当前语言的文本
-        quickConnectBtn.textContent = getText("quickConnect");
-      }
-      if (typeof window.applyMobileMainActionLabels === 'function')
-      {
-        window.applyMobileMainActionLabels();
-      }
-      updateWifiMonitorButton();
+      const button = document.getElementById('quickConnectBtn');
+      updateQuickConnectButtonState(button?.getAttribute('data-connected-device'));
     }
 
     // 将函数暴露到全局作用域，供translations.js调用
@@ -6958,12 +6395,15 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       confirmBtn.disabled = true;
 
       const command = `w%${ssid}%${password}\n`;
+      const outputWriter = writer;
+      let response;
 
       try
       {
-        if (writer)
+        if (outputWriter)
         {
-          await writer.write(new TextEncoder().encode(command));
+          response = waitForSerialIP(outputWriter, 5000);
+          await outputWriter.write(new TextEncoder().encode(command));
           console.log(getText('wifiConfigCommandSent'));
         }
         else
@@ -6979,13 +6419,21 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         // 等待一段时间后尝试连接
         setTimeout(async () =>
         {
+          if (writer && writer !== outputWriter) return;
           console.log(getText('attemptingConnectAfterWifiConfig'));
-          // 尝试使用新的WiFi配置连接
-          await tryConnectWithConfigIP();
+          const ip = await response?.promise;
+          if (isValidIPAddress(ip))
+          {
+            await tryConnectWithWifiIP(ip);
+          } else
+          {
+            await tryConnectWithConfigIP();
+          }
         }, 5000); // 等待5秒让设备重启并连接
 
       } catch (error)
       {
+        response?.finish(null);
         console.error(getText("wifiCommandError") || "WiFi command error:", error);
 
         // 恢复按钮状态
@@ -7231,37 +6679,16 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
             if (showDebug) console.warn(getText('serialBufferClearedKeepLatest'));
           }
 
-          for (let line of lines.reverse())
+          if (pendingSerialIP?.writer === writer)
           {
-            // 检查是否找到"IP Address:"字符串
-            const ipAddressPosition = line.indexOf("IP Address:");
-            if (ipAddressPosition < 0) continue;
-            const afterPrefix = line.substring(ipAddressPosition).trim();
-            // 同时兼容：
-            //   IP Address: 192.168.2.118
-            //   IP Address: 192.168.2.120. Wifi already connected
-            const possibleIPMatch = afterPrefix.match(/^IP Address:\s*(\d{1,3}(?:\.\d{1,3}){3})(?=\D|$)/);
-            if (possibleIPMatch)
+            for (let index = lines.length - 1; index >= 0; index--)
             {
-              // 取消任何正在进行的IP检查定时器
-              if (ipCheckTimer)
+              const ip = lines[index].match(/IP Address:\s*(\d{1,3}(?:\.\d{1,3}){3})(?=\D|$)/)?.[1];
+              if (isLikelyIPv4Address(ip))
               {
-                clearTimeout(ipCheckTimer);
-                ipCheckTimer = null;
+                pendingSerialIP.finish(ip);
+                break;
               }
-
-              const possibleIP = possibleIPMatch[1];
-              // 延迟处理IP地址，等待可能的后续数据片段
-              lastPartialIP = possibleIP;
-
-              // 设置延迟处理定时器 (100ms)
-              ipCheckTimer = setTimeout(() =>
-              {
-                processDetectedIP(lastPartialIP);
-                ipCheckTimer = null;
-                lastPartialIP = null;
-              }, TIMEOUT_CONFIG.UI.IP_CHECK_DELAY);
-              break; // 找到IP地址后跳出循环
             }
           }
 
@@ -7406,6 +6833,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           console.log(getText('hardwareDisconnected'));
 
           // 重置串口相关变量
+          if (pendingSerialIP?.writer === writer) pendingSerialIP.finish(null);
           reader = null;
           writer = null;
           port = null;
@@ -7466,24 +6894,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
             serialPortInfo.style.display = 'none';
           }
 
-          // 只有在没有WebSocket连接时才重置Quick Connect按钮
-          // 如果有currentDeviceIP，说明可能还有WebSocket连接，不重置按钮
-          if (!currentDeviceIP || currentDeviceIP === '192.168.4.1')
-          {
-            resetQuickConnectButton();
-            if (typeof showDebug !== 'undefined' && showDebug)
-            {
-              console.log('Reset Quick Connect button (no WebSocket connection)');
-            }
-          } else
-          {
-            // 如果有IP地址，保持按钮显示IP
-            updateQuickConnectButtonState(currentDeviceIP);
-            if (typeof showDebug !== 'undefined' && showDebug)
-            {
-              console.log(`Kept Quick Connect button showing IP: ${currentDeviceIP}`);
-            }
-          }
+          updateQuickConnectAfterSerialClose();
 
           // 强制重新调整工作区大小
           setTimeout(function ()
@@ -7694,62 +7105,6 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       void outputDiv.offsetHeight;
     }
 
-    // 处理检测到的IP地址
-    async function processDetectedIP(ip)
-    {
-      if (!ip) return;
-
-      // 验证IP地址格式是否合法
-      const ipSegments = ip.split('.');
-      if (ipSegments.length === 4 && ipSegments.every(segment =>
-      {
-        // 检查每段是否为有效数字且在0-255范围内
-        const num = parseInt(segment, 10);
-        return !isNaN(num) && num >= 0 && num <= 255;
-      }))
-      {
-        // IP地址格式完整且合法，可以安全使用
-
-        // 检查是否为新的IP地址
-        if (currentDeviceIP !== ip)
-        {
-          console.log(getText("newIPDetected").replace("{ip}", ip).replace("{oldIP}", currentDeviceIP));
-
-          // 保存设备IP到全局变量
-          currentDeviceIP = ip;
-
-          // 保存到配置文件
-          await saveConfig();
-        }
-
-        // BLE is the transport. Remember the address, but do not rewrite the
-        // Connect Device block or open a Wi-Fi socket from it.
-        const bleActive = hasActiveBleConnection();
-        if (!bleActive)
-        {
-          updateQuickConnectButtonState(ip);
-          const makeConnectionBlocks = workspace.getBlocksByType('make_connection');
-          if (makeConnectionBlocks && makeConnectionBlocks.length > 0)
-          {
-            makeConnectionBlocks[0].setFieldValue(ip, 'IP_ADDRESS');
-          }
-        } else
-        {
-          applyBleQuickConnectLabel(document.getElementById('quickConnectBtn'));
-        }
-        closeWifiDialog();
-
-        // UI同步完成后通知正在等待w指令响应的流程。
-        // 即使IP与当前值相同，这仍然是设备对本次请求的明确有效响应。
-        const waiters = ipResponseWaiters;
-        ipResponseWaiters = [];
-        waiters.forEach(resolve => resolve(ip));
-      } else
-      {
-        console.log(getText("invalidIPFormat").replace("{ip}", ip));
-      }
-    }
-
     // 等待串口返回指定 token 单独一行（用于动作完成判定）
     // 重要：只能匹配“新增数据”里的 token，避免命中缓冲区里旧的 token（会导致后续动作不等待就继续执行）
     // - expectedToken: 例如 'k' / 'm' / 'd' / 'B' ...
@@ -7824,9 +7179,8 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
     {
       const quickConnectBtn = document.getElementById('quickConnectBtn');
       return !!(quickConnectBtn &&
-        quickConnectBtn.getAttribute('data-connected') === 'true' &&
-        currentDeviceIP &&
-        currentDeviceIP !== '192.168.4.1');
+        quickConnectBtn.getAttribute('data-connected-device') === currentDeviceIP &&
+        isLikelyIPv4Address(currentDeviceIP));
     }
 
     function isSerialMonitorVisible()
