@@ -4105,9 +4105,9 @@ Generated at: ${now.toISOString()}
       }
     }
 
-    async function openSerialPortWithRetry(targetPort, baudRate)
+    async function openSerialPortWithRetry(targetPort, baudRate, { retryBluetooth = true } = {})
     {
-      const isBluetoothLike = (() =>
+      const isBluetoothLike = retryBluetooth && (() =>
       {
         try
         {
@@ -5210,12 +5210,27 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         throw pendingError;
       }
       isOpeningSerialPort = true;
+      const macSystemPort = bluetoothOnly && OPERATING_SYSTEM === 'mac';
       let previousPort = port;
       let droppedBleForUsb = false;
       try
       {
         // Quick Connect opens the picker before any asynchronous port diagnostics.
-        let selectedPort = forWifi ? await navigator.serial.requestPort({ filters: buildUsbSerialFilters() }) : null;
+        let selectedPort = null;
+        if (macSystemPort)
+        {
+          selectedPort = await navigator.serial.requestPort();
+          // Chrome exposes no path for this selection. The user identifies cu.* in the picker.
+          const systemPortInfo = selectedPort.getInfo();
+          if (systemPortInfo.bluetoothServiceClassId != null || !isLikelyBluetoothSerialPortInfo(systemPortInfo))
+          {
+            alert(getText('quickConnectMacSerialHint'));
+            throw new Error('Select a macOS system Bluetooth serial port');
+          }
+        } else if (forWifi)
+        {
+          selectedPort = await navigator.serial.requestPort({ filters: buildUsbSerialFilters() });
+        }
 
         // 检测操作系统
         const os = OPERATING_SYSTEM;
@@ -5289,9 +5304,10 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         try
         {
           const pinfo = selectedPort.getInfo();
-          console.log(getText("selectedPortInfo").replace("{name}", getSerialPortDisplayName(selectedPort)));
+          const selectedName = macSystemPort ? getText('quickConnectSerialPort') : getSerialPortDisplayName(selectedPort);
+          console.log(getText("selectedPortInfo").replace("{name}", selectedName));
           console.log(getText("hardwareInfo").replace("{vid}", pinfo.usbVendorId?.toString(16)).replace("{pid}", pinfo.usbProductId?.toString(16)).replace("{isESP32}", isESP32SerialPort(selectedPort)));
-          if (isLikelyBluetoothSerialPortInfo(pinfo))
+          if (pinfo.bluetoothServiceClassId != null || (!macSystemPort && isLikelyBluetoothSerialPortInfo(pinfo)))
           {
             console.log(`- Bluetooth: serviceClassId=${getBluetoothServiceClassIdString(pinfo)}`);
           }
@@ -5327,7 +5343,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         let serialOpenError = null;
         try
         {
-          await openSerialPortWithRetry(selectedPort, defaultBaud);
+          await openSerialPortWithRetry(selectedPort, defaultBaud, { retryBluetooth: !macSystemPort });
         } catch (primaryOpenError)
         {
           serialOpenError = primaryOpenError;
@@ -5375,7 +5391,10 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         port = selectedPort;
 
         // 部分板卡（如 Arduino/16U2 桥接）需要置位 DTR/RTS 才会输出数据
-        try { await port.setSignals({ dataTerminalReady: true, requestToSend: true }); } catch (e) { /* ignore */ }
+        if (!macSystemPort)
+        {
+          try { await port.setSignals({ dataTerminalReady: true, requestToSend: true }); } catch (e) { /* ignore */ }
+        }
         // 打开后短暂等待，给自动复位的板卡时间启动固件
         await new Promise(resolve => setTimeout(resolve, 300));
         console.log(getText("esp32PortConnected"));
@@ -5814,7 +5833,9 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
                 <li data-i18n="quickConnectNyBoardHint" data-i18n-rich>${getText("quickConnectNyBoardHint")}</li>
                 <li data-i18n="quickConnectBiBoardHint" data-i18n-rich>${getText("quickConnectBiBoardHint")}</li>
               </ul>
-              <p data-i18n="quickConnectBluetoothSelectHint" data-i18n-rich>${getText("quickConnectBluetoothSelectHint")}</p>
+              ${OPERATING_SYSTEM === 'mac'
+                ? `<p data-i18n="quickConnectMacSerialHint">${getText("quickConnectMacSerialHint")}</p>`
+                : `<p data-i18n="quickConnectBluetoothSelectHint" data-i18n-rich>${getText("quickConnectBluetoothSelectHint")}</p>`}
             </li>
           </ul>
         ` : ''}
@@ -5994,6 +6015,27 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       };
     }
 
+    function buildBleDeviceNameFilters()
+    {
+      // Firmware names end in _BLE and normally use a two-digit hexadecimal ID.
+      // Exact names let Chrome filter before the user makes a selection.
+      const prefixes = ['Bittle', 'Nybble', 'Quaddle', 'Petoi', 'Mini', 'Cub'];
+      const filters = [];
+      for (const prefix of prefixes)
+      {
+        for (const variant of [prefix, prefix.toLowerCase()])
+        {
+          filters.push({ name: `${variant}_BLE` });
+          for (let id = 0; id < 256; id += 1)
+          {
+            const suffix = id.toString(16).toUpperCase().padStart(2, '0');
+            filters.push({ name: `${variant}${suffix}_BLE` });
+          }
+        }
+      }
+      return filters;
+    }
+
     async function connectBleSerial()
     {
       if (!navigator.bluetooth || typeof navigator.bluetooth.requestDevice !== 'function')
@@ -6005,14 +6047,11 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       const serviceId = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
       const rxId = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
       const txId = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
-      const prefixes = ["bittle", "nybble", "quaddle", "petoi", "mini"];
-      const names = [...new Set(prefixes.flatMap((prefix) => [prefix, prefix[0].toUpperCase() + prefix.slice(1)]))];
-
       let device;
       try
       {
         device = await navigator.bluetooth.requestDevice({
-          filters: names.map((namePrefix) => ({ namePrefix })),
+          filters: buildBleDeviceNameFilters(),
           // JDY-23 dongles use a different BLE UART service. The broadcast name is configurable.
           exclusionFilters: [{ services: [0xffe0] }],
           optionalServices: [serviceId],
