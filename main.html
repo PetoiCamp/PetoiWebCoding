@@ -1014,6 +1014,12 @@
       return !!(writer && port && port.readable && port.writable);
     }
 
+    function hasActiveUsbSerialConnection()
+    {
+      return hasActiveSerialConnection() && !serialDevice?.isBluetooth &&
+        !isLikelyBluetoothSerialPortInfo(port.getInfo());
+    }
+
     function closeLocalControlDialog()
     {
       const dialog = document.querySelector('.local-control-dialog');
@@ -5191,7 +5197,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       }
     }
 
-    async function openSerialPort({ bluetoothOnly = false } = {})
+    async function openSerialPort({ bluetoothOnly = false, forWifi = false } = {})
     {
       if (isOpeningSerialPort)
       {
@@ -5204,10 +5210,12 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         throw pendingError;
       }
       isOpeningSerialPort = true;
+      let previousPort = port;
       let droppedBleForUsb = false;
       try
       {
-        let selectedPort = null;
+        // Quick Connect opens the picker before any asynchronous port diagnostics.
+        let selectedPort = forWifi ? await navigator.serial.requestPort({ filters: buildUsbSerialFilters() }) : null;
 
         // 检测操作系统
         const os = OPERATING_SYSTEM;
@@ -5273,8 +5281,11 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           console.log(message);
         }
 
-        const filters = bluetoothOnly ? BLUETOOTH_SERIAL_FILTERS : buildUsbSerialFilters();
-        selectedPort = await navigator.serial.requestPort({ filters });
+        if (!selectedPort)
+        {
+          const filters = bluetoothOnly ? BLUETOOTH_SERIAL_FILTERS : buildUsbSerialFilters();
+          selectedPort = await navigator.serial.requestPort({ filters });
+        }
         try
         {
           const pinfo = selectedPort.getInfo();
@@ -5286,17 +5297,21 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           }
         } catch (e) { /* ignore */ }
 
-        try
+        const selectedInfo = selectedPort.getInfo();
+        if (forWifi && isLikelyBluetoothSerialPortInfo(selectedInfo))
         {
-          const selectedInfo = selectedPort.getInfo();
-          if ((bluetoothOnly || selectedInfo.bluetoothServiceClassId != null) && !isAllowedBluetoothPortByName(selectedPort, selectedInfo))
-          {
-            alert(getText("bluetoothPortNotAllowed"));
-            throw new Error('Bluetooth serial device is not in allowed keyword list');
-          }
-        } catch (selectionError)
+          throw new Error('Wi-Fi setup requires a USB serial port');
+        }
+        if ((bluetoothOnly || selectedInfo.bluetoothServiceClassId != null) && !isAllowedBluetoothPortByName(selectedPort, selectedInfo))
         {
-          throw selectionError;
+          alert(getText("bluetoothPortNotAllowed"));
+          throw new Error('Bluetooth serial device is not in allowed keyword list');
+        }
+
+        if (port)
+        {
+          if (!await closeSerialPort()) throw new Error(getText("closeSerialError"));
+          previousPort = null;
         }
 
         // USB 串口即将打开时再断开 BLE，取消选择框不会拆掉已有的蓝牙连接。
@@ -5462,6 +5477,11 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       } catch (error)
       {
         console.error(getText("serialConnectionError"), error);
+        if (previousPort && port === previousPort)
+        {
+          isOpeningSerialPort = false;
+          throw error;
+        }
         // 选 USB 端口失败时不要拆掉已经在用的 BLE writer。
         const preserveBle = !!(writer && writer.isBle && bleLink && !droppedBleForUsb);
         port = null;
@@ -5600,11 +5620,12 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
         if (writer)
         {
+          const closingWriter = writer;
           try
           {
             // 使用Promise.race添加超时
             await Promise.race([
-              writer.close(),
+              closingWriter.close(),
               new Promise((_, reject) => setTimeout(() => reject(new Error('Writer close timeout')), TIMEOUT_CONFIG.SERIAL.WRITER_CLOSE_TIMEOUT))
             ]);
             console.log('Writer closed successfully');
@@ -5613,35 +5634,35 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
             console.warn('Failed to close writer:', writerError);
           } finally
           {
+            closingWriter.releaseLock?.();
             writer = null;
           }
         }
 
         if (port)
         {
+          const closingPort = port;
           try
           {
             // 使用Promise.race添加超时
             await Promise.race([
-              port.close(),
+              closingPort.close(),
               new Promise((_, reject) => setTimeout(() => reject(new Error('Port close timeout')), TIMEOUT_CONFIG.SERIAL.PORT_CLOSE_TIMEOUT))
             ]);
             console.log('Port closed successfully');
           } catch (portError)
           {
             console.warn('Failed to close port:', portError);
-          } finally
-          {
-            port = null;
+            if (closingPort.readable || closingPort.writable) return false;
           }
+          port = null;
         }
 
         if (closingDevice && serialDevice === closingDevice)
         {
           serialDevice = null;
           const block = connectionBlocks()[0];
-          if (!closingDevice.isBluetooth && block &&
-            matchesSerialDeviceName(block.getFieldValue('IP_ADDRESS').trim(), closingDevice))
+          if (block && matchesSerialDeviceName(block.getFieldValue('IP_ADDRESS').trim(), closingDevice))
           {
             block.setFieldValue(DEFAULT_DEVICE_ADDRESS, 'IP_ADDRESS');
           }
@@ -5687,9 +5708,11 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           repositionUndoRedoButtons();
         }, 100);
 
+        return true;
       } catch (error)
       {
         console.error(getText("closeSerialError"), error);
+        return false;
       }
     }
 
@@ -5700,10 +5723,12 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         return quickConnectPromise;
       }
 
-      if (hasActiveSerialConnection())
+      if (port && serialDevice?.port === port && serialDevice.isBluetooth)
       {
-        if (pendingSerialIP) return;
-        return runQuickConnect(queryWifiAddressOverSerial);
+        return runQuickConnect(async () =>
+        {
+          if (await closeSerialPort()) showQuickConnectChooser();
+        });
       }
 
       if (hasActiveBleConnection())
@@ -5749,25 +5774,19 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       await openSerialPort({ bluetoothOnly: true });
     }
 
-    async function connectQuickWifi()
+    async function connectQuickWifiOverSerial()
     {
-      const blockIP = workspace.getBlocksByType('make_connection')[0]?.getFieldValue('IP_ADDRESS');
-      const suggestedIP = [blockIP, config.lastKnownIP].find(isLikelyIPv4Address) || '';
-      const enteredIP = window.prompt(getText("quickConnectWifiPrompt"), suggestedIP);
-      if (enteredIP === null) return;
-
-      const ip = enteredIP.trim();
-      if (!isLikelyIPv4Address(ip))
+      if (!navigator.serial)
       {
-        alert(getText("invalidIPAddress"));
+        alert(getText("quickConnectSerialUnsupported"));
         return;
       }
 
-      const connected = await tryConnectWithWifiIP(ip);
-      if (connected === false)
+      if (!hasActiveUsbSerialConnection())
       {
-        alert(getText("connectionFailedCheck"));
+        await openSerialPort({ forWifi: true });
       }
+      await queryWifiAddressOverSerial();
     }
 
     function showQuickConnectChooser(chooseBluetooth = false)
@@ -5832,7 +5851,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       } else
       {
         addChoice('quickConnectBluetooth', 'confirm', () => showQuickConnectChooser(true));
-        addChoice('quickConnectWifi', 'confirm', () => runQuickConnect(connectQuickWifi));
+        addChoice('quickConnectWifi', 'confirm', () => runQuickConnect(connectQuickWifiOverSerial));
         addChoice('cancel', 'cancel');
       }
       overlay.addEventListener('click', closeChooser);
@@ -6014,7 +6033,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       {
         if (port || reader || (writer && !writer.isBle))
         {
-          await closeSerialPort();
+          if (!await closeSerialPort()) throw new Error(getText("closeSerialError"));
         } else
         {
           dropBleLinkSync();
@@ -6034,7 +6053,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         };
 
         writer = createBleWriter(rx);
-        bleLink = { device, rx, tx, onNotify, name: device.name || 'Bluetooth', closing: false };
+        bleLink = { device, rx, tx, onNotify, name: device.name || 'Bluetooth BLE', closing: false };
         showBleSerialMonitor(bleLink.name);
 
         tx.addEventListener('characteristicvaluechanged', onNotify);
@@ -6098,17 +6117,18 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
     {
       const outputWriter = writer;
       if (serialValidationPromise) await serialValidationPromise;
-      if (writer !== outputWriter || !hasActiveSerialConnection() || isNyBoardSerialConnection()) return;
+      if (writer !== outputWriter || !hasActiveUsbSerialConnection() || isNyBoardSerialConnection()) return;
 
       const command = new TextEncoder().encode('w\n');
       try
       {
-        for (let attempt = 1; attempt <= 3 && writer === outputWriter && hasActiveSerialConnection(); attempt++)
+        for (let attempt = 1; attempt <= 3 && writer === outputWriter && hasActiveUsbSerialConnection(); attempt++)
         {
           const response = waitForSerialIP(outputWriter, 4000);
           try
           {
             await outputWriter.write(command);
+            addSerialMessage('> w');
           } catch (error)
           {
             response.finish(null);
@@ -6117,7 +6137,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           console.log(getText('wifiCommandSent') + ` (${attempt}/3)`);
 
           const ip = await response.promise;
-          if (writer !== outputWriter || !hasActiveSerialConnection()) return;
+          if (writer !== outputWriter || !hasActiveUsbSerialConnection()) return;
           if (isValidIPAddress(ip))
           {
             await selectWifiAddress(ip);
@@ -6126,14 +6146,14 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           if (ip === DEFAULT_DEVICE_ADDRESS) break;
           if (attempt < 3) await new Promise(resolve => setTimeout(resolve, 300));
         }
-        if (writer === outputWriter && hasActiveSerialConnection())
+        if (writer === outputWriter && hasActiveUsbSerialConnection())
         {
           console.log(getText('noValidIPReceived'));
           showWifiConfigDialog(true);
         }
       } catch (error)
       {
-        if (writer === outputWriter && hasActiveSerialConnection()) showWifiConfigDialog(true);
+        if (writer === outputWriter && hasActiveUsbSerialConnection()) showWifiConfigDialog(true);
         throw error;
       }
     }
