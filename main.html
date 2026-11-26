@@ -5224,7 +5224,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           const systemPortInfo = selectedPort.getInfo();
           if (systemPortInfo.bluetoothServiceClassId != null || !isLikelyBluetoothSerialPortInfo(systemPortInfo))
           {
-            alert(getText('quickConnectMacSerialSelectPort'));
+            alert(getText('quickConnectMacSerialHint'));
             throw new Error('Select a macOS system Bluetooth serial port');
           }
         } else if (forWifi)
@@ -5834,7 +5834,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
                 <li data-i18n="quickConnectBiBoardHint" data-i18n-rich>${getText("quickConnectBiBoardHint")}</li>
               </ul>
               ${OPERATING_SYSTEM === 'mac'
-                ? `<p data-i18n="quickConnectMacSerialHint" data-i18n-rich>${getText("quickConnectMacSerialHint")}</p>`
+                ? `<p data-i18n="quickConnectMacSerialHint">${getText("quickConnectMacSerialHint")}</p>`
                 : `<p data-i18n="quickConnectBluetoothSelectHint" data-i18n-rich>${getText("quickConnectBluetoothSelectHint")}</p>`}
             </li>
           </ul>
