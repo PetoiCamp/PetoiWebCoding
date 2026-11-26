@@ -5827,15 +5827,18 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         ${chooseBluetooth ? `
           <ul class="quick-connect-hint quick-connect-bluetooth-guide">
             <li data-i18n="quickConnectQuaddleHint" data-i18n-rich>${getText("quickConnectQuaddleHint")}</li>
+            <li data-i18n="quickConnectBiBoardBleHint" data-i18n-rich>${getText("quickConnectBiBoardBleHint")}</li>
+            <li data-i18n="quickConnectNyBoardBleHint" data-i18n-rich>${getText("quickConnectNyBoardBleHint")}</li>
             <li>
               <span data-i18n="quickConnectBluetoothPairHint" data-i18n-rich>${getText("quickConnectBluetoothPairHint")}</span>
               <ul>
                 <li data-i18n="quickConnectNyBoardHint" data-i18n-rich>${getText("quickConnectNyBoardHint")}</li>
                 <li data-i18n="quickConnectBiBoardHint" data-i18n-rich>${getText("quickConnectBiBoardHint")}</li>
               </ul>
-              ${OPERATING_SYSTEM === 'mac'
-                ? `<p data-i18n="quickConnectMacSerialHint">${getText("quickConnectMacSerialHint")}</p>`
-                : `<p data-i18n="quickConnectBluetoothSelectHint" data-i18n-rich>${getText("quickConnectBluetoothSelectHint")}</p>`}
+              <p>
+                <span data-i18n="quickConnectBluetoothSelectHint" data-i18n-rich>${getText("quickConnectBluetoothSelectHint")}</span>
+                ${OPERATING_SYSTEM === 'mac' ? `<span data-i18n="quickConnectMacSerialHint">${getText("quickConnectMacSerialHint")}</span>` : ''}
+              </p>
             </li>
           </ul>
         ` : ''}
@@ -5914,7 +5917,8 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       } catch (error) { /* ignore */ }
       try
       {
-        if (link.device && link.device.gatt && link.device.gatt.connected)
+        link.device.removeEventListener('gattserverdisconnected', onBleGattDisconnected);
+        if (link.device.gatt.connected)
         {
           link.device.gatt.disconnect();
         }
@@ -5929,12 +5933,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
     function onBleGattDisconnected()
     {
       if (!bleLink || bleLink.closing) return;
-      restoreConnectionBlockAddress();
-      bleLink = null;
-      if (writer && writer.isBle)
-      {
-        writer = null;
-      }
+      dropBleLinkSync();
       if (!port)
       {
         closeSerialPort();
@@ -5999,6 +5998,9 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
               if (rx.properties.writeWithoutResponse && typeof rx.writeValueWithoutResponse === 'function')
               {
                 await rx.writeValueWithoutResponse(chunk);
+              } else if (rx.properties.write && typeof rx.writeValueWithResponse === 'function')
+              {
+                await rx.writeValueWithResponse(chunk);
               } else
               {
                 await rx.writeValue(chunk);
@@ -6017,19 +6019,18 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
     function buildBleDeviceNameFilters()
     {
-      // Firmware names end in _BLE and normally use a two-digit hexadecimal ID.
-      // Exact names let Chrome filter before the user makes a selection.
+      // Dual-mode firmware can expose its shared _SSP name to BLE clients.
       const prefixes = ['Bittle', 'Nybble', 'Quaddle', 'Petoi', 'Mini', 'Cub'];
       const filters = [];
       for (const prefix of prefixes)
       {
         for (const variant of [prefix, prefix.toLowerCase()])
         {
-          filters.push({ name: `${variant}_BLE` });
+          filters.push({ name: `${variant}_BLE` }, { name: `${variant}_SSP` });
           for (let id = 0; id < 256; id += 1)
           {
             const suffix = id.toString(16).toUpperCase().padStart(2, '0');
-            filters.push({ name: `${variant}${suffix}_BLE` });
+            filters.push({ name: `${variant}${suffix}_BLE` }, { name: `${variant}${suffix}_SSP` });
           }
         }
       }
@@ -6044,17 +6045,21 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         return;
       }
 
-      const serviceId = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-      const rxId = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
-      const txId = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+      const nordicServiceId = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+      const nordicRxId = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+      const nordicTxId = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+      const jdy23ServiceId = 0xffe0;
+      const jdy23CharacteristicId = 0xffe1;
       let device;
       try
       {
         device = await navigator.bluetooth.requestDevice({
-          filters: buildBleDeviceNameFilters(),
-          // JDY-23 dongles use a different BLE UART service. The broadcast name is configurable.
-          exclusionFilters: [{ services: [0xffe0] }],
-          optionalServices: [serviceId],
+          filters: [
+            ...buildBleDeviceNameFilters(),
+            { namePrefix: 'PetoiBLE-' },
+            { services: [jdy23ServiceId] },
+          ],
+          optionalServices: [nordicServiceId, jdy23ServiceId],
         });
       } catch (error)
       {
@@ -6068,6 +6073,14 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
       const quickConnectBtn = document.getElementById('quickConnectBtn');
       if (quickConnectBtn) quickConnectBtn.disabled = true;
+      let tx;
+      const onNotify = (event) =>
+      {
+        const value = event && event.target ? event.target.value : null;
+        if (!value) return;
+        const bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+        ingestSerialChunk(new TextDecoder().decode(bytes));
+      };
       try
       {
         if (port || reader || (writer && !writer.isBle))
@@ -6078,25 +6091,30 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
           dropBleLinkSync();
         }
 
-        device.addEventListener('gattserverdisconnected', onBleGattDisconnected);
         const server = await device.gatt.connect();
-        const service = await server.getPrimaryService(serviceId);
-        const rx = await service.getCharacteristic(rxId);
-        const tx = await service.getCharacteristic(txId);
-        const onNotify = (event) =>
+        const nordicService = await server.getPrimaryService(nordicServiceId).catch(error =>
         {
-          const value = event && event.target ? event.target.value : null;
-          if (!value) return;
-          const bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
-          ingestSerialChunk(new TextDecoder().decode(bytes));
-        };
+          if (error.name !== 'NotFoundError') throw error;
+          return null;
+        });
+        const service = nordicService || await server.getPrimaryService(jdy23ServiceId);
+        const rx = await service.getCharacteristic(nordicService ? nordicRxId : jdy23CharacteristicId);
+        tx = nordicService ? await service.getCharacteristic(nordicTxId) : rx;
+        if (!rx.properties.write && !rx.properties.writeWithoutResponse)
+        {
+          throw new Error(getText('bleUartNotWritable'));
+        }
+        tx.addEventListener('characteristicvaluechanged', onNotify);
+        await tx.startNotifications();
+        if (!server.connected)
+        {
+          throw new Error(getText('bleDisconnectedDuringSetup'));
+        }
 
         writer = createBleWriter(rx);
         bleLink = { device, rx, tx, onNotify, name: device.name || 'Bluetooth BLE', closing: false };
+        device.addEventListener('gattserverdisconnected', onBleGattDisconnected);
         showBleSerialMonitor(bleLink.name);
-
-        tx.addEventListener('characteristicvaluechanged', onNotify);
-        await tx.startNotifications();
         showBleNameOnConnectionBlock();
         updateQuickConnectButtonState(bleLink.name);
 
@@ -6112,7 +6130,14 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         }
       } catch (error)
       {
-        dropBleLinkSync();
+        if (bleLink?.device === device)
+        {
+          dropBleLinkSync();
+        } else
+        {
+          tx?.removeEventListener('characteristicvaluechanged', onNotify);
+          if (device.gatt.connected) device.gatt.disconnect();
+        }
         console.error(getText("bleConnectFailed").replace("{error}", (error && error.message) ? error.message : String(error)));
         alert(getText("bleConnectFailed").replace("{error}", (error && error.message) ? error.message : String(error)));
         if (!port)
