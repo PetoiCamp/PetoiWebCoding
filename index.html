@@ -69,6 +69,19 @@
 
     .language-switch {
       display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .local-download {
+      color: #0366d6;
+      font-size: 14px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .local-download:hover {
+      text-decoration: underline;
     }
 
     .lang-select {
@@ -287,6 +300,8 @@
     <div class="top-row">
       <h1 class="title" id="portalTitle">Petoi Coding Portal</h1>
       <div class="language-switch" aria-label="Language switcher">
+        <a class="local-download" id="localDownload" href="https://github.com/PetoiCamp/PetoiWebCoding/releases/latest"
+          target="_blank" rel="noopener noreferrer" hidden>Download local</a>
         <select id="langSelect" class="lang-select" aria-label="Language" onchange="setLanguage(this.value)">
           <option value="en">🇺🇸 En</option>
           <option value="zh">🇨🇳 Zh</option>
@@ -344,6 +359,7 @@
     const TEXTS = {
       zh: {
         appTitle: "Petoi编程门户",
+        downloadLocalVersion: "下载本地版",
         enterButton: "Petoi陪拓网页编程积木",
         skillComposerButton: "Petoi 技能编辑器（Bittle）",
         remoteButton: "Petoi Web Controller (Under construction)",
@@ -356,6 +372,7 @@
       },
       en: {
         appTitle: "Petoi Coding Portal",
+        downloadLocalVersion: "Download local",
         enterButton: "Petoi Web Coding Blocks",
         skillComposerButton: "Petoi Skill Composer (Bittle)",
         remoteButton: "Petoi Web Controller (Under construction)",
@@ -368,6 +385,7 @@
       },
       ja: {
         appTitle: "Petoiコーディングポータル",
+        downloadLocalVersion: "ローカル版",
         enterButton: "Petoiウェブコーディングブロック",
         skillComposerButton: "Petoi スキルコンポーザー（Bittle）",
         remoteButton: "Petoi Web Controller (Under construction)",
@@ -429,6 +447,8 @@
 
     let currentLang = getInitialLanguage();
     let selectedProductType = PetoiProducts.fromStorage();
+    const localDownload = document.getElementById("localDownload");
+    localDownload.hidden = window.location.protocol !== "file:";
 
     function buildPageUrl(page)
     {
@@ -485,6 +505,7 @@
       const appTitle = TEXTS[currentLang].appTitle || "Petoi Coding Portal";
       document.title = appTitle;
       document.getElementById("portalTitle").textContent = appTitle;
+      localDownload.textContent = TEXTS[currentLang].downloadLocalVersion;
       document.getElementById("langHint").textContent = TEXTS[currentLang].langHint;
 
       const mainLink = document.getElementById("enterMainLink");

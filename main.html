@@ -59,7 +59,7 @@
           <span id="versionDate"></span>
           <span id="internalDebugVersionLabel" data-i18n="internalDebugVersion" hidden>Internal Debug</span>
         </div>
-        <span class="version-download-wrap">
+        <span class="version-download-wrap" id="localDownload" hidden>
           <a class="version-download" href="https://github.com/PetoiCamp/PetoiWebCoding/releases/latest" target="_blank" rel="noopener noreferrer" data-i18n="downloadLocalVersion" aria-describedby="downloadLocalVersionTip">Download local</a>
           <span class="version-download-tip" id="downloadLocalVersionTip" role="tooltip" data-i18n="downloadLocalVersionTip">The downloadable version lets you connect the robot via Wi-Fi. The browser does not allow a page on the internet to reach your internal Wi-Fi. Bluetooth does not require a local download.</span>
         </span>
@@ -227,6 +227,7 @@
     // 'internal' shows the version label and offers both Quick Connect Bluetooth modes.
     const APP_RELEASE_LEVEL = 'release';
     document.getElementById('internalDebugVersionLabel').hidden = APP_RELEASE_LEVEL !== 'internal';
+    document.getElementById('localDownload').hidden = window.location.protocol !== 'file:';
 
     // Global version date variable (format: vYear.Month.Day)
     const GLOBAL_VERSION_DATE = "v2026.11.27";

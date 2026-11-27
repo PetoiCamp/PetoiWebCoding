@@ -51,6 +51,9 @@ body {
 
 .version-download-wrap {
     position: relative;
+}
+
+.version-download-wrap:not([hidden]) {
     display: inline-flex;
 }
 
