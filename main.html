@@ -50,12 +50,15 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 
-<body>
+<body class="editor-page">
   <div class="header">
     <div class="title" data-i18n="appTitle">Petoi Web Coding Blocks</div>
     <div class="header-right">
       <div class="version-group">
-        <div class="version-date" id="versionDate"></div>
+        <div class="version-date">
+          <span id="versionDate"></span>
+          <span id="internalDebugVersionLabel" data-i18n="internalDebugVersion" hidden>Internal Debug</span>
+        </div>
         <span class="version-download-wrap">
           <a class="version-download" href="https://github.com/PetoiCamp/PetoiWebCoding/releases/latest" target="_blank" rel="noopener noreferrer" data-i18n="downloadLocalVersion" aria-describedby="downloadLocalVersionTip">Download local</a>
           <span class="version-download-tip" id="downloadLocalVersionTip" role="tooltip" data-i18n="downloadLocalVersionTip">The downloadable version lets you connect the robot via Wi-Fi. The browser does not allow a page on the internet to reach your internal Wi-Fi. Bluetooth does not require a local download.</span>
@@ -178,6 +181,7 @@
     const DEFAULT_TEXT_FALLBACKS = {
       bluetoothPortNotAllowed: 'Only Bluetooth serial devices with names containing petoi, bittle, nybble, or mini are allowed.',
       serialPortOpenFailed: 'Failed to open serial port: {error}',
+      wifiConfigSent: 'Wi-Fi settings sent.',
     };
 
     // New translation helper function
@@ -219,9 +223,14 @@
       return `[${hours}:${minutes}:${seconds}.${milliseconds}]`;
     }
 
+    // Set to 'internal' for internal debugging or 'release' for public distribution.
+    // 'internal' shows the version label and offers both Quick Connect Bluetooth modes.
+    const APP_RELEASE_LEVEL = 'release';
+    document.getElementById('internalDebugVersionLabel').hidden = APP_RELEASE_LEVEL !== 'internal';
+
     // Global version date variable (format: vYear.Month.Day)
-    const GLOBAL_VERSION_DATE = "v2026.11.20";
-    const GLOBAL_VERSION_LAST_MODIFIED = "2026-11-20 10:32:00";
+    const GLOBAL_VERSION_DATE = "v2026.11.27";
+    const GLOBAL_VERSION_LAST_MODIFIED = "2026-11-27 15:06:00";
 
     // Set version date
     function setVersionDate()
@@ -716,14 +725,9 @@
       setupMainActionButtonLongPressHint();
 
       const divider = document.getElementById('divider');
-      const horizontalDivider = document.getElementById('console-serial-divider');
       if (divider)
       {
         divider.style.display = active ? 'none' : '';
-      }
-      if (horizontalDivider && !active && !port)
-      {
-        horizontalDivider.style.display = 'none';
       }
 
       resizeBlocklyWorkspace();
@@ -1719,6 +1723,7 @@
 
         // 添加窗口大小变化事件监听器
         window.addEventListener('resize', resizeBlocklyWorkspace);
+        document.querySelector('.editor-page > .container').addEventListener('scroll', repositionUndoRedoButtons);
 
         // 设置初始宽度比例
         const container = document.querySelector('.workspace-container');
@@ -5874,7 +5879,15 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         addChoice('quickConnectSerialPort', 'confirm', () => runQuickConnect(connectQuickBluetoothSerial));
       } else
       {
-        addChoice('quickConnectBluetooth', 'confirm', () => showQuickConnectChooser(true));
+        addChoice('quickConnectBluetooth', 'confirm', () =>
+        {
+          if (APP_RELEASE_LEVEL === 'internal')
+          {
+            showQuickConnectChooser(true);
+            return;
+          }
+          return runQuickConnect(connectBleSerial);
+        });
         addChoice('quickConnectWifi', 'confirm', () => runQuickConnect(connectQuickWifiOverSerial));
         addChoice('cancel', 'cancel');
       }
@@ -6158,13 +6171,14 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       if (overlay) overlay.remove();
     }
 
-    function waitForSerialIP(outputWriter, timeout)
+    function waitForSerialIP(outputWriter, timeout, { allowDefaultAddress = true } = {})
     {
       let resolveIP;
       const promise = new Promise(resolve => { resolveIP = resolve; });
       const response = {
         writer: outputWriter,
         promise,
+        accepts: allowDefaultAddress ? isLikelyIPv4Address : isValidIPAddress,
         finish(ip)
         {
           clearTimeout(timer);
@@ -6182,39 +6196,32 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       const outputWriter = writer;
       if (serialValidationPromise) await serialValidationPromise;
       if (writer !== outputWriter || !hasActiveUsbSerialConnection() || isNyBoardSerialConnection()) return;
+      if (pendingSerialIP?.writer === outputWriter) return;
 
       const command = new TextEncoder().encode('w\n');
       try
       {
-        for (let attempt = 1; attempt <= 3 && writer === outputWriter && hasActiveUsbSerialConnection(); attempt++)
+        const response = waitForSerialIP(outputWriter, 4000);
+        try
         {
-          const response = waitForSerialIP(outputWriter, 4000);
-          try
-          {
-            await outputWriter.write(command);
-            addSerialMessage('> w');
-          } catch (error)
-          {
-            response.finish(null);
-            throw error;
-          }
-          console.log(getText('wifiCommandSent') + ` (${attempt}/3)`);
+          await outputWriter.write(command);
+          addSerialMessage('> w');
+        } catch (error)
+        {
+          response.finish(null);
+          throw error;
+        }
+        console.log(getText('wifiCommandSent'));
 
-          const ip = await response.promise;
-          if (writer !== outputWriter || !hasActiveUsbSerialConnection()) return;
-          if (isValidIPAddress(ip))
-          {
-            await selectWifiAddress(ip);
-            return;
-          }
-          if (ip === DEFAULT_DEVICE_ADDRESS) break;
-          if (attempt < 3) await new Promise(resolve => setTimeout(resolve, 300));
-        }
-        if (writer === outputWriter && hasActiveUsbSerialConnection())
+        const ip = await response.promise;
+        if (writer !== outputWriter || !hasActiveUsbSerialConnection()) return;
+        if (isValidIPAddress(ip))
         {
-          console.log(getText('noValidIPReceived'));
-          showWifiConfigDialog(true);
+          await selectWifiAddress(ip);
+          return;
         }
+        console.log(getText('noValidIPReceived'));
+        showWifiConfigDialog(true);
       } catch (error)
       {
         if (writer === outputWriter && hasActiveUsbSerialConnection()) showWifiConfigDialog(true);
@@ -6463,6 +6470,9 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
     async function confirmWifiSettings()
     {
+      const confirmBtn = document.querySelector('.wifi-dialog .confirm');
+      if (!confirmBtn || confirmBtn.disabled) return;
+
       const ssid = document.getElementById('ssidInput').value.trim();
       const password = document.getElementById('passwordInput').value.trim();
 
@@ -6473,20 +6483,20 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
       }
 
       // 显示加载状态
-      const confirmBtn = document.querySelector('.wifi-dialog .confirm');
       const originalText = confirmBtn.textContent;
       confirmBtn.textContent = getText("connecting") || "Connecting...";
       confirmBtn.disabled = true;
 
       const command = `w%${ssid}%${password}\n`;
       const outputWriter = writer;
+      const wifiConfigIPTimeout = 30000;
       let response;
 
       try
       {
         if (outputWriter)
         {
-          response = waitForSerialIP(outputWriter, 5000);
+          response = waitForSerialIP(outputWriter, wifiConfigIPTimeout, { allowDefaultAddress: false });
           await outputWriter.write(new TextEncoder().encode(command));
           console.log(getText('wifiConfigCommandSent'));
         }
@@ -6498,23 +6508,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
         closeWifiDialog();
 
         // 显示成功消息
-        showNotification(getText("wifiConfigSent") || "WiFi configuration sent successfully. The robot will reboot and connect to your network.", 'success');
-
-        // 等待一段时间后尝试连接
-        setTimeout(async () =>
-        {
-          if (writer && writer !== outputWriter) return;
-          console.log(getText('attemptingConnectAfterWifiConfig'));
-          const ip = await response?.promise;
-          if (isValidIPAddress(ip))
-          {
-            await tryConnectWithWifiIP(ip);
-          } else
-          {
-            await tryConnectWithConfigIP();
-          }
-        }, 5000); // 等待5秒让设备重启并连接
-
+        showNotification(getText('wifiConfigSent'), 'success');
       } catch (error)
       {
         response?.finish(null);
@@ -6526,6 +6520,20 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
         // 显示错误消息
         showNotification(getText("wifiCommandFailed") || "Failed to send WiFi configuration. Please check your serial connection.", 'error');
+        return;
+      }
+
+      const ip = await response?.promise;
+      if (writer !== outputWriter) return;
+
+      console.log(getText('attemptingConnectAfterWifiConfig'));
+      if (isValidIPAddress(ip))
+      {
+        await selectWifiAddress(ip);
+        await tryConnectWithWifiIP(ip);
+      } else
+      {
+        await tryConnectWithConfigIP();
       }
     }
 
@@ -6768,7 +6776,7 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
             for (let index = lines.length - 1; index >= 0; index--)
             {
               const ip = lines[index].match(/IP Address:\s*(\d{1,3}(?:\.\d{1,3}){3})(?=\D|$)/)?.[1];
-              if (isLikelyIPv4Address(ip))
+              if (pendingSerialIP.accepts(ip))
               {
                 pendingSerialIP.finish(ip);
                 break;
@@ -7305,10 +7313,6 @@ RULE: DO NOT insert rest command "d" between actions unless user explicitly asks
 
       const serialInterface = document.getElementById('serialInterface');
       serialInterface.style.display = 'flex';
-      serialInterface.style.flexDirection = 'column';
-      serialInterface.style.height = '200px';
-      serialInterface.style.minHeight = '150px';
-      serialInterface.style.maxHeight = '400px';
 
       const serialContainer = document.getElementById('serialContainer');
       serialContainer.classList.add('connected');

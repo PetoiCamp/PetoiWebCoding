@@ -173,6 +173,25 @@ body {
     padding: 20px;
 }
 
+.editor-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+}
+
+.editor-page > .header {
+    flex-shrink: 0;
+}
+
+.editor-page > .container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
 .button-group {
     margin-bottom: 20px;
     display: flex;
@@ -217,6 +236,7 @@ body {
 }
 
 .main-action-bar {
+    flex-shrink: 0;
     flex-wrap: nowrap;
     gap: 6px;
     min-width: 0;
@@ -251,10 +271,8 @@ body {
 
 .workspace-container {
     display: flex;
-    gap: 0;
-    /* 移除间隙，由分隔线控制 */
-    height: calc(100vh - 150px);
-    /* 使用视口高度计算容器高度 */
+    flex: 1;
+    min-height: 280px;
     width: 100%;
     position: relative;
 }
@@ -262,8 +280,7 @@ body {
 #blocklyDiv {
     flex: 7;
     /* 默认占据70%空间 */
-    height: 100%;
-    /* 使用100%高度填充父容器 */
+    box-sizing: border-box;
     border: 1px solid #ccc;
     min-width: 0;
 }
@@ -272,7 +289,7 @@ body {
 .windows-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    box-sizing: border-box;
     overflow: hidden;
     background-color: #f5f5f5;
     min-width: 0;
@@ -355,17 +372,28 @@ body {
 
 .serial-input-container {
     display: flex;
+    flex: 0 0 48px;
+    min-height: 0;
+    box-sizing: border-box;
     gap: 5px;
     padding: 10px;
     background-color: #1e1e1e;
     border-top: 1px solid #333;
+    font: 14px/15px Arial, sans-serif;
 }
 
 .serial-input-container input {
     flex: 1;
+    min-width: 0;
     padding: 5px;
     border: 1px solid #ccc;
     border-radius: 4px;
+    font: inherit;
+}
+
+.serial-input-container .serial-button {
+    flex-shrink: 0;
+    font: inherit;
 }
 
 /* 串口按钮区域 */
@@ -605,7 +633,8 @@ body {
     display: none;
     flex-direction: column;
     overflow: hidden;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     width: 100%;
     max-width: 100%;
     background-color: #1e1e1e;
@@ -663,6 +692,7 @@ body {
 .area-header {
     margin: 0;
     display: grid;
+    flex-shrink: 0;
     grid-template-columns: minmax(72px, 1fr) auto;
     align-items: center;
     gap: 8px;
@@ -832,6 +862,7 @@ body {
 .horizontal-resizer {
     width: 100%;
     height: 4px;
+    flex-shrink: 0;
     background-color: #f0f0f0;
     cursor: row-resize;
     transition: background-color 0.2s;
@@ -1629,17 +1660,16 @@ body.mobile-layout .main-action-bar .mobile-main-action.mobile-icon-only {
 
 body.mobile-layout .mobile-orientation-hint {
     display: inline-flex;
+    flex-shrink: 0;
 }
 
 body.mobile-layout .workspace-container {
-    height: calc(100vh - 190px);
     min-height: 420px;
 }
 
 body.mobile-layout.mobile-portrait .workspace-container {
     flex-direction: column;
-    height: auto;
-    min-height: calc(100vh - 210px);
+    min-height: auto;
 }
 
 body.mobile-layout.mobile-portrait #blocklyDiv {
@@ -1652,7 +1682,9 @@ body.mobile-layout.mobile-portrait #blocklyDiv {
 body.mobile-layout.mobile-portrait .windows-container {
     width: 100% !important;
     flex-basis: auto !important;
-    min-height: 36vh;
+    height: 36vh;
+    height: 36dvh;
+    min-height: 360px;
     padding: 8px;
     overflow: auto;
 }
